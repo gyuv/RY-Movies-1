@@ -28,12 +28,18 @@ export interface WatchOption {
   deepLink: string;
 }
 
+export interface VideoClip {
+  key: string; // YouTube key
+  name: string;
+  type: "Trailer" | "Teaser" | "Clip" | "Featurette";
+}
+
 export interface MediaDetail extends MediaSummary {
   runtimeMinutes: number | null;
   tagline: string | null;
   genres: { id: number; name: string }[];
   cast: CastMember[];
-  trailerKey: string | null; // YouTube key, official trailers only
+  videos: VideoClip[]; // trailers/teasers/clips, official sources only (YouTube via TMDb)
   watchOptions: WatchOption[];
 }
 
