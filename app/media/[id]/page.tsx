@@ -63,8 +63,8 @@ export default async function MediaDetailPage({
 
       <div className="film-perf my-10" aria-hidden />
 
-      <div className="grid lg:grid-cols-[1fr,340px] gap-10">
-        <div className="space-y-10">
+      <div className="grid lg:grid-cols-[1fr,340px] gap-10 min-w-0">
+        <div className="space-y-10 min-w-0">
           <section>
             <p className="stub-label mb-3">Trailer</p>
             <VideoPlayer videos={media.videos} title={media.title} />
