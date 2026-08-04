@@ -47,12 +47,22 @@
   }
 
   .ticket-tear {
-    -webkit-mask-image: radial-gradient(circle 5px at 0 50%, transparent 5px, black 5.5px),
-      radial-gradient(circle 5px at 100% 50%, transparent 5px, black 5.5px);
-    -webkit-mask-position: left center, right center;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: 12px 100%, 12px 100%;
+    position: relative;
   }
+  .ticket-tear::before,
+  .ticket-tear::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    background: theme("colors.ink.DEFAULT");
+    border-radius: 9999px;
+    transform: translateY(-50%);
+    z-index: 10;
+  }
+  .ticket-tear::before { left: -5px; }
+  .ticket-tear::after { right: -5px; }
 
   .stub-label {
     @apply font-mono text-[11px] uppercase tracking-stub text-paper-dim;
