@@ -66,8 +66,12 @@ export default async function MediaDetailPage({
       <div className="grid lg:grid-cols-[1fr,340px] gap-10 min-w-0">
         <div className="space-y-10 min-w-0">
           <section>
-            <p className="stub-label mb-3">Trailer</p>
-            <VideoPlayer videos={media.videos} title={media.title} />
+            <p className="stub-label mb-3">Full Movie Player</p>
+            <VideoPlayer 
+              mediaId={params.id} 
+              mediaType={kind} 
+              customTitle={media.title} 
+            />
           </section>
 
           <section>
