@@ -31,7 +31,7 @@ export default function VideoPlayer({
   const active = videos[activeIndex];
 
   return (
-    <div className="w-full border border-ink-line bg-ink-raised overflow-hidden">
+    <div className="w-full min-w-0 border border-ink-line bg-ink-raised overflow-hidden">
       {/* Player */}
       <div className="relative aspect-video w-full bg-black">
         {started ? (
