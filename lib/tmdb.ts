@@ -6,6 +6,7 @@ import type {
   MediaSummary,
   SearchFilters,
   SearchResponse,
+  VideoClip,
   WatchOption,
 } from "@/types";
 
@@ -176,9 +177,16 @@ export async function getMediaDetail(kind: MediaKind, id: number): Promise<Media
     photoUrl: posterUrl(c.profile_path, "w342"),
   }));
 
-  const trailer = (videos.results ?? []).find(
-    (v: any) => v.site === "YouTube" && v.type === "Trailer" && v.official
-  ) ?? (videos.results ?? []).find((v: any) => v.site === "YouTube" && v.type === "Trailer");
+  const ALLOWED_TYPES = new Set(["Trailer", "Teaser", "Clip", "Featurette"]);
+  const clips: VideoClip[] = (videos.results ?? [])
+    .filter((v: any) => v.site === "YouTube" && ALLOWED_TYPES.has(v.type))
+    // official trailers first, then teasers, then clips/featurettes
+    .sort((a: any, b: any) => {
+      const rank = (v: any) => (v.type === "Trailer" ? 0 : v.type === "Teaser" ? 1 : 2) - (v.official ? 0.5 : 0);
+      return rank(a) - rank(b);
+    })
+    .slice(0, 6)
+    .map((v: any) => ({ key: v.key, name: v.name, type: v.type }));
 
   const regionProviders = providers.results?.[REGION];
   const watchOptions: WatchOption[] = [];
@@ -206,7 +214,7 @@ export async function getMediaDetail(kind: MediaKind, id: number): Promise<Media
     tagline: detail.tagline || null,
     genres: detail.genres ?? [],
     cast,
-    trailerKey: trailer?.key ?? null,
+    videos: clips,
     watchOptions,
   };
 }
@@ -265,7 +273,7 @@ function mockDetail(kind: MediaKind, id: number): MediaDetail {
       { id: 1, name: "Sample Actor", character: "Lead Role", photoUrl: null },
       { id: 2, name: "Sample Actress", character: "Supporting Role", photoUrl: null },
     ],
-    trailerKey: null,
+    videos: [],
     watchOptions: [
       { providerId: 8, providerName: "Netflix", logoUrl: null, tier: "flatrate", deepLink: "#" },
       { providerId: 2, providerName: "Apple TV", logoUrl: null, tier: "rent", deepLink: "#" },
