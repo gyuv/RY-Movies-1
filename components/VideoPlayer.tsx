@@ -1,99 +1,98 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { VideoClip } from "@/types";
+import React, { useState, useEffect } from 'react';
 
-/**
- * Distraction-free player with a source-switcher tab strip underneath —
- * same interaction pattern you'd see on a streaming site, but every tab
- * points at an official clip (trailer/teaser/featurette) served through
- * YouTube's own embed, pulled from TMDb's `videos` endpoint. No third-party
- * "server 1 / server 2" stream mirrors — see README for why.
- */
-export default function VideoPlayer({
-  videos,
-  title,
-}: {
-  videos: VideoClip[];
-  title: string;
-}) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [started, setStarted] = useState(false);
+interface VideoPlayerProps {
+  mediaId: string | number;
+  mediaType?: 'movie' | 'tv';
+  customTitle?: string;
+}
 
-  if (videos.length === 0) {
-    return (
-      <div className="aspect-video w-full bg-ink-raised border border-ink-line flex items-center justify-center">
-        <p className="stub-label">No trailer available</p>
-      </div>
-    );
-  }
+export default function VideoPlayer({ mediaId, mediaType = 'movie', customTitle }: VideoPlayerProps) {
+  const [activeServer, setActiveServer] = useState('server1');
+  const [currentEmbedUrl, setCurrentEmbedUrl] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const active = videos[activeIndex];
+  useEffect(() => {
+    async function resolveServerUrl() {
+      setLoading(true);
+      try {
+        if (activeServer === 'server1') {
+          setCurrentEmbedUrl(`https://vidsrc.to/embed/${mediaType}/${mediaId}`);
+        } else if (activeServer === 'server2') {
+          setCurrentEmbedUrl(`https://embed.su/embed/${mediaType}/${mediaId}`);
+        } else if (activeServer === 'server3') {
+          const res = await fetch(`/api/stream?id=${mediaId}&type=${mediaType}&source=mkvking`);
+          const data = await res.json();
+          setCurrentEmbedUrl(data.embedUrl || `https://vidsrc.xyz/embed/${mediaType}/${mediaId}`);
+        } else if (activeServer === 'server4') {
+          setCurrentEmbedUrl(`https://vidsrc.xyz/embed/${mediaType}/${mediaId}`);
+        }
+      } catch (err) {
+        console.error("Stream resolution error, utilizing fallback.", err);
+        setCurrentEmbedUrl(`https://vidsrc.to/embed/${mediaType}/${mediaId}`);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    resolveServerUrl();
+  }, [activeServer, mediaId, mediaType]);
 
   return (
-    <div className="w-full min-w-0 border border-ink-line bg-ink-raised overflow-hidden">
-      {/* Player */}
-      <div className="relative aspect-video w-full bg-black">
-        {started ? (
-          <iframe
-            key={active.key}
-            className="absolute inset-0 w-full h-full"
-            src={`https://www.youtube-nocookie.com/embed/${active.key}?autoplay=1&rel=0&modestbranding=1`}
-            title={`${title} — ${active.name}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+    <div className="w-full max-w-5xl mx-auto bg-gray-950 rounded-2xl overflow-hidden shadow-2xl border border-gray-800 my-4">
+      {/* Header Info */}
+      <div className="px-6 py-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
+        <h2 className="text-white font-semibold text-lg">
+          Streaming: <span className="text-indigo-400">{customTitle || 'Selected Media'}</span>
+        </h2>
+        <span className="text-xs px-3 py-1 bg-green-500/10 text-green-400 rounded-full font-medium border border-green-500/20">
+          ● Live Stream
+        </span>
+      </div>
+
+      {/* Main Video Display Window */}
+      <div className="relative w-full aspect-video bg-black flex items-center justify-center">
+        {loading ? (
+          <div className="text-indigo-400 font-medium animate-pulse">Loading secure stream server...</div>
         ) : (
-          <button
-            onClick={() => setStarted(true)}
-            className="absolute inset-0 w-full h-full group"
-            aria-label={`Play ${active.name}`}
-          >
-            <img
-              src={`https://img.youtube.com/vi/${active.key}/maxresdefault.jpg`}
-              alt=""
-              className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity"
-            />
-            <span className="absolute inset-0 flex items-center justify-center">
-              <span className="w-16 h-16 rounded-full border-2 border-marquee flex items-center justify-center bg-ink/60 group-hover:bg-marquee/20 transition-colors">
-                <span
-                  className="w-0 h-0 ml-1"
-                  style={{
-                    borderTop: "9px solid transparent",
-                    borderBottom: "9px solid transparent",
-                    borderLeft: "14px solid #E8A33D",
-                  }}
-                />
-              </span>
-            </span>
-            <span className="absolute bottom-3 left-3 stub-label">{active.name}</span>
-          </button>
+          <iframe
+            src={currentEmbedUrl}
+            className="absolute top-0 left-0 w-full h-full border-0"
+            allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            title="Multi-Server Streaming Player"
+          />
         )}
       </div>
 
-      {/* Source-switcher tab strip */}
-      {videos.length > 1 && (
-        <div className="flex items-center gap-2 p-3 border-t border-ink-line overflow-x-auto">
-          <span className="stub-label mr-1 flex-shrink-0">Reel</span>
-          {videos.map((v, i) => (
+      {/* Multi-Server Selection Toolbar */}
+      <div className="p-4 bg-gray-900 border-t border-gray-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="text-sm text-gray-400 font-medium">
+          Switch Server if current stream fails:
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: 'server1', label: 'SonixHub Server (Primary)' },
+            { id: 'server2', label: 'MoviesDK Node' },
+            { id: 'server3', label: 'MKVKing Scraper Node' },
+            { id: 'server4', label: 'Backup Free Stream' },
+          ].map((server) => (
             <button
-              key={v.key}
-              onClick={() => {
-                setActiveIndex(i);
-                setStarted(true);
-              }}
-              className={`flex-shrink-0 px-3 py-1.5 text-xs font-mono uppercase tracking-wide border transition-colors ${
-                i === activeIndex
-                  ? "border-marquee text-marquee"
-                  : "border-ink-line text-paper-dim hover:text-paper hover:border-paper-dim"
+              key={server.id}
+              onClick={() => setActiveServer(server.id)}
+              className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 ${
+                activeServer === server.id
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-2 ring-indigo-400/50'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
               }`}
             >
-              {v.type}
-              {videos.filter((x) => x.type === v.type).length > 1 ? ` ${i + 1}` : ""}
+              {server.label}
             </button>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
