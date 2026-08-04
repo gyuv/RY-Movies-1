@@ -2,49 +2,70 @@
 
 import React, { useState, useEffect } from 'react';
 
-interface VideoPlayerProps {
-  mediaId: string | number;
-  mediaType?: 'movie' | 'tv';
-  customTitle?: string;
+// Define the shape of video clips if passed from TMDb
+interface VideoClip {
+  key: string;
+  name: string;
+  site: string;
+  type: string;
 }
 
-export default function VideoPlayer({ mediaId, mediaType = 'movie', customTitle }: VideoPlayerProps) {
+interface VideoPlayerProps {
+  mediaId?: string | number;
+  mediaType?: 'movie' | 'tv';
+  customTitle?: string;
+  title?: string;
+  videos?: VideoClip[];
+}
+
+export default function VideoPlayer({ mediaId, mediaType = 'movie', customTitle, title, videos }: VideoPlayerProps) {
   const [activeServer, setActiveServer] = useState('server1');
   const [currentEmbedUrl, setCurrentEmbedUrl] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // Fallback to extract an ID or use props
+  const resolvedTitle = customTitle || title || 'Selected Media';
 
   useEffect(() => {
     async function resolveServerUrl() {
       setLoading(true);
       try {
+        if (!mediaId && videos && videos.length > 0) {
+          // If we only have YouTube trailer keys passed down
+          setCurrentEmbedUrl(`https://www.youtube.com/embed/${videos[0].key}`);
+          setLoading(false);
+          return;
+        }
+
+        const targetId = mediaId || '12345'; // fallback ID
         if (activeServer === 'server1') {
-          setCurrentEmbedUrl(`https://vidsrc.to/embed/${mediaType}/${mediaId}`);
+          setCurrentEmbedUrl(`https://vidsrc.to/embed/${mediaType}/${targetId}`);
         } else if (activeServer === 'server2') {
-          setCurrentEmbedUrl(`https://embed.su/embed/${mediaType}/${mediaId}`);
+          setCurrentEmbedUrl(`https://embed.su/embed/${mediaType}/${targetId}`);
         } else if (activeServer === 'server3') {
-          const res = await fetch(`/api/stream?id=${mediaId}&type=${mediaType}&source=mkvking`);
+          const res = await fetch(`/api/stream?id=${targetId}&type=${mediaType}&source=mkvking`);
           const data = await res.json();
-          setCurrentEmbedUrl(data.embedUrl || `https://vidsrc.xyz/embed/${mediaType}/${mediaId}`);
+          setCurrentEmbedUrl(data.embedUrl || `https://vidsrc.xyz/embed/${mediaType}/${targetId}`);
         } else if (activeServer === 'server4') {
-          setCurrentEmbedUrl(`https://vidsrc.xyz/embed/${mediaType}/${mediaId}`);
+          setCurrentEmbedUrl(`https://vidsrc.xyz/embed/${mediaType}/${targetId}`);
         }
       } catch (err) {
         console.error("Stream resolution error, utilizing fallback.", err);
-        setCurrentEmbedUrl(`https://vidsrc.to/embed/${mediaType}/${mediaId}`);
+        setCurrentEmbedUrl(`https://vidsrc.to/embed/${mediaType}/12345`);
       } finally {
         setLoading(false);
       }
     }
 
     resolveServerUrl();
-  }, [activeServer, mediaId, mediaType]);
+  }, [activeServer, mediaId, mediaType, videos]);
 
   return (
     <div className="w-full max-w-5xl mx-auto bg-gray-950 rounded-2xl overflow-hidden shadow-2xl border border-gray-800 my-4">
       {/* Header Info */}
       <div className="px-6 py-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
         <h2 className="text-white font-semibold text-lg">
-          Streaming: <span className="text-indigo-400">{customTitle || 'Selected Media'}</span>
+          Streaming: <span className="text-indigo-400">{resolvedTitle}</span>
         </h2>
         <span className="text-xs px-3 py-1 bg-green-500/10 text-green-400 rounded-full font-medium border border-green-500/20">
           ● Live Stream
