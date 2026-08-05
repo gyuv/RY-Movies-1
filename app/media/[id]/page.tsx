@@ -60,7 +60,7 @@ export default async function MediaPage({ params }: { params: { id: string } }) 
 
             <div className="flex-1 min-w-0 pt-1">
               <p className="text-sm text-gray-400 mb-2">
-                {media.kind === "tv" ? "Series" : "Feature Film"} · {media.year ?? "—"}
+                "Feature Film" · {media.year ?? "—"}
               </p>
               <h1 className="font-display italic text-3xl sm:text-5xl lg:text-6xl text-white leading-[1.1]">
                 {media.title}
