@@ -1,92 +1,47 @@
-import { getMediaDetail } from "@/lib/tmdb";
-import type { MediaKind } from "@/types";
-import VideoPlayer from "@/components/VideoPlayer";
-import WatchBadges from "@/components/WatchBadges";
-import CastRow from "@/components/CastRow";
-import Link from "next/link";
+{/* Cinematic hero */}
+<section className="relative -mt-0 mb-10 overflow-hidden">
+  {/* optional backdrop if you later add backdropUrl to MediaDetail */}
+  <div className="absolute inset-0 bg-gradient-to-b from-ink via-ink/95 to-ink" />
+  <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-12">
+    <Link href="/" className="stub-label hover:text-marquee transition-colors inline-block mb-6">
+      ← Back to browse
+    </Link>
 
-export default async function MediaDetailPage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams: { type?: string };
-}) {
-  const kind: MediaKind = searchParams.type === "tv" ? "tv" : "movie";
-  const media = await getMediaDetail(kind, Number(params.id));
-
-  return (
-    <main className="max-w-6xl mx-auto px-6 pb-24">
-      <div className="pt-8 pb-4">
-        <Link href="/" className="stub-label hover:text-marquee transition-colors">
-          ← Back to search
-        </Link>
-      </div>
-
-      {/* Ticket header */}
-      <div className="border border-ink-line bg-ink-raised ticket-tear">
-        <div className="p-6 sm:p-10 grid sm:grid-cols-[auto,1fr] gap-8">
-          <div className="w-40 sm:w-48 flex-shrink-0">
-            <div className="aspect-[2/3] bg-ink border border-ink-line overflow-hidden">
-              {media.posterUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={media.posterUrl} alt={media.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-paper-dim text-sm px-3 text-center font-display italic">
-                  {media.title}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <p className="stub-label text-marquee mb-2">
-              {media.kind === "tv" ? "Series" : "Feature Film"} · {media.year ?? "—"}
-            </p>
-            <h1 className="font-display italic text-3xl sm:text-5xl text-paper leading-tight">
+    <div className="flex flex-col sm:flex-row gap-8 sm:gap-10 items-start">
+      <div className="w-36 sm:w-48 md:w-56 shrink-0 rounded-md overflow-hidden border border-ink-line shadow-2xl shadow-black/50">
+        <div className="aspect-[2/3] bg-ink-raised">
+          {media.posterUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={media.posterUrl} alt={media.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-paper-dim text-sm px-3 text-center font-display italic">
               {media.title}
-            </h1>
-            {media.tagline && (
-              <p className="text-paper-dim italic mt-2">{media.tagline}</p>
-            )}
-
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-5 font-mono text-sm text-paper-dim">
-              <span>★ {media.rating.toFixed(1)} / 10</span>
-              {media.runtimeMinutes && <span>{media.runtimeMinutes} min</span>}
-              <span>{media.genres.map((g) => g.name).join(", ")}</span>
             </div>
-
-            <p className="text-paper/90 mt-6 max-w-2xl leading-relaxed">{media.overview}</p>
-          </div>
+          )}
         </div>
       </div>
 
-      <div className="film-perf my-10" aria-hidden />
+      <div className="flex-1 min-w-0 pt-1">
+        <p className="stub-label text-marquee mb-2">
+          {media.kind === "tv" ? "Series" : "Feature Film"} · {media.year ?? "—"}
+        </p>
+        <h1 className="font-display italic text-3xl sm:text-5xl lg:text-6xl text-paper leading-[1.1]">
+          {media.title}
+        </h1>
+        {media.tagline && (
+          <p className="text-paper-dim italic mt-3 text-base sm:text-lg">{media.tagline}</p>
+        )}
 
-      <div className="grid lg:grid-cols-[1fr,340px] gap-10 min-w-0">
-        <div className="space-y-10 min-w-0">
-          <section>
-            <p className="stub-label mb-3">Full Movie Player</p>
-            <VideoPlayer 
-              mediaId={params.id} 
-              mediaType={kind} 
-              customTitle={media.title} 
-            />
-          </section>
-
-          <section>
-            <p className="stub-label mb-3">Cast</p>
-            <CastRow cast={media.cast} />
-          </section>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 font-mono text-sm text-paper-dim">
+          <span className="text-marquee">★ {media.rating.toFixed(1)}</span>
+          {media.runtimeMinutes && <span>{media.runtimeMinutes} min</span>}
+          <span className="line-clamp-1">{media.genres.map((g) => g.name).join(" · ")}</span>
         </div>
 
-        <aside>
-          <p className="stub-label mb-3">Where to watch</p>
-          <div className="border border-ink-line bg-ink-raised p-5">
-            <WatchBadges options={media.watchOptions} />
-          </div>
-        </aside>
+        <p className="text-paper/90 mt-6 max-w-2xl leading-relaxed text-sm sm:text-base">
+          {media.overview}
+        </p>
       </div>
-    </main>
-  );
-}
+    </div>
+  </div>
+</section>
