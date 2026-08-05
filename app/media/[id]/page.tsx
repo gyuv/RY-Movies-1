@@ -98,15 +98,15 @@ export default async function MediaPage({ params }: { params: { id: string } }) 
         </div>
       </section>
 
-            {/* Video Player Section */}
+                  {/* Video Player Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
         <h2 className="text-2xl font-bold mb-4">Watch Now</h2>
         
-        {/* Primary Player - 2Embed is very reliable for free iframes */}
+        {/* Primary Player - VidSrc SBS is currently most stable */}
         <VideoEmbed 
           type={media.type as "movie" | "tv"} 
           id={media.id} 
-          provider="2embed" 
+          provider="vidsrc_sbs" 
           className="aspect-video w-full mb-8"
         />
         
@@ -114,20 +114,20 @@ export default async function MediaPage({ params }: { params: { id: string } }) 
         <h3 className="text-xl font-semibold mb-4">Other Sources</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <p className="text-sm text-gray-400 mb-2">VidSrc SBS</p>
+            <p className="text-sm text-gray-400 mb-2">2Embed</p>
             <VideoEmbed 
               type={media.type as "movie" | "tv"} 
               id={media.id} 
-              provider="vidsrc_sbs" 
+              provider="2embed" 
               className="aspect-video w-full"
             />
           </div>
           <div>
-            <p className="text-sm text-gray-400 mb-2">AutoEmbed</p>
+            <p className="text-sm text-gray-400 mb-2">Superembed</p>
             <VideoEmbed 
               type={media.type as "movie" | "tv"} 
               id={media.id} 
-              provider="autoembed" 
+              provider="superembed" 
               className="aspect-video w-full"
             />
           </div>
