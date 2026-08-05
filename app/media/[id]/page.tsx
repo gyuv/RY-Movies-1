@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { VideoEmbed } from "@/components/VideoEmbed";
 import { notFound } from 'next/navigation';
 
-// Fetch media details from TMDB
 async function getMedia(id: string, type: 'movie' | 'tv' = 'movie') {
   const apiKey = process.env.NEXT_PUBLIC_TMDB_KEY;
   if (!apiKey) return null;
@@ -12,7 +11,6 @@ async function getMedia(id: string, type: 'movie' | 'tv' = 'movie') {
     const res = await fetch(url, { next: { revalidate: 3600 } });
 
     if (!res.ok) {
-      // If movie fails, try TV
       if (type === 'movie') {
         return getMedia(id, 'tv');
       }
@@ -20,8 +18,6 @@ async function getMedia(id: string, type: 'movie' | 'tv' = 'movie') {
     }
 
     const data = await res.json();
-    
-    // Determine type based on response
     const isTv = type === 'tv' || data.first_air_date;
     const releaseDate = isTv ? data.first_air_date : data.release_date;
     
@@ -36,7 +32,6 @@ async function getMedia(id: string, type: 'movie' | 'tv' = 'movie') {
       tagline: data.tagline,
       type: isTv ? 'tv' : 'movie',
       id: data.id,
-      imdbId: data.imdb_id, // Important for some providers
     };
   } catch (error) {
     console.error("Failed to fetch media:", error);
@@ -107,7 +102,6 @@ export default async function MediaPage({ params }: { params: { id: string } }) 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
         <h2 className="text-2xl font-bold mb-4">Watch Now</h2>
         
-                {/* Primary Player - Uses correct type (movie/tv) */}
         <VideoEmbed 
           type={media.type as "movie" | "tv"} 
           id={media.id} 
@@ -115,7 +109,6 @@ export default async function MediaPage({ params }: { params: { id: string } }) 
           className="aspect-video w-full mb-8"
         />
         
-        {/* Fallback Players */}
         <h3 className="text-xl font-semibold mb-4">Other Sources</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -131,15 +124,6 @@ export default async function MediaPage({ params }: { params: { id: string } }) 
             <p className="text-sm text-gray-400 mb-2">Vidify</p>
             <VideoEmbed 
               type={media.type as "movie" | "tv"} 
-              id={media.id} 
-              provider="vidify" 
-              className="aspect-video w-full"
-            />
-          </div>
-        </div>
-            <p className="text-sm text-gray-400 mb-2">Vidify</p>
-            <VideoEmbed 
-              type={media.type} 
               id={media.id} 
               provider="vidify" 
               className="aspect-video w-full"
