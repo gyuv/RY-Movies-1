@@ -45,3 +45,33 @@
     </div>
   </div>
 </section>
+import { VideoEmbed } from "@/components/VideoEmbed";
+
+export default function MoviePage({ params }: { params: { id: string } }) {
+  // params.id should be the TMDB ID
+  const tmdbId = params.id;
+
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Watch Movie</h1>
+      
+      {/* Try VidSrc.to first (usually most reliable for TMDB) */}
+      <VideoEmbed 
+        type="movie" 
+        id={tmdbId} 
+        provider="vidsrc_to" 
+      />
+      
+      {/* Fallback UI or Switcher can go here */}
+      <div className="mt-4">
+        <h3 className="font-semibold">Other Sources:</h3>
+        <VideoEmbed 
+          type="movie" 
+          id={tmdbId} 
+          provider="smashy" 
+          className="mt-2 h-64" // Smaller height for preview
+        />
+      </div>
+    </div>
+  );
+}
