@@ -6,32 +6,42 @@ export default function MediaCard({ media }: { media: MediaSummary }) {
   return (
     <Link
       href={`/media/${media.id}?type=${media.kind}`}
-      className="group block ticket-tear border border-ink-line bg-ink-raised hover:border-marquee transition-colors"
+      className="group relative block flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px]"
     >
-      <div className="relative aspect-[2/3] bg-ink overflow-hidden">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-ink-raised border border-ink-line/60 transition-all duration-300 group-hover:border-marquee/50 group-hover:scale-[1.06] group-hover:z-10 group-hover:shadow-2xl group-hover:shadow-black/60">
         {media.posterUrl ? (
           <Image
             src={media.posterUrl}
             alt={media.title}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 200px"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="180px"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center font-display italic text-paper-dim text-sm px-4 text-center">
+          <div className="w-full h-full flex items-center justify-center font-display italic text-paper-dim text-sm px-3 text-center">
             {media.title}
           </div>
         )}
-        <div className="absolute top-2 left-2 stub-label bg-ink/80 px-1.5 py-0.5 text-marquee">
-          {media.kind === "tv" ? "Series" : "Film"}
+
+        {/* bottom gradient (Netflix style) */}
+        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink via-ink/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* meta that appears on hover */}
+        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+          <p className="font-display text-sm leading-snug line-clamp-2 text-paper">{media.title}</p>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="font-mono text-[11px] text-marquee">★ {media.rating.toFixed(1)}</span>
+            <span className="text-[11px] text-paper-dim">{media.year ?? "—"}</span>
+            <span className="ml-auto text-[10px] uppercase tracking-wider text-paper-dim">
+              {media.kind === "tv" ? "Series" : "Film"}
+            </span>
+          </div>
         </div>
-        <div className="absolute bottom-2 right-2 font-mono text-xs bg-ink/80 px-1.5 py-0.5 text-paper">
+
+        {/* always-visible rating pill (Prime-like) */}
+        <div className="absolute top-2 right-2 font-mono text-[10px] bg-ink/80 backdrop-blur px-1.5 py-0.5 rounded text-paper group-hover:opacity-0 transition-opacity">
           ★ {media.rating.toFixed(1)}
         </div>
-      </div>
-      <div className="p-3 border-t border-dashed border-ink-line">
-        <p className="font-display text-base leading-snug line-clamp-1 text-paper">{media.title}</p>
-        <p className="stub-label mt-1">{media.year ?? "—"}</p>
       </div>
     </Link>
   );
@@ -39,12 +49,8 @@ export default function MediaCard({ media }: { media: MediaSummary }) {
 
 export function MediaCardSkeleton() {
   return (
-    <div className="border border-ink-line bg-ink-raised animate-pulse">
-      <div className="aspect-[2/3] bg-ink-line/40" />
-      <div className="p-3 space-y-2 border-t border-dashed border-ink-line">
-        <div className="h-4 bg-ink-line/40 w-3/4" />
-        <div className="h-3 bg-ink-line/40 w-1/3" />
-      </div>
+    <div className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px]">
+      <div className="aspect-[2/3] rounded-md bg-ink-raised border border-ink-line/40 animate-pulse" />
     </div>
   );
 }
