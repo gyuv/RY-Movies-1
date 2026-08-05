@@ -107,9 +107,9 @@ export default async function MediaPage({ params }: { params: { id: string } }) 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
         <h2 className="text-2xl font-bold mb-4">Watch Now</h2>
         
-        {/* Primary Player - Uses correct type (movie/tv) */}
+                {/* Primary Player - Uses correct type (movie/tv) */}
         <VideoEmbed 
-          type={media.type} 
+          type={media.type as "movie" | "tv"} 
           id={media.id} 
           provider="vidsrc_to" 
           className="aspect-video w-full mb-8"
@@ -121,13 +121,22 @@ export default async function MediaPage({ params }: { params: { id: string } }) 
           <div>
             <p className="text-sm text-gray-400 mb-2">Smashy Stream</p>
             <VideoEmbed 
-              type={media.type} 
+              type={media.type as "movie" | "tv"} 
               id={media.id} 
               provider="smashy" 
               className="aspect-video w-full"
             />
           </div>
           <div>
+            <p className="text-sm text-gray-400 mb-2">Vidify</p>
+            <VideoEmbed 
+              type={media.type as "movie" | "tv"} 
+              id={media.id} 
+              provider="vidify" 
+              className="aspect-video w-full"
+            />
+          </div>
+        </div>
             <p className="text-sm text-gray-400 mb-2">Vidify</p>
             <VideoEmbed 
               type={media.type} 
