@@ -15,6 +15,26 @@ const DEFAULT_FILTERS: SearchFilters = {
   language: "all",
   page: 1,
 };
+// BAD: This might hang if the API is slow or returns an error
+export default async function Home() {
+  const res = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${process.env.NEXT_PUBLIC_TMDB_KEY}&page=1`);
+  const data = await res.json();
+  return <div>{JSON.stringify(data)}</div>;
+}
+
+// GOOD: Use a Loading State
+import { Suspense } from 'react';
+import MovieList from './components/MovieList';
+
+export default function Home() {
+  return (
+    <main>
+      <Suspense fallback={<div className="p-10 text-white">Loading Movies...</div>}>
+        <MovieList />
+      </Suspense>
+    </main>
+  );
+}
 
 export default function HomePage() {
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
