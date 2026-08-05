@@ -38,20 +38,18 @@ export default function HomePage() {
     });
     const res = await fetch(`/api/search?${params.toString()}`);
     const data = await res.json();
-    if (myRequest !== requestId.current) return; // stale response, ignore
+    if (myRequest !== requestId.current) return;
 
     setResults((prev) => (append ? [...prev, ...data.results] : data.results));
     setHasMore(f.page < data.totalPages);
     setLoading(false);
   }, []);
 
-  // Refetch from page 1 whenever query/filters (not page) change
   useEffect(() => {
     fetchPage({ ...filters, page: 1 }, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.query, filters.type, filters.genres.join(","), filters.yearFrom, filters.yearTo, filters.language]);
 
-  // Infinite scroll
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -65,49 +63,67 @@ export default function HomePage() {
           });
         }
       },
-      { rootMargin: "600px" }
+      { rootMargin: "800px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [hasMore, loading, fetchPage]);
 
   return (
-    <main className="max-w-6xl mx-auto px-6">
-      {/* Hero */}
-      <section className="pt-16 pb-10">
-        <p className="stub-label text-marquee mb-4">Admit one · any title, any era</p>
-        <h1 className="font-display italic text-4xl sm:text-6xl leading-[1.05] text-paper max-w-3xl">
-          Find where it's actually playing.
+    <main className="min-h-screen">
+      {/* Hero — Netflix-scale, Prime clarity */}
+      <section className="relative pt-12 sm:pt-16 pb-10 px-4 sm:px-6 max-w-7xl mx-auto">
+        <p className="stub-label text-marquee mb-3">Admit one · any title, any era</p>
+        <h1 className="font-display italic text-4xl sm:text-5xl lg:text-6xl leading-[1.08] text-paper max-w-3xl">
+          Find where it&apos;s actually playing.
         </h1>
-        <p className="text-paper-dim mt-4 max-w-xl">
-          Search by title, actor, actress, or director. Every result shows exactly which
-          services carry it — subscription, free-with-ads, rental, or purchase — sourced from
-          licensed availability data.
+        <p className="text-paper-dim mt-4 max-w-xl text-sm sm:text-base leading-relaxed">
+          Search by title, actor, or director. Every result shows licensed places to watch —
+          subscription, free-with-ads, rent, or buy.
         </p>
         <div className="mt-8 max-w-2xl">
-          <SearchBar initialValue={filters.query} onSearch={(q) => setFilters((p) => ({ ...p, query: q }))} />
+          <SearchBar
+            initialValue={filters.query}
+            onSearch={(q) => setFilters((p) => ({ ...p, query: q }))}
+          />
         </div>
       </section>
 
-      <div className="film-perf mb-10" aria-hidden />
+      <div className="film-perf mb-8 opacity-60" aria-hidden />
 
-      <section className="mb-8">
-        <FilterBar filters={filters} onChange={(next) => setFilters((p) => ({ ...p, ...next, page: 1 }))} />
+      {/* Filters */}
+      <section className="px-4 sm:px-6 max-w-7xl mx-auto mb-10">
+        <FilterBar
+          filters={filters}
+          onChange={(next) => setFilters((p) => ({ ...p, ...next, page: 1 }))}
+        />
       </section>
 
+      {/* Results as horizontal-feel grid (Netflix rows energy) */}
       <section className="pb-24">
+        <div className="px-4 sm:px-6 max-w-7xl mx-auto mb-4 flex items-end justify-between">
+          <h2 className="font-display text-xl sm:text-2xl text-paper">
+            {filters.query ? `Results for “${filters.query}”` : "Discover"}
+          </h2>
+          {results.length > 0 && (
+            <span className="stub-label text-paper-dim">{results.length}+ titles</span>
+          )}
+        </div>
+
         {results.length === 0 && !loading ? (
-          <div className="text-center py-24 border border-dashed border-ink-line">
+          <div className="mx-4 sm:mx-6 max-w-7xl mx-auto text-center py-20 border border-dashed border-ink-line rounded-lg">
             <p className="font-display italic text-2xl text-paper-dim">No reels match that search.</p>
             <p className="stub-label mt-2">Try a broader title or clear a filter.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {results.map((m) => (
-              <MediaCard key={`${m.kind}-${m.id}`} media={m} />
-            ))}
-            {loading &&
-              Array.from({ length: 10 }).map((_, i) => <MediaCardSkeleton key={`sk-${i}`} />)}
+          <div className="px-4 sm:px-6 max-w-7xl mx-auto">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
+              {results.map((m) => (
+                <MediaCard key={`${m.kind}-${m.id}`} media={m} />
+              ))}
+              {loading &&
+                Array.from({ length: 8 }).map((_, i) => <MediaCardSkeleton key={`sk-${i}`} />)}
+            </div>
           </div>
         )}
         <div ref={sentinelRef} className="h-1" />
