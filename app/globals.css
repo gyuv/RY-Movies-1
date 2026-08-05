@@ -68,3 +68,16 @@
     @apply font-mono text-[11px] uppercase tracking-stub text-paper-dim;
   }
 }
+/* Netflix-style row scroll (if you later switch to true horizontal rows) */
+.row-scroll {
+  @apply flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6;
+  scrollbar-width: none;
+}
+.row-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Soft card lift */
+.card-lift {
+  @apply transition-transform duration-300 hover:scale-[1.05] hover:z-10;
+}
