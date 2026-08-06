@@ -1,114 +1,110 @@
-'use client';
+"use client";
 
-import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-
-const GENRES = [
-  { id: '28', name: 'Action' },
-  { id: '35', name: 'Comedy' },
-  { id: '18', name: 'Drama' },
-  { id: '27', name: 'Horror' },
-  { id: '12', name: 'Adventure' },
-  { id: '878', name: 'Sci-Fi' },
-  { id: '53', name: 'Thriller' },
-  { id: '10749', name: 'Romance' },
-];
-
-const SORT_OPTIONS = [
-  { value: 'popularity.desc', label: 'Popular' },
-  { value: 'vote_average.desc', label: 'Top Rated' },
-  { value: 'primary_release_date.desc', label: 'Newest' },
-];
-
-const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'ta', name: 'Tamil' },
-  { code: 'te', name: 'Telugu' },
-  { code: 'hi', name: 'Hindi' },
-  { code: 'ml', name: 'Malayalam' },
-  { code: 'kn', name: 'Kannada' },
-];
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import { useCallback, useState, useEffect } from 'react';
 
 export default function Filters() {
-  const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { replace } = useRouter();
-  
-  const [selectedGenre, setSelectedGenre] = useState(searchParams.get('genre') || '');
-  const [selectedSort, setSelectedSort] = useState(searchParams.get('sort') || 'popularity.desc');
-  const [selectedLang, setSelectedLang] = useState(searchParams.get('language') || 'en');
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  const updateURL = useCallback(() => {
-    const params = new URLSearchParams();
-    if (selectedGenre) params.set('genre', selectedGenre);
-    params.set('sort', selectedSort);
-    params.set('language', selectedLang);
-    params.set('page', '1');
-    
-    replace(`${pathname}?${params.toString()}`);
-  }, [selectedGenre, selectedSort, selectedLang, pathname, replace]);
+  // Get current values from URL
+  const currentGenre = searchParams.get('genre') || '';
+  const currentLanguage = searchParams.get('language') || 'en';
+  const currentSort = searchParams.get('sort') || 'popularity.desc';
 
+  // State for UI (to avoid flashing)
+  const [genre, setGenre] = useState(currentGenre);
+  const [language, setLanguage] = useState(currentLanguage);
+  const [sort, setSort] = useState(currentSort);
+
+  // Sync state with URL params
   useEffect(() => {
-    updateURL();
-  }, [updateURL]);
+    setGenre(currentGenre);
+    setLanguage(currentLanguage);
+    setSort(currentSort);
+  }, [currentGenre, currentLanguage, currentSort]);
+
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+      // Reset page to 1 when filters change
+      params.set('page', '1');
+      return params.toString();
+    },
+    [searchParams]
+  );
+
+  const handleFilterChange = (name: string, value: string) => {
+    const query = createQueryString(name, value);
+    router.push(`${pathname}?${query}`);
+  };
+
+  const genres = [
+    { id: '', name: 'All Genres' },
+    { id: '28', name: 'Action' },
+    { id: '35', name: 'Comedy' },
+    { id: '18', name: 'Drama' },
+    { id: '27', name: 'Horror' },
+    { id: '878', name: 'Sci-Fi' },
+    { id: '10749', name: 'Romance' },
+    { id: '16', name: 'Animation' },
+    { id: '53', name: 'Thriller' },
+  ];
+
+  const languages = [
+    { id: 'en', name: 'English' },
+    { id: 'ta', name: 'Tamil' },
+    { id: 'te', name: 'Telugu' },
+    { id: 'hi', name: 'Hindi' },
+    { id: 'fr', name: 'French' },
+    { id: 'es', name: 'Spanish' },
+    { id: 'ko', name: 'Korean' },
+    { id: 'ja', name: 'Japanese' },
+  ];
+
+  const sorts = [
+    { id: 'popularity.desc', name: 'Popularity' },
+    { id: 'vote_average.desc', name: 'Top Rated' },
+    { id: 'primary_release_date.desc', name: 'Latest' },
+    { id: 'revenue.desc', name: 'Revenue' },
+  ];
 
   return (
-    <div className="sticky top-0 z-50 bg-[#0a0b10]/90 backdrop-blur-xl border-b border-white/10 py-4">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center gap-4">
-          
-          {/* Language Selector */}
-          <div className="flex items-center space-x-2">
-            <label className="text-white/60 text-sm">Language:</label>
-            <select 
-              value={selectedLang}
-              onChange={(e) => setSelectedLang(e.target.value)}
-              className="bg-white/10 text-white text-sm rounded-lg px-3 py-2 outline-none border border-white/10 focus:border-white/30"
-            >
-              {LANGUAGES.map(lang => (
-                <option key={lang.code} value={lang.code} className="bg-[#0a0b10]">
-                  {lang.name}
-                </option>
-              ))}
-            </select>
-          </div>
+    <div className="bg-[#14151a] border-b border-white/5 sticky top-0 z-30">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex flex-wrap gap-3 items-center">
+          {/* Genre Filter */}
+          <select 
+            value={genre}
+            onChange={(e) => handleFilterChange('genre', e.target.value)}
+            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            {genres.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
 
-          {/* Sort Selector */}
-          <div className="flex items-center space-x-2">
-            <label className="text-white/60 text-sm">Sort By:</label>
-            <select 
-              value={selectedSort}
-              onChange={(e) => setSelectedSort(e.target.value)}
-              className="bg-white/10 text-white text-sm rounded-lg px-3 py-2 outline-none border border-white/10 focus:border-white/30"
-            >
-              {SORT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value} className="bg-[#0a0b10]">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Language Filter */}
+          <select 
+            value={language}
+            onChange={(e) => handleFilterChange('language', e.target.value)}
+            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            {languages.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+          </select>
 
-          {/* Genre Chips */}
-          <div className="flex items-center space-x-2 overflow-x-auto max-w-full">
-            <span className="text-white/60 text-sm whitespace-nowrap">Genres:</span>
-            <div className="flex space-x-2">
-              {GENRES.map(genre => (
-                <button
-                  key={genre.id}
-                  onClick={() => setSelectedGenre(genre.id === selectedGenre ? '' : genre.id)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-                    selectedGenre === genre.id 
-                      ? 'bg-white text-black' 
-                      : 'bg-white/10 text-white/70 hover:bg-white/20'
-                  }`}
-                >
-                  {genre.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
+          {/* Sort Filter */}
+          <select 
+            value={sort}
+            onChange={(e) => handleFilterChange('sort', e.target.value)}
+            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            {sorts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
         </div>
       </div>
     </div>
