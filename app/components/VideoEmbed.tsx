@@ -10,32 +10,32 @@ interface VideoEmbedProps {
 export default function VideoEmbed({ type, id, provider, className }: VideoEmbedProps) {
   let src = '';
 
-  switch (provider) {
-    case 'promulti':
-      // The ORIGINAL ProMulti aggregator (promulti.net)
-      // This is the one that bundles multiple servers inside one player
-      src = `https://promulti.net/embed/${type}/${id}`;
-      break;
-    case 'multicine':
-      // MultiCine - Another aggregator
-      src = `https://multicine.me/embed/${type}/${id}`;
-      break;
-    case '2embed':
-      // 2embed - Excellent for Asian (Tamil, Korean, Japanese) movies
-      src = `https://2embed.cc/embed/${type}/${id}`;
-      break;
-    case 'vidsrc':
-      // VidSrc.io - Good general coverage
-      src = `https://vidsrc.io/embed/${type}/${id}`;
-      break;
-    case 'cinevid':
-      // CineVid - Best for English/Hollywood
-      src = `https://cinevid.xyz/embed/${type}/${id}`;
-      break;
-    default:
-      // Default to the original ProMulti
-      src = `https://promulti.net/embed/${type}/${id}`;
-      break;
+  // 1. PROMULTI: Your previous working code using vidsrc.sbs
+  if (provider === 'promulti') {
+    src = `https://vidsrc.sbs/embed/${type}/${id}?provider=free`;
+  } 
+  // 2. OTHER STREAMERS: Direct embeds from popular sites
+  else if (provider === 'cinevid') {
+    src = `https://cinevid.xyz/embed/${type}/${id}`;
+  } 
+  else if (provider === '2embed') {
+    src = `https://2embed.cc/embed/${type}/${id}`;
+  } 
+  else if (provider === 'voe') {
+    src = `https://voe.su/embed/${type}/${id}`;
+  } 
+  else if (provider === 'vidsrc') {
+    src = `https://vidsrc.io/embed/${type}/${id}`;
+  } 
+  else if (provider === '4k') {
+    src = `https://4k-movie.net/embed/${type}/${id}`;
+  } 
+  else if (provider === 'embedsu') {
+    src = `https://embedsu.com/embed/${type}/${id}`;
+  } 
+  else {
+    // Fallback to Promulti
+    src = `https://vidsrc.sbs/embed/${type}/${id}?provider=free`;
   }
 
   return (
