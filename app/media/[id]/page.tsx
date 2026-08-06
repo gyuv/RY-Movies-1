@@ -141,7 +141,7 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
               </div>
             )}
 
-                        {/* 2. Streaming Player with Provider Selector */}
+                       {/* 2. Streaming Player with Provider Selector */}
             <div>
               <h3 className="text-xl font-bold mb-3">Watch Online</h3>
               <StreamingPlayer 
