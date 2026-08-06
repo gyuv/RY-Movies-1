@@ -12,18 +12,41 @@ export default function Filters() {
   const currentGenre = searchParams.get('genre') || '';
   const currentLanguage = searchParams.get('language') || 'en';
   const currentSort = searchParams.get('sort') || 'popularity.desc';
+  const currentYear = searchParams.get('year') || '';
+  const currentActor = searchParams.get('with_people') || '';
 
-  // State for UI (to avoid flashing)
+  // State for UI
   const [genre, setGenre] = useState(currentGenre);
   const [language, setLanguage] = useState(currentLanguage);
   const [sort, setSort] = useState(currentSort);
+  const [year, setYear] = useState(currentYear);
+  const [actor, setActor] = useState(currentActor);
+  const [actorsList, setActorsList] = useState<{ id: string; name: string }[]>([]);
 
   // Sync state with URL params
   useEffect(() => {
     setGenre(currentGenre);
     setLanguage(currentLanguage);
     setSort(currentSort);
-  }, [currentGenre, currentLanguage, currentSort]);
+    setYear(currentYear);
+    setActor(currentActor);
+  }, [currentGenre, currentLanguage, currentSort, currentYear, currentActor]);
+
+  // Fetch actors when language changes
+  useEffect(() => {
+    const fetchActors = async () => {
+      try {
+        const res = await fetch(`/api/actors?language=${language}`);
+        const data = await res.json();
+        setActorsList(data.actors || []);
+      } catch (e) {
+        console.error("Failed to fetch actors", e);
+      }
+    };
+    fetchActors();
+    // Reset actor selection when language changes
+    setActor('');
+  }, [language]);
 
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -33,8 +56,7 @@ export default function Filters() {
       } else {
         params.delete(name);
       }
-      // Reset page to 1 when filters change
-      params.set('page', '1');
+      params.set('page', '1'); // Reset to page 1 when filters change
       return params.toString();
     },
     [searchParams]
@@ -45,6 +67,7 @@ export default function Filters() {
     router.push(`${pathname}?${query}`);
   };
 
+  // Complete list of genres (from Code 1)
   const genres = [
     { id: '', name: 'All Genres' },
     { id: '28', name: 'Action' },
@@ -57,6 +80,7 @@ export default function Filters() {
     { id: '53', name: 'Thriller' },
   ];
 
+  // Complete list of languages (merged Code 1 & Code 2)
   const languages = [
     { id: 'en', name: 'English' },
     { id: 'ta', name: 'Tamil' },
@@ -68,6 +92,7 @@ export default function Filters() {
     { id: 'ja', name: 'Japanese' },
   ];
 
+  // Complete list of sorts (merged Code 1 & Code 2)
   const sorts = [
     { id: 'popularity.desc', name: 'Popularity' },
     { id: 'vote_average.desc', name: 'Top Rated' },
@@ -75,17 +100,20 @@ export default function Filters() {
     { id: 'revenue.desc', name: 'Revenue' },
   ];
 
+  // Generate years from 1990 to 2026
+  const years = Array.from({ length: 2026 - 1990 + 1 }, (_, i) => 1990 + i);
+
   return (
     <div className="bg-[#14151a] border-b border-white/5 sticky top-0 z-30">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-wrap gap-3 items-center">
-          {/* Genre Filter */}
+          {/* Genre Filter (Restored from Code 1) */}
           <select 
             value={genre}
             onChange={(e) => handleFilterChange('genre', e.target.value)}
             className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
-            {genres.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+            {genres.map(g => <option key={g.id} value={g.id} className="bg-[#14151a]">{g.name}</option>)}
           </select>
 
           {/* Language Filter */}
@@ -94,7 +122,28 @@ export default function Filters() {
             onChange={(e) => handleFilterChange('language', e.target.value)}
             className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
-            {languages.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+            {languages.map(l => <option key={l.id} value={l.id} className="bg-[#14151a]">{l.name}</option>)}
+          </select>
+
+          {/* Year Filter */}
+          <select 
+            value={year}
+            onChange={(e) => handleFilterChange('year', e.target.value)}
+            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="" className="bg-[#14151a]">All Years</option>
+            {years.map(y => <option key={y} value={y} className="bg-[#14151a]">{y}</option>)}
+          </select>
+
+          {/* Actor Filter */}
+          <select 
+            value={actor}
+            onChange={(e) => handleFilterChange('with_people', e.target.value)}
+            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            disabled={actorsList.length === 0}
+          >
+            <option value="" className="bg-[#14151a]">Popular Actors</option>
+            {actorsList.map(a => <option key={a.id} value={a.id} className="bg-[#14151a]">{a.name}</option>)}
           </select>
 
           {/* Sort Filter */}
@@ -103,7 +152,7 @@ export default function Filters() {
             onChange={(e) => handleFilterChange('sort', e.target.value)}
             className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
-            {sorts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {sorts.map(s => <option key={s.id} value={s.id} className="bg-[#14151a]">{s.name}</option>)}
           </select>
         </div>
       </div>
