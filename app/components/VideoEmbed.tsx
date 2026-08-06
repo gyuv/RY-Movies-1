@@ -11,6 +11,14 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
   let src = '';
 
   switch (provider) {
+    case 'promulti':
+      // ProMulti - The "Unstoppable" aggregator with multiple internal servers
+      src = `https://promulti.com/embed/${type}/${id}`;
+      break;
+    case 'multicine':
+      // MultiCine - Another strong aggregator
+      src = `https://multicine.me/embed/${type}/${id}`;
+      break;
     case 'vidsrc':
       // VidSrc.io - Good general coverage
       src = `https://vidsrc.io/embed/${type}/${id}`;
@@ -32,7 +40,7 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
       src = `https://cinevid.xyz/embed/${type}/${id}`;
       break;
     default:
-      src = `https://vidsrc.io/embed/${type}/${id}`;
+      src = `https://promulti.com/embed/${type}/${id}`;
       break;
   }
 
