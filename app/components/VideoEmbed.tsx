@@ -25,7 +25,7 @@ export default function VideoEmbed({
   return (
     <div className={className}>
       <iframe
-        src={finalSrc}
+        src={src}
         title="Video Player"
         className="w-full h-full rounded-lg bg-black"
         allowFullScreen
