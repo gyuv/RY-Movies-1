@@ -1,5 +1,4 @@
 import StreamingPlayer from '../../components/StreamingPlayer';
-import MultiServerPlayer from '../../components/MultiServerPlayer';
 import StreamSelector from '../../components/StreamSelector';
 import Link from 'next/link';
 import Image from 'next/image';
