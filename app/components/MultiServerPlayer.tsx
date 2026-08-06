@@ -6,35 +6,35 @@ import VideoEmbed from './VideoEmbed';
 interface MultiServerPlayerProps {
   movieId: number;
   type: 'movie' | 'tv';
-  imdbId?: string;
 }
 
-// Common free embed sources
+// These providers ACCEPT TMDB IDs directly. 
+// Fembed/Dood/Streamtape usually need a specific Hash ID, so we stick to TMDB-based aggregators.
 const SERVERS = [
   {
     name: 'Server 1 (VidSrc.cc)',
     url: (id: number, type: string) => `https://vidsrc.cc/v2/embed/${type}/${id}`,
-    note: 'Reliable Alternative'
+    note: 'Most Reliable'
   },
   {
-    name: 'Server 2 (MegaCloud)',
-    url: (id: number, type: string) => `https://megacloud.press/embed-${type}/${id}`,
+    name: 'Server 2 (VidSrc.to)',
+    url: (id: number, type: string) => `https://vidsrc.to/embed/${type}/${id}`,
     note: 'High Quality'
   },
   {
-    name: 'Server 3 (VidSrc.pro)',
-    url: (id: number, type: string) => `https://vidsrc.pro/embed/${type}/${id}`,
-    note: 'Backup Server'
-  },
-  {
-    name: 'Server 4 (4K Movie)',
-    url: (id: number, type: string) => `https://4kmovies.net/embed/${id}`,
+    name: 'Server 3 (4K Movie Embed)',
+    url: (id: number, type: string) => `https://4kmovies.net/embed/${type}/${id}`,
     note: 'Fast Loading'
   },
   {
-    name: 'Server 5 (FlixHQ)',
+    name: 'Server 4 (FlixHQ)',
     url: (id: number, type: string) => `https://flixhq.to/embed/movie/${id}`,
     note: 'Popular Choice'
+  },
+  {
+    name: 'Server 5 (VidSrc.pro)',
+    url: (id: number, type: string) => `https://vidsrc.pro/embed/${type}/${id}`,
+    note: 'Backup Server'
   }
 ];
 
