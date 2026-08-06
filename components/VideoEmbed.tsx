@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-
 interface VideoEmbedProps {
   type: string; // 'movie' or 'tv'
   id: number;
@@ -11,7 +9,6 @@ interface VideoEmbedProps {
 
 export default function VideoEmbed({ type, id, provider, className }: VideoEmbedProps) {
   // Using vidsrc.sbs as it's a popular free embed source for TMDB IDs
-  // You can change the URL structure if you prefer a different provider like embedsito, vidsrc, etc.
   const src = `https://vidsrc.sbs/embed/${type}/${id}`;
 
   return (
