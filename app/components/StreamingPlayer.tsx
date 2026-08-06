@@ -9,30 +9,18 @@ interface StreamingPlayerProps {
   language?: string;
 }
 
+// Providers with ProMulti as the star
 const PROVIDERS = [
-  { id: '2embed', name: '2Embed (Best for Tamil/Asian)' },
-  { id: 'voe', name: 'Voe (Backup)' },
+  { id: 'promulti', name: 'ProMulti (Best Aggregator)' },
+  { id: 'multicine', name: 'MultiCine (Backup)' },
+  { id: '2embed', name: '2Embed (Tamil/Asian)' },
   { id: 'vidsrc', name: 'VidSrc (General)' },
-  { id: 'cinevid', name: 'CineVid (Best for English)' },
+  { id: 'cinevid', name: 'CineVid (English)' },
 ];
 
 export default function StreamingPlayer({ movieId, type, language = 'en' }: StreamingPlayerProps) {
-  // Auto-select best provider based on language
-  const getBestProvider = (lang: string) => {
-    const lowerLang = lang.toLowerCase();
-    // Tamil (ta), Telugu (te), Hindi (hi), Korean (ko), Japanese (ja)
-    if (['ta', 'te', 'hi', 'ko', 'ja', 'zh', 'fr', 'de', 'es'].includes(lowerLang)) {
-      return '2embed'; // 2embed has better Tamil/Asian coverage
-    }
-    return 'cinevid'; // Default to CineVid for English
-  };
-
-  const [provider, setProvider] = useState<string>(getBestProvider(language));
-
-  // Update provider if language changes
-  useEffect(() => {
-    setProvider(getBestProvider(language));
-  }, [language]);
+  // Default to ProMulti because it aggregates multiple servers internally
+  const [provider, setProvider] = useState<string>('promulti');
 
   return (
     <div className="bg-[#14151a] p-4 rounded-lg">
@@ -65,8 +53,7 @@ export default function StreamingPlayer({ movieId, type, language = 'en' }: Stre
 
       <div className="mt-3 flex items-center justify-between">
         <p className="text-xs text-white/40">
-          💡 <strong>Auto-Selected:</strong> {PROVIDERS.find(p => p.id === provider)?.name}. 
-          If the video doesn't load, try switching to <strong>Voe</strong> or <strong>VidSrc</strong>.
+          💡 <strong>ProMulti</strong> aggregates multiple servers. If one fails, it often auto-switches or lets you pick another inside the player.
         </p>
       </div>
     </div>
