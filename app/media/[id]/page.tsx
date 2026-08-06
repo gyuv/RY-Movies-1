@@ -146,7 +146,6 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
               <MultiServerPlayer 
                 movieId={movie.id} 
                 type="movie" 
-                imdbId={movie.external_ids?.imdb_id}
               />
             </div>
 
