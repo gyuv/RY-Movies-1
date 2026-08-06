@@ -9,17 +9,10 @@ interface StreamingPlayerProps {
   language?: string;
 }
 
-// Updated Servers List
+// Only two servers now
 const SERVERS = [
-  { id: 'promulti', name: 'ProMulti (Aggregator)' }, // Your main choice
-  { id: '8stream', name: '8Stream (New Alt)' },      // Replaced Mediatv with 8Stream
-  { id: 'megacloud', name: 'MegaCloud (Tamil/Asian)' },
+  { id: 'promulti', name: 'ProMulti (Aggregator)' },
   { id: '2embed', name: '2Embed (Tamil/Asian)' },
-  { id: 'cinevid', name: 'CineVid (English)' },
-  { id: 'voe', name: 'Voe' },
-  { id: 'vidsrc', name: 'VidSrc' },
-  { id: '4k', name: '4K Movie' },
-  { id: 'embedsu', name: 'EmbedSu' },
 ];
 
 export default function StreamingPlayer({ movieId, type, language = 'en' }: StreamingPlayerProps) {
@@ -54,7 +47,7 @@ export default function StreamingPlayer({ movieId, type, language = 'en' }: Stre
 
       <div className="mt-3 flex items-center justify-between">
         <p className="text-xs text-white/40">
-          💡 <strong>ProMulti</strong> is the main aggregator. <strong>8Stream</strong> is a new alternative if Mediatv is down.
+          💡 <strong>ProMulti</strong> aggregates multiple sources. If it fails, try <strong>2Embed</strong>.
         </p>
       </div>
     </div>
