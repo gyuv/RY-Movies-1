@@ -9,6 +9,7 @@ interface VideoEmbedProps {
 
 export default function VideoEmbed({ type, id, provider, className }: VideoEmbedProps) {
   // vidsrc.sbs is the most reliable aggregator for TMDB IDs
+  // Note: For 'free', vidsrc.sbs aggregates from multiple sources (Voe, Fmovies, etc.)
   const src = `https://vidsrc.sbs/embed/${type}/${id}?provider=${provider}`;
 
   return (
@@ -21,6 +22,7 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         frameBorder="0"
         scrolling="no"
+        onError={() => console.log("Video iframe error")} // Optional: Handle JS errors
       ></iframe>
     </div>
   );
