@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 const GENRES = [
   { id: "28", name: "Action" },
@@ -32,62 +32,47 @@ export default function Filters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Safely get params, handling null (SSR)
-  const getParam = (key: string, fallback: string = "") => {
-    if (!searchParams) return fallback;
-    return searchParams.get(key) || fallback;
-  };
+  // Initialize with defaults to avoid null issues on SSR
+  const [genre, setGenre] = useState("");
+  const [language, setLanguage] = useState("en");
+  const [year, setYear] = useState("");
+  const [sort, setSort] = useState("popularity.desc");
 
-  // Initialize state from URL params
-  const [genre, setGenre] = useState(getParam("genre", ""));
-  const [language, setLanguage] = useState(getParam("language", "en"));
-  const [year, setYear] = useState(getParam("year", ""));
-  const [sort, setSort] = useState(getParam("sort", "popularity.desc"));
-
-  // Flag to prevent infinite loops and unnecessary updates on initial load
-  const [isMounted, setIsMounted] = useState(false);
-
+  // Sync state with URL params on client-side mount and when params change
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Only update URL when state changes AND we are mounted
-  const updateUrl = useCallback(() => {
-    const params = new URLSearchParams();
+    if (!searchParams) return;
     
-    if (genre) params.set("genre", genre);
-    if (language) params.set("language", language);
-    if (year) params.set("year", year);
-    if (sort) params.set("sort", sort);
-    params.set("page", "1");
+    const g = searchParams.get("genre") || "";
+    const l = searchParams.get("language") || "en";
+    const y = searchParams.get("year") || "";
+    const s = searchParams.get("sort") || "popularity.desc";
 
-    const queryString = params.toString();
-    router.push(`${pathname}?${queryString}`, { scroll: false });
-  }, [genre, language, year, sort, pathname, router]);
+    setGenre(g);
+    setLanguage(l);
+    setYear(y);
+    setSort(s);
+  }, [searchParams]);
 
-  // Debounced update
+  // Debounced URL update
   useEffect(() => {
-    if (!isMounted) return; // Wait for client-side mount
-
     const timeoutId = setTimeout(() => {
-      updateUrl();
+      const params = new URLSearchParams();
+      
+      if (genre) params.set("genre", genre);
+      if (language) params.set("language", language);
+      if (year) params.set("year", year);
+      if (sort) params.set("sort", sort);
+      params.set("page", "1");
+
+      const queryString = params.toString();
+      // Only push if different to avoid loop
+      if (queryString !== searchParams?.toString()) {
+        router.push(`${pathname}?${queryString}`, { scroll: false });
+      }
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [genre, language, year, sort, updateUrl, isMounted]);
-
-  // If not mounted, show a simple skeleton to prevent hydration mismatch
-  if (!isMounted) {
-    return (
-      <div className="sticky top-0 z-50 glass-panel !border-none !bg-[#0a0b10]/80 backdrop-blur-2xl py-4 px-4 mb-8">
-        <div className="max-w-[1600px] mx-auto space-y-4">
-          <div className="h-8 bg-white/5 rounded-lg animate-pulse w-full" />
-          <div className="h-8 bg-white/5 rounded-lg animate-pulse w-full" />
-          <div className="h-8 bg-white/5 rounded-lg animate-pulse w-48" />
-        </div>
-      </div>
-    );
-  }
+  }, [genre, language, year, sort, pathname, router, searchParams]);
 
   return (
     <div className="sticky top-0 z-50 glass-panel !border-none !bg-[#0a0b10]/80 backdrop-blur-2xl py-4 px-4 mb-8">
