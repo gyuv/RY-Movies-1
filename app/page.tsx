@@ -51,7 +51,7 @@ export default async function Home({
 }: { 
   searchParams: { [key: string]: string | string[] | undefined } 
 }) {
-  // Parse search params
+  // Parse search params safely
   const genre = Array.isArray(searchParams.genre) ? searchParams.genre[0] : searchParams.genre;
   const year = Array.isArray(searchParams.year) ? searchParams.year[0] : searchParams.year;
   const language = Array.isArray(searchParams.language) ? searchParams.language[0] : searchParams.language;
@@ -85,7 +85,7 @@ export default async function Home({
         </header>
 
         {/* Filters */}
-        <Filters onFilterChange={() => {}} />
+        <Filters />
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 pb-10">
