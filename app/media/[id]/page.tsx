@@ -1,3 +1,4 @@
+import StreamSelector from '../../components/StreamSelector';
 import Link from 'next/link';
 import Image from 'next/image';
 import Footer from '../../components/Footer';
@@ -138,16 +139,10 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
               </div>
             )}
 
-            {/* 2. Streaming Player (vidsrc.sbs) */}
+            {/* 2. Streaming Player with Server Selector */}
             <div>
               <h3 className="text-xl font-bold mb-3">Stream Movie</h3>
-              <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg relative">
-                {/* 
-                  Using 'netflix' as default provider for vidsrc.sbs. 
-                  You can change this to 'prime', 'hulu', etc.
-                */}
-                <VideoEmbed type="movie" id={movie.id} provider="netflix" />
-              </div>
+              <StreamSelector movieId={movie.id} type="movie" />
             </div>
 
             {/* 3. Overview */}
