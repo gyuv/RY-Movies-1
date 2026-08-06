@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 const GENRES = [
   { id: "28", name: "Action" },
@@ -32,36 +32,62 @@ export default function Filters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // FIX: Handle null searchParams on server-side render
-  const getParam = (key: string, defaultValue: string = "") => {
-    if (!searchParams) return defaultValue;
-    return searchParams.get(key) || defaultValue;
+  // Safely get params, handling null (SSR)
+  const getParam = (key: string, fallback: string = "") => {
+    if (!searchParams) return fallback;
+    return searchParams.get(key) || fallback;
   };
 
+  // Initialize state from URL params
   const [genre, setGenre] = useState(getParam("genre", ""));
   const [language, setLanguage] = useState(getParam("language", "en"));
   const [year, setYear] = useState(getParam("year", ""));
   const [sort, setSort] = useState(getParam("sort", "popularity.desc"));
 
-  const updateFilters = useCallback(() => {
-    // Use window.location.search if searchParams is null (server side)
-    const params = new URLSearchParams(searchParams ? searchParams.toString() : window.location.search);
-    
-    if (genre) params.set("genre", genre); else params.delete("genre");
-    if (language) params.set("language", language); else params.delete("language");
-    if (year) params.set("year", year); else params.delete("year");
-    if (sort) params.set("sort", sort); else params.delete("sort");
-    params.set("page", "1");
-
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [genre, language, year, sort, pathname, router, searchParams]);
+  // Flag to prevent infinite loops and unnecessary updates on initial load
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Only update URL when state changes AND we are mounted
+  const updateUrl = useCallback(() => {
+    const params = new URLSearchParams();
+    
+    if (genre) params.set("genre", genre);
+    if (language) params.set("language", language);
+    if (year) params.set("year", year);
+    if (sort) params.set("sort", sort);
+    params.set("page", "1");
+
+    const queryString = params.toString();
+    router.push(`${pathname}?${queryString}`, { scroll: false });
+  }, [genre, language, year, sort, pathname, router]);
+
+  // Debounced update
+  useEffect(() => {
+    if (!isMounted) return; // Wait for client-side mount
+
     const timeoutId = setTimeout(() => {
-      updateFilters();
+      updateUrl();
     }, 300);
+
     return () => clearTimeout(timeoutId);
-  }, [genre, language, year, sort, updateFilters]);
+  }, [genre, language, year, sort, updateUrl, isMounted]);
+
+  // If not mounted, show a simple skeleton to prevent hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="sticky top-0 z-50 glass-panel !border-none !bg-[#0a0b10]/80 backdrop-blur-2xl py-4 px-4 mb-8">
+        <div className="max-w-[1600px] mx-auto space-y-4">
+          <div className="h-8 bg-white/5 rounded-lg animate-pulse w-full" />
+          <div className="h-8 bg-white/5 rounded-lg animate-pulse w-full" />
+          <div className="h-8 bg-white/5 rounded-lg animate-pulse w-48" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sticky top-0 z-50 glass-panel !border-none !bg-[#0a0b10]/80 backdrop-blur-2xl py-4 px-4 mb-8">
