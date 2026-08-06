@@ -12,35 +12,28 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
 
   switch (provider) {
     case 'promulti':
-      // ProMulti - The "Unstoppable" aggregator with multiple internal servers
-      src = `https://promulti.com/embed/${type}/${id}`;
+      // VidSrc.io with 'auto' provider acts like ProMulti (aggregates multiple servers)
+      // This is the most stable "all-in-one" option
+      src = `https://vidsrc.io/embed/${type}/${id}?autoplay=1&primary_color=%230088cc`;
       break;
     case 'multicine':
-      // MultiCine - Another strong aggregator
+      // MultiCine - Another aggregator
       src = `https://multicine.me/embed/${type}/${id}`;
       break;
-    case 'vidsrc':
-      // VidSrc.io - Good general coverage
-      src = `https://vidsrc.io/embed/${type}/${id}`;
-      break;
-    case 'vidsrccc':
-      // VidSrc.cc - Good backup
-      src = `https://vidsrc.cc/embed/${type}/${id}`;
-      break;
     case '2embed':
-      // 2embed - Excellent for Asian (Tamil, Korean, Japanese) movies
+      // 2embed - Has a multi-server UI
       src = `https://2embed.cc/embed/${type}/${id}`;
       break;
-    case 'voe':
-      // Voe - Another strong aggregator for non-English content
-      src = `https://voe.su/embed/${type}/${id}`;
+    case 'vidsrc':
+      // Standard VidSrc
+      src = `https://vidsrc.io/embed/${type}/${id}`;
       break;
     case 'cinevid':
-      // CineVid - Best for English/Hollywood
+      // CineVid
       src = `https://cinevid.xyz/embed/${type}/${id}`;
       break;
     default:
-      src = `https://promulti.com/embed/${type}/${id}`;
+      src = `https://vidsrc.io/embed/${type}/${id}?autoplay=1&primary_color=%230088cc`;
       break;
   }
 
