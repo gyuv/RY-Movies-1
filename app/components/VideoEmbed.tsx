@@ -10,11 +10,16 @@ interface VideoEmbedProps {
 export default function VideoEmbed({ type, id, provider, className }: VideoEmbedProps) {
   let src = '';
 
-  // 1. PROMULTI: Your previous working code using vidsrc.sbs
   if (provider === 'promulti') {
+    // Your preferred ProMulti aggregator
     src = `https://vidsrc.sbs/embed/${type}/${id}?provider=free`;
   } 
-  // 2. OTHER STREAMERS: Direct embeds from popular sites
+  else if (provider === 'tamilian') {
+    // Tamilian doesn't have a simple /embed/id URL.
+    // We use a known aggregator that mirrors Tamilian's content: VidSrc.cc or 2Embed
+    // VidSrc.cc often has the same servers as Tamilian
+    src = `https://vidsrc.cc/embed/${type}/${id}`;
+  } 
   else if (provider === 'cinevid') {
     src = `https://cinevid.xyz/embed/${type}/${id}`;
   } 
@@ -34,7 +39,6 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
     src = `https://embedsu.com/embed/${type}/${id}`;
   } 
   else {
-    // Fallback to Promulti
     src = `https://vidsrc.sbs/embed/${type}/${id}?provider=free`;
   }
 
