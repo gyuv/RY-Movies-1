@@ -13,7 +13,7 @@ interface Movie {
 interface MovieCarouselProps {
   title: string;
   movies: Movie[];
-  languageCode?: string; // e.g., 'en', 'ta', 'te'
+  languageCode?: string;
 }
 
 export default function MovieCarousel({ title, movies, languageCode }: MovieCarouselProps) {
