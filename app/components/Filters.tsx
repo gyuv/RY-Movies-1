@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const GENRES = [
   { id: "28", name: "Action" },
@@ -32,46 +32,52 @@ export default function Filters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Get current values
-  const [genre, setGenre] = useState(searchParams.get("genre") || "");
-  const [language, setLanguage] = useState(searchParams.get("language") || "en");
-  const [year, setYear] = useState(searchParams.get("year") || "");
-  const [sort, setSort] = useState(searchParams.get("sort") || "popularity.desc");
+  // FIX: Handle null searchParams on server-side render
+  const getParam = (key: string, defaultValue: string = "") => {
+    if (!searchParams) return defaultValue;
+    return searchParams.get(key) || defaultValue;
+  };
 
-  // Update URL when filters change
+  const [genre, setGenre] = useState(getParam("genre", ""));
+  const [language, setLanguage] = useState(getParam("language", "en"));
+  const [year, setYear] = useState(getParam("year", ""));
+  const [sort, setSort] = useState(getParam("sort", "popularity.desc"));
+
   const updateFilters = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    // Use window.location.search if searchParams is null (server side)
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : window.location.search);
     
     if (genre) params.set("genre", genre); else params.delete("genre");
     if (language) params.set("language", language); else params.delete("language");
     if (year) params.set("year", year); else params.delete("year");
     if (sort) params.set("sort", sort); else params.delete("sort");
-    
-    // Reset page to 1 when filters change
     params.set("page", "1");
 
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [genre, language, year, sort, pathname, router, searchParams]);
 
-  // Trigger update when any state changes
   useEffect(() => {
-    updateFilters();
+    const timeoutId = setTimeout(() => {
+      updateFilters();
+    }, 300);
+    return () => clearTimeout(timeoutId);
   }, [genre, language, year, sort, updateFilters]);
 
   return (
-    <div className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/10 py-4 px-4 mb-6">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 items-center justify-between">
+    <div className="sticky top-0 z-50 glass-panel !border-none !bg-[#0a0b10]/80 backdrop-blur-2xl py-4 px-4 mb-8">
+      <div className="max-w-[1600px] mx-auto space-y-4">
         
-        {/* Language Selector */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide w-full lg:w-auto">
+        {/* Row 1: Languages */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <span className="text-xs font-medium text-white/40 uppercase tracking-wider mr-2 whitespace-nowrap">Language</span>
           {LANGUAGES.map((lang) => (
             <button
               key={lang.code}
               onClick={() => setLanguage(lang.code)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap border ${
                 language === lang.code
-                  ? "bg-white text-black shadow-lg shadow-white/20"
-                  : "bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white"
+                  ? "bg-white text-black border-white shadow-lg shadow-white/10"
+                  : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white"
               }`}
             >
               {lang.name}
@@ -79,26 +85,27 @@ export default function Filters() {
           ))}
         </div>
 
-        {/* Genre Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide w-full lg:w-auto">
+        {/* Row 2: Genres */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <span className="text-xs font-medium text-white/40 uppercase tracking-wider mr-2 whitespace-nowrap">Genre</span>
           <button
             onClick={() => setGenre("")}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap border ${
               genre === ""
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "bg-white/10 text-gray-300 hover:bg-white/20"
+                ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20"
+                : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white"
             }`}
           >
-            All Genres
+            All
           </button>
           {GENRES.map((g) => (
             <button
               key={g.id}
               onClick={() => setGenre(g.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap border ${
                 genre === g.id
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                  : "bg-white/10 text-gray-300 hover:bg-white/20"
+                  ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20"
+                  : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white"
               }`}
             >
               {g.name}
@@ -106,27 +113,41 @@ export default function Filters() {
           ))}
         </div>
 
-        {/* Year & Sort Controls */}
-        <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-          <select 
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className="bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Years</option>
-            {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
+        {/* Row 3: Year & Sort */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <select 
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              className="appearance-none bg-white/5 text-white text-xs font-medium rounded-lg px-4 py-2 pr-8 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer hover:bg-white/10 transition-colors"
+            >
+              <option value="">Year: All</option>
+              {YEARS.map(y => <option key={y} value={y} className="bg-[#0a0b10] text-white">{y}</option>)}
+            </select>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg className="w-3 h-3 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
 
-          <select 
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="popularity.desc">Popular</option>
-            <option value="vote_average.desc">Top Rated</option>
-            <option value="release_date.desc">Newest</option>
-            <option value="release_date.asc">Oldest</option>
-          </select>
+          <div className="relative">
+            <select 
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="appearance-none bg-white/5 text-white text-xs font-medium rounded-lg px-4 py-2 pr-8 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer hover:bg-white/10 transition-colors"
+            >
+              <option value="popularity.desc">Sort: Popular</option>
+              <option value="vote_average.desc">Sort: Top Rated</option>
+              <option value="release_date.desc">Sort: Newest</option>
+              <option value="release_date.asc">Sort: Oldest</option>
+            </select>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg className="w-3 h-3 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
     </div>
