@@ -10,7 +10,7 @@ const MOCK_MOVIES = [
   { id: 2, title: "Movie 2", poster_path: null, vote_average: 7.2 },
 ];
 
-async function getMovies(page = 1, genre = "", language = "en", year = "", sort = "popularity.desc") {
+async function getMovies(page: number, genre: string, language: string, year: string, sort: string) {
   try {
     const params = new URLSearchParams();
     params.set("page", String(page));
@@ -44,16 +44,22 @@ async function getTrending() {
   }
 }
 
+// Helper to normalize search params to string
+const getParam = (value: string | string[] | undefined, defaultValue: string = "") => {
+  if (Array.isArray(value)) return value[0];
+  return value || defaultValue;
+};
+
 export default async function Home({ 
   searchParams 
 }: { 
   searchParams: { [key: string]: string | string[] | undefined } 
 }) {
   const page = Number(searchParams?.page) || 1;
-  const genre = searchParams?.genre || "";
-  const language = searchParams?.language || "en";
-  const year = searchParams?.year || "";
-  const sort = searchParams?.sort || "popularity.desc";
+  const genre = getParam(searchParams?.genre, "");
+  const language = getParam(searchParams?.language, "en");
+  const year = getParam(searchParams?.year, "");
+  const sort = getParam(searchParams?.sort, "popularity.desc");
 
   const [moviesData, trendingData] = await Promise.all([
     getMovies(page, genre, language, year, sort),
