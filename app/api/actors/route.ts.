@@ -1,0 +1,56 @@
+import { NextResponse } from 'next/server';
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const language = searchParams.get('language') || 'ta'; // Default to Tamil
+  const apiKey = process.env.TMDB_API_KEY;
+
+  if (!apiKey) {
+    return NextResponse.json({ actors: [] });
+  }
+
+  try {
+    // Fetch popular movies in that language to find popular actors
+    // We use 'discover/movie' with a high popularity sort
+    const movieUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_original_language=${language}&sort_by=popularity.desc&language=en-US&page=1`;
+    const movieRes = await fetch(movieUrl);
+    const movieData = await movieRes.json();
+
+    // Extract top 50 movies
+    const movies = movieData.results?.slice(0, 50) || [];
+    
+    // Collect all actors from these movies
+    const actorCounts: Record<string, number> = {};
+    const actorNames: Record<string, string> = {};
+
+    for (const movie of movies) {
+      // Fetch cast for each movie (simple approach, could be optimized with 'credits' endpoint)
+      const castUrl = `https://api.themoviedb.org/3/movie/${movie.id}/credits?api_key=${apiKey}`;
+      const castRes = await fetch(castUrl);
+      const castData = await castRes.json();
+      
+      const cast = castData.cast || [];
+      for (const actor of cast) {
+        const name = actor.name;
+        const id = actor.id;
+        if (actorCounts[id]) {
+          actorCounts[id]++;
+        } else {
+          actorCounts[id] = 1;
+          actorNames[id] = name;
+        }
+      }
+    }
+
+    // Sort actors by frequency (appearances in popular movies)
+    const sortedActors = Object.keys(actorCounts)
+      .sort((a, b) => actorCounts[b] - actorCounts[a])
+      .slice(0, 20) // Top 20 popular actors
+      .map(id => ({ id, name: actorNames[id] }));
+
+    return NextResponse.json({ actors: sortedActors });
+  } catch (error) {
+    console.error("Error fetching actors:", error);
+    return NextResponse.json({ actors: [] });
+  }
+}
