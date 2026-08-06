@@ -9,16 +9,30 @@ interface StreamingPlayerProps {
   language?: string;
 }
 
-// Updated Providers with stable URLs
 const PROVIDERS = [
-  { id: 'vidsrc', name: 'VidSrc (Recommended)' },
-  { id: 'vidsrccc', name: 'VidSrc CC (Backup)' },
-  { id: 'embedsu', name: 'EmbedSu (1080p)' },
+  { id: '2embed', name: '2Embed (Best for Tamil/Asian)' },
+  { id: 'voe', name: 'Voe (Backup)' },
+  { id: 'vidsrc', name: 'VidSrc (General)' },
+  { id: 'cinevid', name: 'CineVid (Best for English)' },
 ];
 
 export default function StreamingPlayer({ movieId, type, language = 'en' }: StreamingPlayerProps) {
-  // Default to VidSrc.io as it's the most reliable
-  const [provider, setProvider] = useState<string>('vidsrc');
+  // Auto-select best provider based on language
+  const getBestProvider = (lang: string) => {
+    const lowerLang = lang.toLowerCase();
+    // Tamil (ta), Telugu (te), Hindi (hi), Korean (ko), Japanese (ja)
+    if (['ta', 'te', 'hi', 'ko', 'ja', 'zh', 'fr', 'de', 'es'].includes(lowerLang)) {
+      return '2embed'; // 2embed has better Tamil/Asian coverage
+    }
+    return 'cinevid'; // Default to CineVid for English
+  };
+
+  const [provider, setProvider] = useState<string>(getBestProvider(language));
+
+  // Update provider if language changes
+  useEffect(() => {
+    setProvider(getBestProvider(language));
+  }, [language]);
 
   return (
     <div className="bg-[#14151a] p-4 rounded-lg">
@@ -51,7 +65,8 @@ export default function StreamingPlayer({ movieId, type, language = 'en' }: Stre
 
       <div className="mt-3 flex items-center justify-between">
         <p className="text-xs text-white/40">
-          💡 If the video doesn't load, try switching to <strong>VidSrc CC</strong>.
+          💡 <strong>Auto-Selected:</strong> {PROVIDERS.find(p => p.id === provider)?.name}. 
+          If the video doesn't load, try switching to <strong>Voe</strong> or <strong>VidSrc</strong>.
         </p>
       </div>
     </div>
