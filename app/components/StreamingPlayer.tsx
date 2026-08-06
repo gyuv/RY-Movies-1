@@ -9,17 +9,16 @@ interface StreamingPlayerProps {
   language?: string;
 }
 
-// Providers with ProMulti as the star
+// Providers
 const PROVIDERS = [
-  { id: 'promulti', name: 'ProMulti (Best Aggregator)' },
-  { id: 'multicine', name: 'MultiCine (Backup)' },
-  { id: '2embed', name: '2Embed (Tamil/Asian)' },
-  { id: 'vidsrc', name: 'VidSrc (General)' },
+  { id: 'promulti', name: 'ProMulti (All-in-One)' },
+  { id: 'multicine', name: 'MultiCine' },
+  { id: '2embed', name: '2Embed (Multi-Server)' },
   { id: 'cinevid', name: 'CineVid (English)' },
 ];
 
 export default function StreamingPlayer({ movieId, type, language = 'en' }: StreamingPlayerProps) {
-  // Default to ProMulti because it aggregates multiple servers internally
+  // Default to ProMulti (VidSrc.io auto)
   const [provider, setProvider] = useState<string>('promulti');
 
   return (
@@ -53,7 +52,7 @@ export default function StreamingPlayer({ movieId, type, language = 'en' }: Stre
 
       <div className="mt-3 flex items-center justify-between">
         <p className="text-xs text-white/40">
-          💡 <strong>ProMulti</strong> aggregates multiple servers. If one fails, it often auto-switches or lets you pick another inside the player.
+          💡 <strong>ProMulti</strong> aggregates multiple servers. If one fails, you can switch servers inside the player.
         </p>
       </div>
     </div>
