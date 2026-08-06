@@ -145,7 +145,8 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
               <h3 className="text-xl font-bold mb-3">Watch Online</h3>
               <StreamingPlayer 
                 movieId={movie.id} 
-                type="movie" 
+                type="movie"
+                language={movie.original_language}
               />
             </div>
 
