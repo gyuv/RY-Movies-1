@@ -3,33 +3,30 @@
 interface VideoEmbedProps {
   type: string; // 'movie' or 'tv'
   id: number;
-  provider: string; // 'cinevid', 'vidsrc', '4k', etc.
+  provider: string; // 'vidsrc', 'vidsrccc', 'embedsu'
   className?: string;
 }
 
 export default function VideoEmbed({ type, id, provider, className }: VideoEmbedProps) {
-  // Map provider to actual embed URL
+  // Stable, verified embed URLs
   let src = '';
 
   switch (provider) {
-    case 'cinevid':
-      // CineVid is great for English movies
-      src = `https://cinevid.xyz/embed/${type}/${id}`;
-      break;
     case 'vidsrc':
-      // VidSrc has better support for Asian languages (Tamil, Korean, etc.)
-      src = `https://vidsrc.xyz/embed/${type}/${id}`;
+      // VidSrc.io - Most stable, supports almost all TMDB IDs
+      src = `https://vidsrc.io/embed/${type}/${id}`;
       break;
-    case '4k':
-      src = `https://4k-movie.net/embed/${type}/${id}`;
-      break;
-    case 'vidsrclang':
-      // Alternative VidSrc
+    case 'vidsrccc':
+      // VidSrc.cc - Great backup, good for Asian movies
       src = `https://vidsrc.cc/embed/${type}/${id}`;
       break;
+    case 'embedsu':
+      // EmbedSu - Good for 1080p, but sometimes slower
+      src = `https://embedsu.com/embed/${type}/${id}`;
+      break;
     default:
-      // Fallback to CineVid
-      src = `https://cinevid.xyz/embed/${type}/${id}`;
+      // Default to VidSrc.io
+      src = `https://vidsrc.io/embed/${type}/${id}`;
       break;
   }
 
