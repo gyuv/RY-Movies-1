@@ -1,6 +1,3 @@
-Here is the corrected app/page.tsx. This version fixes the TypeScript errors, ensures the Hero component receives data, and structures the page to show the specific language carousels you requested (English, Tamil, Telugu, Hindi) above the main filtered grid.
-
-Copy
 import Filters from './components/Filters';
 import MoviesSection from './components/MoviesSection';
 import Hero from './components/Hero';
@@ -157,5 +154,3 @@ export default async function Home({
     </main>
   );
 }
-
-https://notrack.ai/
