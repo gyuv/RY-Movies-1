@@ -12,28 +12,29 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
 
   switch (provider) {
     case 'promulti':
-      // VidSrc.io with 'auto' provider acts like ProMulti (aggregates multiple servers)
-      // This is the most stable "all-in-one" option
-      src = `https://vidsrc.io/embed/${type}/${id}?autoplay=1&primary_color=%230088cc`;
+      // The ORIGINAL ProMulti aggregator (promulti.net)
+      // This is the one that bundles multiple servers inside one player
+      src = `https://promulti.net/embed/${type}/${id}`;
       break;
     case 'multicine':
       // MultiCine - Another aggregator
       src = `https://multicine.me/embed/${type}/${id}`;
       break;
     case '2embed':
-      // 2embed - Has a multi-server UI
+      // 2embed - Excellent for Asian (Tamil, Korean, Japanese) movies
       src = `https://2embed.cc/embed/${type}/${id}`;
       break;
     case 'vidsrc':
-      // Standard VidSrc
+      // VidSrc.io - Good general coverage
       src = `https://vidsrc.io/embed/${type}/${id}`;
       break;
     case 'cinevid':
-      // CineVid
+      // CineVid - Best for English/Hollywood
       src = `https://cinevid.xyz/embed/${type}/${id}`;
       break;
     default:
-      src = `https://vidsrc.io/embed/${type}/${id}?autoplay=1&primary_color=%230088cc`;
+      // Default to the original ProMulti
+      src = `https://promulti.net/embed/${type}/${id}`;
       break;
   }
 
