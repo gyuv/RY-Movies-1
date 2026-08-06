@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Footer from '../../components/Footer';
+import VideoEmbed from '../../components/VideoEmbed';
 
 // Helper to fetch movie details
 async function getMovieDetails(id: string) {
@@ -73,12 +74,6 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
   const trailer = movie.videos?.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube');
   const youtubeKey = trailer?.key;
 
-  // Get Streaming Providers (US by default, can change to 'IN' for India)
-  const usProviders = movie.provider_results?.us || {};
-  const flatrate = usProviders.flatrate || [];
-  const buy = usProviders.buy || [];
-  const rent = usProviders.rent || [];
-
   return (
     <main className="min-h-screen bg-[#0a0b10] text-white">
       {/* Backdrop Header */}
@@ -108,7 +103,7 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
       {/* Content */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Poster & Streaming Info */}
+          {/* Left Column: Poster & Quick Info */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
               <Image
@@ -118,95 +113,44 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
                 height={750}
                 className="rounded-lg shadow-2xl w-full"
               />
-
-              {/* Streaming Providers */}
-              {(flatrate.length > 0 || buy.length > 0 || rent.length > 0) && (
-                <div className="bg-white/5 rounded-lg p-4">
-                  <h3 className="text-lg font-bold mb-3">Watch Options (US)</h3>
-                  
-                  {flatrate.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm text-white/60 mb-2">Streaming</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {flatrate.slice(0, 4).map((provider: any) => (
-                          <div key={provider.provider_id} className="flex items-center gap-2 bg-white/10 p-2 rounded">
-                            <Image
-                              src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
-                              alt={provider.provider_name}
-                              width={24}
-                              height={24}
-                              className="rounded"
-                            />
-                            <span className="text-xs truncate">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {rent.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm text-white/60 mb-2">Rent</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {rent.slice(0, 4).map((provider: any) => (
-                          <div key={provider.provider_id} className="flex items-center gap-2 bg-white/10 p-2 rounded">
-                            <Image
-                              src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
-                              alt={provider.provider_name}
-                              width={24}
-                              height={24}
-                              className="rounded"
-                            />
-                            <span className="text-xs truncate">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {buy.length > 0 && (
-                    <div>
-                      <h4 className="text-sm text-white/60 mb-2">Buy</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {buy.slice(0, 4).map((provider: any) => (
-                          <div key={provider.provider_id} className="flex items-center gap-2 bg-white/10 p-2 rounded">
-                            <Image
-                              src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
-                              alt={provider.provider_name}
-                              width={24}
-                              height={24}
-                              className="rounded"
-                            />
-                            <span className="text-xs truncate">{provider.provider_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
               <Link href="/" className="block w-full bg-white/10 hover:bg-white/20 text-center py-3 rounded-lg transition-colors">
                 ← Back to Browse
               </Link>
             </div>
           </div>
 
-          {/* Right Column: Overview & Video */}
+          {/* Right Column: Players & Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Video Player */}
+            
+            {/* 1. Trailer (YouTube) */}
             {youtubeKey && (
-              <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
-                <iframe
-                  src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=0&rel=0`}
-                  title={`${movie.title} Trailer`}
-                  className="w-full h-full"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                />
+              <div>
+                <h3 className="text-xl font-bold mb-3">Trailer</h3>
+                <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=0&rel=0`}
+                    title={`${movie.title} Trailer`}
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                </div>
               </div>
             )}
 
+            {/* 2. Streaming Player (vidsrc.sbs) */}
+            <div>
+              <h3 className="text-xl font-bold mb-3">Stream Movie</h3>
+              <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg relative">
+                {/* 
+                  Using 'netflix' as default provider for vidsrc.sbs. 
+                  You can change this to 'prime', 'hulu', etc.
+                */}
+                <VideoEmbed type="movie" id={movie.id} provider="netflix" />
+              </div>
+            </div>
+
+            {/* 3. Overview */}
             <div>
               <h2 className="text-2xl font-bold mb-4">Overview</h2>
               <p className="text-white/80 leading-relaxed text-lg">
@@ -214,6 +158,7 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
               </p>
             </div>
 
+            {/* 4. Details */}
             <div>
               <h3 className="text-xl font-bold mb-4">Details</h3>
               <div className="grid grid-cols-2 gap-4">
