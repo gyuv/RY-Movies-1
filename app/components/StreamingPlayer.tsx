@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import VideoEmbed from './VideoEmbed';
 
 interface StreamingPlayerProps {
@@ -10,16 +10,23 @@ interface StreamingPlayerProps {
 
 // These are the providers supported by vidsrc.sbs
 const PROVIDERS = [
+  { id: 'free', name: 'Free (Aggregated)' }, // Moved to top as it has the widest coverage
   { id: 'netflix', name: 'Netflix' },
   { id: 'prime', name: 'Amazon Prime' },
   { id: 'hulu', name: 'Hulu' },
   { id: 'disney', name: 'Disney+' },
   { id: 'apple', name: 'Apple TV' },
-  { id: 'free', name: 'Free (Aggregated)' },
 ];
 
 export default function StreamingPlayer({ movieId, type }: StreamingPlayerProps) {
-  const [provider, setProvider] = useState<string>('netflix');
+  // Default to 'free' because it's more likely to have older/regional movies like Budget Padmanabhan
+  const [provider, setProvider] = useState<string>('free');
+  const [isError, setIsError] = useState(false);
+
+  // Reset error when provider changes
+  useEffect(() => {
+    setIsError(false);
+  }, [provider]);
 
   return (
     <div className="bg-[#14151a] p-4 rounded-lg">
@@ -48,13 +55,23 @@ export default function StreamingPlayer({ movieId, type }: StreamingPlayerProps)
           provider={provider}
           className="h-full w-full" 
         />
+        
+        {/* Fallback Message if video doesn't load (optional enhancement) */}
+        {isError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-white">
+            <div className="text-center">
+              <p className="text-lg font-bold">Video Not Found</p>
+              <p className="text-sm text-white/60">Try switching to another provider above.</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex items-center justify-between">
         <p className="text-xs text-white/40">
-          💡 If the video is black, try switching to "Free" or another provider above.
+          💡 <strong>Budget Padmanabhan</strong> is an older Tamil movie. The <strong>"Free"</strong> provider usually has the best coverage for non-Netflix/Prime movies.
         </p>
       </div>
     </div>
-    );
+  );
 }
