@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getImageUrl } from '../utils/imageHelper';
 
 interface Movie {
   id: number;
   title: string;
   overview: string;
-  poster_path: string;
-  backdrop_path: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
   vote_average: number;
   release_date: string;
 }
@@ -28,16 +29,17 @@ export default function Hero({ movies }: { movies: Movie[] }) {
 
   const movie = movies[current];
   const releaseYear = movie.release_date?.split('-')[0] || "TBA";
+  const backgroundImage = getImageUrl(movie.backdrop_path, "original");
 
   return (
     <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
-      {/* Background Image with Zoom Effect */}
+      {/* Background Image */}
       <div className="absolute inset-0 transition-transform duration-700 ease-in-out">
         <Image
-          src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+          src={backgroundImage}
           alt={movie.title}
           fill
-          className="object-cover scale-105 md:scale-110" // Zoom effect
+          className="object-cover scale-110"
           priority
         />
       </div>
