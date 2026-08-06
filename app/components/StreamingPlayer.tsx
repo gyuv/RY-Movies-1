@@ -9,11 +9,11 @@ interface StreamingPlayerProps {
   language?: string;
 }
 
-// List of servers: Promulti first, then others
 const SERVERS = [
-  { id: 'promulti', name: 'ProMulti (Aggregator)' }, // Your preferred server
-  { id: 'cinevid', name: 'CineVid' },
-  { id: '2embed', name: '2Embed' },
+  { id: 'promulti', name: 'ProMulti (Aggregator)' }, // Your main choice
+  { id: 'tamilian', name: 'Tamilian (Mirrored)' },   // Uses vidsrc.cc which mirrors Tamilian
+  { id: '2embed', name: '2Embed (Tamil/Asian)' },
+  { id: 'cinevid', name: 'CineVid (English)' },
   { id: 'voe', name: 'Voe' },
   { id: 'vidsrc', name: 'VidSrc' },
   { id: '4k', name: '4K Movie' },
@@ -21,12 +21,10 @@ const SERVERS = [
 ];
 
 export default function StreamingPlayer({ movieId, type, language = 'en' }: StreamingPlayerProps) {
-  // Default to Promulti
   const [provider, setProvider] = useState<string>('promulti');
 
   return (
     <div className="bg-[#14151a] p-4 rounded-lg">
-      {/* Server Selection Buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
         {SERVERS.map((s) => (
           <button
@@ -43,7 +41,6 @@ export default function StreamingPlayer({ movieId, type, language = 'en' }: Stre
         ))}
       </div>
 
-      {/* Video Player */}
       <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg relative">
         <VideoEmbed 
           type={type} 
@@ -55,7 +52,7 @@ export default function StreamingPlayer({ movieId, type, language = 'en' }: Stre
 
       <div className="mt-3 flex items-center justify-between">
         <p className="text-xs text-white/40">
-          💡 <strong>ProMulti</strong> aggregates multiple sources. If it fails, try <strong>CineVid</strong> or <strong>2Embed</strong>.
+          💡 <strong>ProMulti</strong> is the main aggregator. <strong>Tamilian (Mirrored)</strong> uses servers similar to Tamilian.io.
         </p>
       </div>
     </div>
