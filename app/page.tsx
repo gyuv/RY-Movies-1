@@ -8,7 +8,7 @@ async function getMoviesList(endpoint: string, apiKey: string, params = "") {
     const res = await fetch(baseUrl, { next: { revalidate: 86400 } });
     if (!res.ok) return { results: [] };
     const data = await res.json();
-    return { results: data.results.slice(0, 20) }; // Limit to 20 per carousel for performance
+    return { results: data.results.slice(0, 20) }; // Limit to 20 per carousel
   } catch (e) {
     console.error(`Error fetching ${endpoint}:`, e);
     return { results: [] };
@@ -25,6 +25,9 @@ export default async function Home() {
   const [
     trendingMovies,
     topEnglishMovies,
+    topHindiMovies,
+    topTamilMovies,
+    topTeluguMovies,
     topKoreanMovies,
     topJapaneseMovies,
     topSpanishMovies,
@@ -32,6 +35,9 @@ export default async function Home() {
   ] = await Promise.all([
     getMoviesList("trending/movie/week", apiKey),
     getMoviesList("discover/movie", apiKey, "&with_original_language=en&vote_count.gte=100"),
+    getMoviesList("discover/movie", apiKey, "&with_original_language=hi&vote_count.gte=100"),
+    getMoviesList("discover/movie", apiKey, "&with_original_language=ta&vote_count.gte=100"),
+    getMoviesList("discover/movie", apiKey, "&with_original_language=te&vote_count.gte=100"),
     getMoviesList("discover/movie", apiKey, "&with_original_language=ko&vote_count.gte=100"),
     getMoviesList("discover/movie", apiKey, "&with_original_language=ja&vote_count.gte=100"),
     getMoviesList("discover/movie", apiKey, "&with_original_language=es&vote_count.gte=100"),
@@ -61,19 +67,37 @@ export default async function Home() {
           movies={topRatedAllTime.results} 
         />
 
-        {/* 4. Korean Wave */}
+        {/* 4. Indian Cinema - Hindi */}
+        <MovieCarousel 
+          title="🇮🇳 Top Hindi Movies" 
+          movies={topHindiMovies.results} 
+        />
+
+        {/* 5. Indian Cinema - Tamil */}
+        <MovieCarousel 
+          title="🇮🇳 Top Tamil Movies" 
+          movies={topTamilMovies.results} 
+        />
+
+        {/* 6. Indian Cinema - Telugu */}
+        <MovieCarousel 
+          title="🇮🇳 Top Telugu Movies" 
+          movies={topTeluguMovies.results} 
+        />
+
+        {/* 7. Korean Wave */}
         <MovieCarousel 
           title="🇰🇷 Top Korean Movies" 
           movies={topKoreanMovies.results} 
         />
 
-        {/* 5. Japanese Cinema */}
+        {/* 8. Japanese Cinema */}
         <MovieCarousel 
           title="🇯🇵 Top Japanese Movies" 
           movies={topJapaneseMovies.results} 
         />
 
-        {/* 6. Spanish Language */}
+        {/* 9. Spanish Language */}
         <MovieCarousel 
           title="🇪🇸 Top Spanish Movies" 
           movies={topSpanishMovies.results} 
