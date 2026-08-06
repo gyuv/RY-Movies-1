@@ -11,34 +11,12 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
   let src = '';
 
   if (provider === 'promulti') {
-    // Your preferred ProMulti aggregator (vidsrc.sbs)
+    // ProMulti (vidsrc.sbs aggregator)
     src = `https://vidsrc.sbs/embed/${type}/${id}?provider=free`;
   } 
-  else if (provider === '8stream') {
-    // 8StreamApi - New alternative to Mediatv
-    src = `https://8streamapi.com/embed/${type}/${id}`;
-  } 
-  else if (provider === 'megacloud') {
-    // MegaCloud.tv - Excellent for Tamil/Asian movies
-    src = `https://megacloud.tv/embed/${type}/${id}`;
-  } 
-  else if (provider === 'cinevid') {
-    src = `https://cinevid.xyz/embed/${type}/${id}`;
-  } 
   else if (provider === '2embed') {
+    // 2Embed (Great for Tamil/Asian)
     src = `https://2embed.cc/embed/${type}/${id}`;
-  } 
-  else if (provider === 'voe') {
-    src = `https://voe.su/embed/${type}/${id}`;
-  } 
-  else if (provider === 'vidsrc') {
-    src = `https://vidsrc.io/embed/${type}/${id}`;
-  } 
-  else if (provider === '4k') {
-    src = `https://4k-movie.net/embed/${type}/${id}`;
-  } 
-  else if (provider === 'embedsu') {
-    src = `https://embedsu.com/embed/${type}/${id}`;
   } 
   else {
     // Fallback to Promulti
