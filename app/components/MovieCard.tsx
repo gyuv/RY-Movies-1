@@ -16,6 +16,7 @@ export default function MovieCard({ id, title, poster_path, vote_average, releas
   const year = release_date?.split('-')[0] || "TBA";
 
   return (
+    // Wrap the entire card in a Link
     <Link 
       href={`/media/${id}`}
       className="group relative flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] cursor-pointer"
