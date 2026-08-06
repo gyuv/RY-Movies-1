@@ -3,29 +3,35 @@
 interface VideoEmbedProps {
   type: string; // 'movie' or 'tv'
   id: number;
-  provider: string; // 'vidsrc', 'vidsrccc', 'embedsu'
+  provider: string; 
   className?: string;
 }
 
 export default function VideoEmbed({ type, id, provider, className }: VideoEmbedProps) {
-  // Stable, verified embed URLs
   let src = '';
 
   switch (provider) {
     case 'vidsrc':
-      // VidSrc.io - Most stable, supports almost all TMDB IDs
+      // VidSrc.io - Good general coverage
       src = `https://vidsrc.io/embed/${type}/${id}`;
       break;
     case 'vidsrccc':
-      // VidSrc.cc - Great backup, good for Asian movies
+      // VidSrc.cc - Good backup
       src = `https://vidsrc.cc/embed/${type}/${id}`;
       break;
-    case 'embedsu':
-      // EmbedSu - Good for 1080p, but sometimes slower
-      src = `https://embedsu.com/embed/${type}/${id}`;
+    case '2embed':
+      // 2embed - Excellent for Asian (Tamil, Korean, Japanese) movies
+      src = `https://2embed.cc/embed/${type}/${id}`;
+      break;
+    case 'voe':
+      // Voe - Another strong aggregator for non-English content
+      src = `https://voe.su/embed/${type}/${id}`;
+      break;
+    case 'cinevid':
+      // CineVid - Best for English/Hollywood
+      src = `https://cinevid.xyz/embed/${type}/${id}`;
       break;
     default:
-      // Default to VidSrc.io
       src = `https://vidsrc.io/embed/${type}/${id}`;
       break;
   }
