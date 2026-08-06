@@ -15,15 +15,26 @@ async function getMovieDetails(id: string) {
       release_date: "2023-01-01",
       runtime: 120,
       genres: [{ name: "Drama" }, { name: "Action" }],
+      videos: { results: [] },
+      provider_results: [],
     };
   }
 
   try {
-    const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&language=en-US`, {
-      next: { revalidate: 3600 }
-    });
-    if (!res.ok) throw new Error("Failed to fetch movie");
-    return await res.json();
+    // Fetch Movie Details AND Videos AND Streaming Providers in parallel
+    const [detailsRes, videosRes, providersRes] = await Promise.all([
+      fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&language=en-US`, { next: { revalidate: 3600 } }),
+      fetch(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${apiKey}&language=en-US`, { next: { revalidate: 3600 } }),
+      fetch(`https://api.themoviedb.org/3/movie/${id}/watch/providers?api_key=${apiKey}`, { next: { revalidate: 3600 } })
+    ]);
+
+    if (!detailsRes.ok) throw new Error("Failed to fetch movie details");
+    
+    const details = await detailsRes.json();
+    const videos = await videosRes.json();
+    const providers = await providersRes.json();
+
+    return { ...details, videos, provider_results: providers.results };
   } catch (error) {
     console.error("Error fetching movie:", error);
     return null;
@@ -58,6 +69,16 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
   const runtimeMinutes = Math.floor((movie.runtime || 120) / 60);
   const runtimeSeconds = (movie.runtime || 120) % 60;
 
+  // Find the first trailer (YouTube)
+  const trailer = movie.videos?.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube');
+  const youtubeKey = trailer?.key;
+
+  // Get Streaming Providers (US by default, can change to 'IN' for India)
+  const usProviders = movie.provider_results?.us || {};
+  const flatrate = usProviders.flatrate || [];
+  const buy = usProviders.buy || [];
+  const rent = usProviders.rent || [];
+
   return (
     <main className="min-h-screen bg-[#0a0b10] text-white">
       {/* Backdrop Header */}
@@ -87,32 +108,113 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
       {/* Content */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Poster */}
+          {/* Left Column: Poster & Streaming Info */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24">
+            <div className="sticky top-24 space-y-6">
               <Image
                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                 alt={movie.title}
                 width={500}
                 height={750}
-                className="rounded-lg shadow-2xl"
+                className="rounded-lg shadow-2xl w-full"
               />
-              <div className="mt-6 space-y-2">
-                <Link href="/" className="block w-full bg-white/10 hover:bg-white/20 text-center py-3 rounded-lg transition-colors">
-                  ← Back to Browse
-                </Link>
-              </div>
+
+              {/* Streaming Providers */}
+              {(flatrate.length > 0 || buy.length > 0 || rent.length > 0) && (
+                <div className="bg-white/5 rounded-lg p-4">
+                  <h3 className="text-lg font-bold mb-3">Watch Options (US)</h3>
+                  
+                  {flatrate.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm text-white/60 mb-2">Streaming</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {flatrate.slice(0, 4).map((provider: any) => (
+                          <div key={provider.provider_id} className="flex items-center gap-2 bg-white/10 p-2 rounded">
+                            <Image
+                              src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                              alt={provider.provider_name}
+                              width={24}
+                              height={24}
+                              className="rounded"
+                            />
+                            <span className="text-xs truncate">{provider.provider_name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {rent.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm text-white/60 mb-2">Rent</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {rent.slice(0, 4).map((provider: any) => (
+                          <div key={provider.provider_id} className="flex items-center gap-2 bg-white/10 p-2 rounded">
+                            <Image
+                              src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                              alt={provider.provider_name}
+                              width={24}
+                              height={24}
+                              className="rounded"
+                            />
+                            <span className="text-xs truncate">{provider.provider_name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {buy.length > 0 && (
+                    <div>
+                      <h4 className="text-sm text-white/60 mb-2">Buy</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {buy.slice(0, 4).map((provider: any) => (
+                          <div key={provider.provider_id} className="flex items-center gap-2 bg-white/10 p-2 rounded">
+                            <Image
+                              src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                              alt={provider.provider_name}
+                              width={24}
+                              height={24}
+                              className="rounded"
+                            />
+                            <span className="text-xs truncate">{provider.provider_name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Link href="/" className="block w-full bg-white/10 hover:bg-white/20 text-center py-3 rounded-lg transition-colors">
+                ← Back to Browse
+              </Link>
             </div>
           </div>
 
-          {/* Overview */}
-          <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold mb-4">Overview</h2>
-            <p className="text-white/80 leading-relaxed text-lg">
-              {movie.overview || "No overview available."}
-            </p>
+          {/* Right Column: Overview & Video */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Video Player */}
+            {youtubeKey && (
+              <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=0&rel=0`}
+                  title={`${movie.title} Trailer`}
+                  className="w-full h-full"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                />
+              </div>
+            )}
 
-            <div className="mt-8">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Overview</h2>
+              <p className="text-white/80 leading-relaxed text-lg">
+                {movie.overview || "No overview available."}
+              </p>
+            </div>
+
+            <div>
               <h3 className="text-xl font-bold mb-4">Details</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
