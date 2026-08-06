@@ -3,6 +3,7 @@ import MoviesSection from './components/MoviesSection';
 import Hero from './components/Hero';
 import Footer from './components/Footer';
 import MovieCarousel from './components/MovieCarousel';
+import Pagination from './components/Pagination';
 import { Suspense } from 'react';
 
 // Mock data for build stability if API fails or key is missing
@@ -15,24 +16,36 @@ const MOCK_MOVIE = {
   overview: "A mock movie overview for testing purposes."
 };
 
-const MOCK_LIST = Array(10).fill(MOCK_MOVIE).map((m, i) => ({ ...m, id: i + 1 }));
+const MOCK_LIST = Array(20).fill(MOCK_MOVIE).map((m, i) => ({ ...m, id: i + 1 }));
 
 // Helper to safely fetch from TMDB
 async function fetchTMDB(url: string, apiKey: string | undefined) {
   if (!apiKey) {
     console.log("TMDB_API_KEY is missing, using mock data");
-    return { results: MOCK_LIST };
+    return { results: MOCK_LIST, total_pages: 1, total_results: 20 };
   }
   try {
     const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) {
       console.error(`TMDB Fetch Error: ${res.status} for ${url}`);
-      return { results: MOCK_LIST };
+      return { results: MOCK_LIST, total_pages: 1, total_results: 20 };
     }
     return await res.json();
   } catch (e) {
     console.error("TMDB Fetch Exception:", e);
-    return { results: MOCK_LIST };
+    return { results: MOCK_LIST, total_pages: 1, total_results: 20 };
+  }
+}
+
+// Fetch actor details
+async function getActorDetails(actorId: string, apiKey: string | undefined) {
+  if (!apiKey) return null;
+  try {
+    const res = await fetch(`https://api.themoviedb.org/3/person/${actorId}?api_key=${apiKey}`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
   }
 }
 
@@ -82,11 +95,14 @@ export default async function Home({
   const genre = getParam("genre", "");
   const language = getParam("language", "en");
   const sort = getParam("sort", "popularity.desc");
+  const year = getParam("year", "");
+  const actorId = getParam("with_people", ""); // Code 1/Code 2 alignment for actor filter
 
-  // If filters are applied, show the filtered list as the main content
-  const hasFilters = genre || language !== 'en' || sort !== 'popularity.desc';
+  // Check if any filters are active
+  const hasFilters = genre || language !== 'en' || sort !== 'popularity.desc' || year || actorId;
 
   let filteredData = null;
+  let actorDetails = null;
   let trendingData = null;
   let englishMovies = null;
   let tamilMovies = null;
@@ -95,22 +111,32 @@ export default async function Home({
   let koreanMovies = null;
   let japaneseMovies = null;
 
+  const apiKey = process.env.TMDB_API_KEY;
+
   if (hasFilters) {
-    // Fetch filtered data
-    const apiKey = process.env.TMDB_API_KEY;
     const params = new URLSearchParams();
     params.set("page", String(page));
     if (genre) params.set("with_genres", genre);
     params.set("with_original_language", language);
     params.set("sort_by", sort);
-    const today = new Date().toISOString().split('T')[0];
-    params.set("primary_release_date.gte", "1900-01-01");
-    params.set("primary_release_date.lte", today);
     
+    if (year) {
+      params.set("primary_release_date.gte", `${year}-01-01`);
+      params.set("primary_release_date.lte", `${year}-12-31`);
+    } else {
+      const today = new Date().toISOString().split('T')[0];
+      params.set("primary_release_date.gte", "1900-01-01");
+      params.set("primary_release_date.lte", today);
+    }
+
+    if (actorId) {
+      params.set("with_people", actorId);
+      actorDetails = await getActorDetails(actorId, apiKey);
+    }
+
     const url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&${params.toString()}`;
     filteredData = await fetchTMDB(url, apiKey);
   } else {
-    // Fetch all sections for the homepage
     [
       trendingData,
       englishMovies,
@@ -144,20 +170,35 @@ export default async function Home({
 
       <div className="max-w-[1600px] mx-auto py-8">
         
-        {/* If Filters are Applied, Show Filtered Results */}
+        {/* If Filters are Applied, Show Filtered Results with Pagination */}
         {hasFilters && filteredData && (
           <div className="mt-12">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-6 px-4 sm:px-6 lg:px-8">
-              {genre ? `Results for Genre` : `Latest ${language.toUpperCase()} Movies`}
+              {actorDetails 
+                ? `Movies starring ${actorDetails.name}` 
+                : year 
+                  ? `Movies from ${year}` 
+                  : genre 
+                    ? `Results for Genre` 
+                    : `Latest ${language.toUpperCase()} Movies`}
             </h2>
             <MoviesSection movies={filteredData.results || []} />
+            
+            {/* Pagination Controls */}
+            {filteredData.total_pages > 1 && (
+              <div className="mt-8 mb-8">
+                <Pagination 
+                  currentPage={page} 
+                  totalPages={filteredData.total_pages} 
+                />
+              </div>
+            )}
           </div>
         )}
 
         {/* If No Filters, Show All Sections */}
         {!hasFilters && (
           <>
-            {/* Horizontal Carousels for Specific Languages */}
             {englishMovies && (
               <div className="mb-8">
                 <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 mb-4">
