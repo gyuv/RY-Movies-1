@@ -32,26 +32,27 @@ export default function Filters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Initialize with defaults to avoid null issues on SSR
+  // Initialize with empty/default values to prevent SSR mismatch
   const [genre, setGenre] = useState("");
   const [language, setLanguage] = useState("en");
   const [year, setYear] = useState("");
   const [sort, setSort] = useState("popularity.desc");
 
-  // Sync state with URL params on client-side mount and when params change
+  // Sync state with URL params ONLY on the client
   useEffect(() => {
     if (!searchParams) return;
     
-    const g = searchParams.get("genre") || "";
-    const l = searchParams.get("language") || "en";
-    const y = searchParams.get("year") || "";
-    const s = searchParams.get("sort") || "popularity.desc";
+    const g = searchParams.get("genre");
+    const l = searchParams.get("language");
+    const y = searchParams.get("year");
+    const s = searchParams.get("sort");
 
-    setGenre(g);
-    setLanguage(l);
-    setYear(y);
-    setSort(s);
-  }, [searchParams]);
+    // Only update if different to avoid re-renders
+    if (g !== genre) setGenre(g || "");
+    if (l !== language) setLanguage(l || "en");
+    if (y !== year) setYear(y || "");
+    if (s !== sort) setSort(s || "popularity.desc");
+  }, [searchParams, genre, language, year, sort]);
 
   // Debounced URL update
   useEffect(() => {
@@ -65,8 +66,10 @@ export default function Filters() {
       params.set("page", "1");
 
       const queryString = params.toString();
-      // Only push if different to avoid loop
-      if (queryString !== searchParams?.toString()) {
+      
+      // Prevent infinite loops by checking if the query string actually changed
+      const currentQuery = searchParams ? searchParams.toString() : "";
+      if (queryString !== currentQuery) {
         router.push(`${pathname}?${queryString}`, { scroll: false });
       }
     }, 300);
