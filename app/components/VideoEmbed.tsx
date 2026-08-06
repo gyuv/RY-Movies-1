@@ -11,14 +11,16 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
   let src = '';
 
   if (provider === 'promulti') {
-    // Your preferred ProMulti aggregator
+    // Your preferred ProMulti aggregator (vidsrc.sbs)
     src = `https://vidsrc.sbs/embed/${type}/${id}?provider=free`;
   } 
-  else if (provider === 'tamilian') {
-    // Tamilian doesn't have a simple /embed/id URL.
-    // We use a known aggregator that mirrors Tamilian's content: VidSrc.cc or 2Embed
-    // VidSrc.cc often has the same servers as Tamilian
-    src = `https://vidsrc.cc/embed/${type}/${id}`;
+  else if (provider === '8stream') {
+    // 8StreamApi - New alternative to Mediatv
+    src = `https://8streamapi.com/embed/${type}/${id}`;
+  } 
+  else if (provider === 'megacloud') {
+    // MegaCloud.tv - Excellent for Tamil/Asian movies
+    src = `https://megacloud.tv/embed/${type}/${id}`;
   } 
   else if (provider === 'cinevid') {
     src = `https://cinevid.xyz/embed/${type}/${id}`;
@@ -39,6 +41,7 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
     src = `https://embedsu.com/embed/${type}/${id}`;
   } 
   else {
+    // Fallback to Promulti
     src = `https://vidsrc.sbs/embed/${type}/${id}?provider=free`;
   }
 
