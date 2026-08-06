@@ -1,3 +1,4 @@
+import MultiServerPlayer from '../../components/MultiServerPlayer';
 import StreamSelector from '../../components/StreamSelector';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -139,10 +140,14 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
               </div>
             )}
 
-            {/* 2. Streaming Player with Server Selector */}
+            {/* 2. Multi-Server Streaming Player (TamilBlasters Style) */}
             <div>
-              <h3 className="text-xl font-bold mb-3">Stream Movie</h3>
-              <StreamSelector movieId={movie.id} type="movie" />
+              <h3 className="text-xl font-bold mb-3">Watch Online</h3>
+              <MultiServerPlayer 
+                movieId={movie.id} 
+                type="movie" 
+                imdbId={movie.external_ids?.imdb_id}
+              />
             </div>
 
             {/* 3. Overview */}
