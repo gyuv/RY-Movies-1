@@ -2,7 +2,7 @@ import MovieCarousel from './components/MovieCarousel';
 
 // --- API Fetchers ---
 
-// Generic fetcher with flexible sorting
+// Generic fetcher with flexible sorting and release type filtering
 async function getMoviesList(endpoint: string, apiKey: string, params = "") {
   const baseUrl = `https://api.themoviedb.org/3/${endpoint}?api_key=${apiKey}&language=en-US${params}`;
   try {
@@ -37,26 +37,26 @@ export default async function Home() {
     // 1. Trending This Week (Global)
     getMoviesList("trending/movie/week", apiKey),
     
-    // 2. Top English (Sorted by Popularity)
-    getMoviesList("discover/movie", apiKey, "&with_original_language=en&sort_by=popularity.desc&vote_count.gte=100"),
+    // 2. Top English (Sorted by Popularity, Released only)
+    getMoviesList("discover/movie", apiKey, "&with_original_language=en&sort_by=popularity.desc&vote_count.gte=100&with_release_type=3"),
     
-    // 3. Latest Hindi (Sorted by Release Date)
-    getMoviesList("discover/movie", apiKey, "&with_original_language=hi&sort_by=release_date.desc&primary_release_year.gte=2020"),
+    // 3. Latest Hindi (Sorted by Rating, Released only, from 2020 onwards)
+    getMoviesList("discover/movie", apiKey, "&with_original_language=hi&sort_by=vote_average.desc&primary_release_year.gte=2020&with_release_type=3&vote_count.gte=50"),
     
-    // 4. Latest Tamil (Sorted by Release Date)
-    getMoviesList("discover/movie", apiKey, "&with_original_language=ta&sort_by=release_date.desc&primary_release_year.gte=2015"),
+    // 4. Latest Tamil (Sorted by Rating, Released only, from 2015 onwards)
+    getMoviesList("discover/movie", apiKey, "&with_original_language=ta&sort_by=vote_average.desc&primary_release_year.gte=2015&with_release_type=3&vote_count.gte=50"),
     
-    // 5. Latest Telugu (Sorted by Release Date)
-    getMoviesList("discover/movie", apiKey, "&with_original_language=te&sort_by=release_date.desc&primary_release_year.gte=2015"),
+    // 5. Latest Telugu (Sorted by Rating, Released only, from 2015 onwards)
+    getMoviesList("discover/movie", apiKey, "&with_original_language=te&sort_by=vote_average.desc&primary_release_year.gte=2015&with_release_type=3&vote_count.gte=50"),
     
-    // 6. Top Korean (Popularity)
-    getMoviesList("discover/movie", apiKey, "&with_original_language=ko&sort_by=popularity.desc&vote_count.gte=100"),
+    // 6. Top Korean (Popularity, Released only)
+    getMoviesList("discover/movie", apiKey, "&with_original_language=ko&sort_by=popularity.desc&vote_count.gte=100&with_release_type=3"),
     
-    // 7. Top Japanese (Popularity)
-    getMoviesList("discover/movie", apiKey, "&with_original_language=ja&sort_by=popularity.desc&vote_count.gte=100"),
+    // 7. Top Japanese (Popularity, Released only)
+    getMoviesList("discover/movie", apiKey, "&with_original_language=ja&sort_by=popularity.desc&vote_count.gte=100&with_release_type=3"),
     
-    // 8. Top Spanish (Popularity)
-    getMoviesList("discover/movie", apiKey, "&with_original_language=es&sort_by=popularity.desc&vote_count.gte=100"),
+    // 8. Top Spanish (Popularity, Released only)
+    getMoviesList("discover/movie", apiKey, "&with_original_language=es&sort_by=popularity.desc&vote_count.gte=100&with_release_type=3"),
     
     // 9. All Time Top Rated (English)
     getMoviesList("movie/top_rated", apiKey, "&with_original_language=en")
@@ -85,21 +85,21 @@ export default async function Home() {
           movies={topRatedAllTime.results} 
         />
 
-        {/* 4. Indian Cinema - Latest Hindi */}
+        {/* 4. Indian Cinema - Top Rated Recent Hindi */}
         <MovieCarousel 
-          title="🇮🇳 Latest Hindi Movies" 
+          title="🇮🇳 Top Rated Hindi Movies" 
           movies={latestHindiMovies.results} 
         />
 
-        {/* 5. Indian Cinema - Latest Tamil */}
+        {/* 5. Indian Cinema - Top Rated Recent Tamil */}
         <MovieCarousel 
-          title="🇮🇳 Latest Tamil Movies" 
+          title="🇮🇳 Top Rated Tamil Movies" 
           movies={latestTamilMovies.results} 
         />
 
-        {/* 6. Indian Cinema - Latest Telugu */}
+        {/* 6. Indian Cinema - Top Rated Recent Telugu */}
         <MovieCarousel 
-          title="🇮🇳 Latest Telugu Movies" 
+          title="🇮🇳 Top Rated Telugu Movies" 
           movies={latestTeluguMovies.results} 
         />
 
