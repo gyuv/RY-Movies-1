@@ -1,152 +1,83 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 interface Movie {
   id: number;
   title: string;
-  poster_path: string | null;
   overview: string;
+  poster_path: string;
+  backdrop_path: string;
   vote_average: number;
   release_date: string;
 }
 
-interface HeroProps {
-  movies: Movie[];
-}
-
-export default function Hero({ movies }: HeroProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startSlideshow = () => {
-    if (movies.length > 1) {
-      intervalRef.current = setInterval(() => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % movies.length);
-      }, 5000);
-    }
-  };
+export default function Hero({ movies }: { movies: Movie[] }) {
+  const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    startSlideshow();
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [movies]);
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % movies.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [movies.length]);
 
-  const nextSlide = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % movies.length);
-    startSlideshow();
-  };
+  if (!movies || movies.length === 0) return null;
 
-  const prevSlide = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + movies.length) % movies.length);
-    startSlideshow();
-  };
-
-  if (!movies || movies.length === 0) {
-    return (
-      <div className="relative w-full h-[60vh] md:h-[80vh] bg-[#0a0b10] flex items-center justify-center overflow-hidden">
-        <div className="text-center text-white/50">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">Cinereel</h1>
-          <p className="text-lg">Loading trending movies...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const currentMovie = movies[currentIndex];
+  const movie = movies[current];
+  const releaseYear = movie.release_date?.split('-')[0] || "TBA";
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out transform scale-105"
-        style={{
-          backgroundImage: `url(https://image.tmdb.org/t/p/original${currentMovie.poster_path})`
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10] via-[#0a0b10]/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0b10] via-transparent to-transparent" />
+    <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
+      {/* Background Image with Zoom Effect */}
+      <div className="absolute inset-0 transition-transform duration-700 ease-in-out">
+        <Image
+          src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+          alt={movie.title}
+          fill
+          className="object-cover scale-105 md:scale-110" // Zoom effect
+          priority
+        />
       </div>
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10] via-[#0a0b10]/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0b10]/90 via-transparent to-transparent" />
 
       {/* Content */}
-      <div className="relative h-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-end pb-20 md:pb-32">
-        <div className="max-w-2xl space-y-6 animate-fade-in">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-            {currentMovie.title}
+      <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-10 max-w-[1600px] mx-auto">
+        <div className="max-w-2xl space-y-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
+            {movie.title}
           </h1>
           
-          <div className="flex items-center space-x-4 text-white/80 text-sm md:text-base">
-            <span className="flex items-center">
-              <svg className="w-5 h-5 mr-1 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.054a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.054a1 1 0 00-1.175 0l-2.8 2.054c-.785.57-1.84-.197-1.54-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.721c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              {currentMovie.vote_average.toFixed(1)}
-            </span>
-            <span>{currentMovie.release_date?.split('-')[0] || 'TBD'}</span>
+          <div className="flex items-center gap-4 text-sm sm:text-base text-white/80">
+            <span className="text-yellow-400 font-bold">★ {movie.vote_average.toFixed(1)}</span>
+            <span>{releaseYear}</span>
           </div>
 
-          <p className="text-white/70 text-base md:text-lg line-clamp-3">
-            {currentMovie.overview}
+          <p className="text-white/70 line-clamp-3 text-sm sm:text-base">
+            {movie.overview}
           </p>
 
-          <div className="flex space-x-4 pt-4">
-            <button className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-white/90 transition-colors flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-              </svg>
-              Watch Now
-            </button>
-            <button className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/30 transition-colors">
-              + My List
-            </button>
+          <div className="flex gap-4 pt-2">
+            <Link 
+              href={`/media/${movie.id}`}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center gap-2"
+            >
+              ▶ Watch Now
+            </Link>
+            <Link 
+              href={`/media/${movie.id}`}
+              className="bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-md font-medium transition-colors backdrop-blur-sm"
+            >
+              More Info
+            </Link>
           </div>
         </div>
       </div>
-
-      {/* Navigation Arrows */}
-      {movies.length > 1 && (
-        <>
-          <button 
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-3 rounded-full hover:bg-black/70 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button 
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-3 rounded-full hover:bg-black/70 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </>
-      )}
-
-      {/* Dots Indicator */}
-      {movies.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-2">
-          {movies.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                if (intervalRef.current) clearInterval(intervalRef.current);
-                setCurrentIndex(index);
-                startSlideshow();
-              }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
-              }`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
