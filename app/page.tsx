@@ -37,18 +37,31 @@ async function fetchTMDB(url: string, apiKey: string | undefined) {
 }
 
 // Fetch movies for a specific language with optional sorting
+// language: The TMDB language code (e.g., 'ta', 'te')
+// sort: The sort order
+// limit: Number of movies to return
 async function getLanguageMovies(language: string, sort: string = 'popularity.desc', limit: number = 20) {
   const apiKey = process.env.TMDB_API_KEY;
   const params = new URLSearchParams();
-  params.set("language", language);
-  params.set("sort_by", sort);
-  params.set("page", "1");
-  // Filter by original language to get accurate results (e.g., 'ta' for Tamil)
+  
+  // 1. Filter by Original Language (e.g., 'ta' for Tamil)
   params.set("with_original_language", language);
-  // Only released movies (not upcoming)
+  
+  // 2. Sort Order
+  params.set("sort_by", sort);
+  
+  // 3. Page
+  params.set("page", "1");
+  
+  // 4. Only Released Movies (Not Upcoming)
   const today = new Date().toISOString().split('T')[0];
   params.set("primary_release_date.gte", "1900-01-01");
   params.set("primary_release_date.lte", today);
+  
+  // 5. FORCE ENGLISH TITLES:
+  // By setting language=en-US, TMDB returns the English translation of the title
+  // if available, otherwise it falls back to the original.
+  params.set("language", "en-US");
   
   const url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&${params.toString()}`;
   const data = await fetchTMDB(url, apiKey);
@@ -77,7 +90,7 @@ async function getTrendingMovies() {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) return MOCK_LIST;
   try {
-    const url = "https://api.themoviedb.org/3/trending/movie/week?api_key=" + apiKey;
+    const url = "https://api.themoviedb.org/3/trending/movie/week?api_key=" + apiKey + "&language=en-US";
     const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) return MOCK_LIST;
     const data = await res.json();
@@ -104,6 +117,7 @@ export default async function Home({
   const sort = getParam("sort", "popularity.desc");
 
   // Fetch all required data in parallel
+  // NOTE: Tamil is now sorted by 'primary_release_date.desc' for LATEST movies
   const [
     trendingData,
     filteredData,
@@ -115,7 +129,7 @@ export default async function Home({
     getTrendingMovies(),
     getFilteredMovies(page, genre, language, year, sort),
     getLanguageMovies('en'),
-    getLanguageMovies('ta', 'vote_average.desc'), // Tamil: High Ratings
+    getLanguageMovies('ta', 'primary_release_date.desc'), // LATEST Tamil
     getLanguageMovies('te'),
     getLanguageMovies('hi'),
   ]);
@@ -136,7 +150,7 @@ export default async function Home({
         
         {/* Horizontal Carousels for Specific Languages */}
         <MovieCarousel title="Trending in English" movies={englishMovies} languageCode="en" />
-        <MovieCarousel title="Top Rated Tamil Movies" movies={tamilMovies} languageCode="ta" />
+        <MovieCarousel title="Latest Tamil Movies" movies={tamilMovies} languageCode="ta" />
         <MovieCarousel title="Latest Telugu Movies" movies={teluguMovies} languageCode="te" />
         <MovieCarousel title="Popular Hindi Movies" movies={hindiMovies} languageCode="hi" />
 
