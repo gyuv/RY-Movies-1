@@ -2,82 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  ::selection {
-    background: theme("colors.marquee.DEFAULT");
-    color: theme("colors.ink.DEFAULT");
-  }
+:root {
+  --bg-dark: #0a0b10;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --border-light: rgba(255, 255, 255, 0.08);
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+}
 
-  body {
-    @apply bg-ink text-paper font-body antialiased overflow-x-hidden;
-    background-image: radial-gradient(
-      ellipse 80% 50% at 50% -10%,
-      rgba(232, 163, 61, 0.08),
-      transparent
-    );
-  }
+body {
+  background-color: var(--bg-dark);
+  color: #ffffff;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
 
-  :focus-visible {
-    outline: 2px solid theme("colors.marquee.DEFAULT");
-    outline-offset: 2px;
-  }
+/* Glassmorphism Utilities */
+.glass-panel {
+  @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] shadow-xl;
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-    }
+.glass-card {
+  @apply bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-md border border-white/[0.1] shadow-lg transition-all duration-300;
+}
+
+.glass-card:hover {
+  @apply border-white/[0.25] shadow-[0_8px_30px_rgb(0,0,0,0.12)] scale-[1.02] z-10;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-white/20;
+}
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@layer components {
-  /* Sprocket-hole perforation rule — the page's signature structural device,
-     used only at true section breaks (hero/results boundary), never as
-     decoration elsewhere. */
-  .film-perf {
-    height: 22px;
-    background-image:
-      radial-gradient(circle, theme("colors.ink.DEFAULT") 5px, transparent 5.5px),
-      repeating-linear-gradient(90deg, theme("colors.ink.line") 0 1px, transparent 1px 24px);
-    background-size: 24px 22px, 100% 1px;
-    background-position: center, center;
-    background-repeat: repeat-x, no-repeat;
-    position: relative;
-  }
-
-  .ticket-tear {
-    position: relative;
-  }
-  .ticket-tear::before,
-  .ticket-tear::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 10px;
-    height: 10px;
-    background: theme("colors.ink.DEFAULT");
-    border-radius: 9999px;
-    transform: translateY(-50%);
-    z-index: 10;
-  }
-  .ticket-tear::before { left: -5px; }
-  .ticket-tear::after { right: -5px; }
-
-  .stub-label {
-    @apply font-mono text-[11px] uppercase tracking-stub text-paper-dim;
-  }
-}
-/* Netflix-style row scroll (if you later switch to true horizontal rows) */
-.row-scroll {
-  @apply flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6;
-  scrollbar-width: none;
-}
-.row-scroll::-webkit-scrollbar {
-  display: none;
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
 }
 
-/* Soft card lift */
-.card-lift {
-  @apply transition-transform duration-300 hover:scale-[1.05] hover:z-10;
+/* Gradient Text */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400;
 }
