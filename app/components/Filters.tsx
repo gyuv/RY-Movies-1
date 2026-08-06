@@ -67,7 +67,7 @@ export default function Filters() {
     router.push(`${pathname}?${query}`);
   };
 
-  // Complete list of genres (from Code 1)
+  // Complete list of genres
   const genres = [
     { id: '', name: 'All Genres' },
     { id: '28', name: 'Action' },
@@ -80,7 +80,7 @@ export default function Filters() {
     { id: '53', name: 'Thriller' },
   ];
 
-  // Complete list of languages (merged Code 1 & Code 2)
+  // Complete list of languages
   const languages = [
     { id: 'en', name: 'English' },
     { id: 'ta', name: 'Tamil' },
@@ -92,7 +92,7 @@ export default function Filters() {
     { id: 'ja', name: 'Japanese' },
   ];
 
-  // Complete list of sorts (merged Code 1 & Code 2)
+  // Complete list of sorts
   const sorts = [
     { id: 'popularity.desc', name: 'Popularity' },
     { id: 'vote_average.desc', name: 'Top Rated' },
@@ -100,14 +100,18 @@ export default function Filters() {
     { id: 'revenue.desc', name: 'Revenue' },
   ];
 
-  // Generate years from 1990 to 2026
-  const years = Array.from({ length: 2026 - 1990 + 1 }, (_, i) => 1990 + i);
+  // Dynamic Year Options (from Code 1 concept)
+  const years = [];
+  const currentYearNum = new Date().getFullYear();
+  for (let i = currentYearNum; i >= 1990; i--) {
+    years.push({ id: String(i), name: String(i) });
+  }
 
   return (
     <div className="bg-[#14151a] border-b border-white/5 sticky top-0 z-30">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-wrap gap-3 items-center">
-          {/* Genre Filter (Restored from Code 1) */}
+          {/* Genre Filter */}
           <select 
             value={genre}
             onChange={(e) => handleFilterChange('genre', e.target.value)}
@@ -132,7 +136,7 @@ export default function Filters() {
             className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="" className="bg-[#14151a]">All Years</option>
-            {years.map(y => <option key={y} value={y} className="bg-[#14151a]">{y}</option>)}
+            {years.map(y => <option key={y.id} value={y.id} className="bg-[#14151a]">{y.name}</option>)}
           </select>
 
           {/* Actor Filter */}
