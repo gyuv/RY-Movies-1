@@ -6,27 +6,35 @@ import VideoEmbed from './VideoEmbed';
 interface StreamingPlayerProps {
   movieId: number;
   type: 'movie' | 'tv';
+  language?: string; // Pass the original language (e.g., 'en', 'ta', 'ko')
 }
 
-// These are the providers supported by vidsrc.sbs
+// Providers
 const PROVIDERS = [
-  { id: 'free', name: 'Free (Aggregated)' }, // Moved to top as it has the widest coverage
-  { id: 'netflix', name: 'Netflix' },
-  { id: 'prime', name: 'Amazon Prime' },
-  { id: 'hulu', name: 'Hulu' },
-  { id: 'disney', name: 'Disney+' },
-  { id: 'apple', name: 'Apple TV' },
+  { id: 'cinevid', name: 'CineVid (Best for English)' },
+  { id: 'vidsrc', name: 'VidSrc (Best for Asian/Other)' },
+  { id: '4k', name: '4K Movie' },
+  { id: 'vidsrclang', name: 'VidSrc Lang' },
 ];
 
-export default function StreamingPlayer({ movieId, type }: StreamingPlayerProps) {
-  // Default to 'free' because it's more likely to have older/regional movies like Budget Padmanabhan
-  const [provider, setProvider] = useState<string>('free');
-  const [isError, setIsError] = useState(false);
+export default function StreamingPlayer({ movieId, type, language = 'en' }: StreamingPlayerProps) {
+  // 1. Auto-select provider based on language
+  const getBestProvider = (lang: string) => {
+    const lowerLang = lang.toLowerCase();
+    // Tamil, Telugu, Hindi, Korean, Japanese, Chinese -> Use VidSrc (better coverage)
+    if (['ta', 'te', 'hi', 'ko', 'ja', 'zh', 'fr', 'de', 'es', 'it', 'pt'].includes(lowerLang)) {
+      return 'vidsrc';
+    }
+    // Default to CineVid for English
+    return 'cinevid';
+  };
 
-  // Reset error when provider changes
+  const [provider, setProvider] = useState<string>(getBestProvider(language));
+
+  // Reset provider if language changes (e.g. from page prop)
   useEffect(() => {
-    setIsError(false);
-  }, [provider]);
+    setProvider(getBestProvider(language));
+  }, [language]);
 
   return (
     <div className="bg-[#14151a] p-4 rounded-lg">
@@ -55,21 +63,12 @@ export default function StreamingPlayer({ movieId, type }: StreamingPlayerProps)
           provider={provider}
           className="h-full w-full" 
         />
-        
-        {/* Fallback Message if video doesn't load (optional enhancement) */}
-        {isError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-white">
-            <div className="text-center">
-              <p className="text-lg font-bold">Video Not Found</p>
-              <p className="text-sm text-white/60">Try switching to another provider above.</p>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="mt-3 flex items-center justify-between">
         <p className="text-xs text-white/40">
-          💡 <strong>Budget Padmanabhan</strong> is an older Tamil movie. The <strong>"Free"</strong> provider usually has the best coverage for non-Netflix/Prime movies.
+          💡 <strong>Auto-Selected:</strong> {PROVIDERS.find(p => p.id === provider)?.name}. 
+          If the video doesn't load, try switching to <strong>VidSrc</strong> for non-English movies.
         </p>
       </div>
     </div>
