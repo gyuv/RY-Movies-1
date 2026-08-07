@@ -8,7 +8,7 @@ interface MoviesSectionProps {
 export default function MoviesSection({ movies, languageCode = 'en' }: MoviesSectionProps) {
   if (!movies || movies.length === 0) {
     return (
-      <div className="flex justify-center items-center py-12 text-white/50">
+      <div className="flex justify-center items-center py-12 text-paper-dim stub-label">
         No movies found.
       </div>
     );
