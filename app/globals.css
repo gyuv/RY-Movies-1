@@ -2,124 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
-/* =========================================================================
-   CINEREEL — late-night cinema theme
-   Matches the dark base already hardcoded in page.tsx (bg-[#0a0b10]) so
-   there's one consistent world instead of light/dark fighting each other.
-   Marquee red + brass gold stand in for the generic blue/purple glow.
-   ========================================================================= */
-
-:root {
-  --bg-ink: #0a0b10;          /* same value page.tsx already hardcodes */
-  --bg-card: #14151d;
-  --bg-card-raised: #191a24;
-  --ink-line: rgba(255, 255, 255, 0.08);
-  --ink-line-strong: rgba(255, 255, 255, 0.16);
-
-  --paper: #f3ecdc;           /* warm off-white for body text, not pure #fff */
-  --paper-dim: rgba(243, 236, 220, 0.58);
-
-  --marquee: #e2483b;         /* marquee red, tuned bright enough for dark bg */
-  --marquee-dim: rgba(226, 72, 59, 0.35);
-  --brass: #d9a83f;
-  --brass-dim: rgba(217, 168, 63, 0.3);
-
-  --shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -14px rgba(0,0,0,0.7);
-  --shadow-card-hover: 0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 48px -18px rgba(0,0,0,0.8);
-
-  --radius-stub: 6px;
-}
+/* Tokens themselves now live in tailwind.config.ts (ink / paper / marquee / reel).
+   This file only holds what Tailwind utilities can't express: keyframes,
+   pseudo-element flourishes, and a couple of composite classes reused
+   across components. */
 
 html { scroll-behavior: smooth; }
 
 body {
-  background-color: var(--bg-ink);
-  color: var(--paper);
-  font-family: var(--font-body), 'Inter', system-ui, -apple-system, sans-serif;
+  @apply bg-ink text-paper font-body;
 }
 
 h1, h2, h3, h4 {
-  font-family: var(--font-display), 'Fraunces', serif;
-  color: var(--paper);
+  @apply font-display text-paper;
   letter-spacing: -0.01em;
 }
 
-a { color: var(--marquee); transition: color 0.2s ease; }
-a:hover { color: var(--brass); }
+a { transition: color 0.2s ease; }
 
+/* Section headline underline — small, deliberate */
 .section-heading { position: relative; display: inline-block; padding-bottom: 0.35rem; }
 .section-heading::after {
-  content: ""; position: absolute; left: 0; bottom: 0;
-  width: 46px; height: 3px; background: var(--marquee); border-radius: 2px;
+  content: "";
+  position: absolute; left: 0; bottom: 0;
+  width: 46px; height: 3px;
+  @apply bg-marquee;
+  border-radius: 2px;
 }
 
+/* Mono metadata caption ("Reel No. 001" etc.) */
 .stub-label {
-  font-family: var(--font-mono), 'IBM Plex Mono', monospace;
-  font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--paper-dim);
+  @apply font-mono text-[0.7rem] uppercase text-paper-dim tracking-stub;
 }
 
-.border-ink-line { border-color: var(--ink-line); }
-.text-paper-dim { color: var(--paper-dim); }
-
-.glass-panel, .glass-card {
-  background: var(--bg-card);
-  backdrop-filter: none;
-  border: 1px solid var(--ink-line);
-  border-radius: var(--radius-stub);
-  box-shadow: var(--shadow-card);
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+/* Elevated card with a perforated ticket edge — the signature flourish,
+   used on movie tiles / any .glass-card consumer */
+.glass-card {
+  @apply bg-ink-raised border border-ink-line rounded-md relative overflow-hidden;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -14px rgba(0,0,0,0.7);
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.3s cubic-bezier(0.22,1,0.36,1),
               border-color 0.3s ease;
 }
-
-.glass-card { position: relative; overflow: hidden; }
-
 .glass-card::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background-image: radial-gradient(circle, var(--bg-ink) 1.5px, transparent 1.6px);
-  background-size: 10px 2px; opacity: 0.8; z-index: 1;
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background-image: radial-gradient(circle, #0B0D10 1.5px, transparent 1.6px);
+  background-size: 10px 2px;
+  opacity: 0.8;
+  z-index: 1;
 }
-
 .glass-card:hover {
   transform: translateY(-6px);
-  border-color: var(--marquee-dim);
-  box-shadow: var(--shadow-card-hover);
+  @apply border-marquee/40;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 48px -18px rgba(0,0,0,0.8);
   z-index: 10;
 }
 
-.poster-frame { position: relative; overflow: hidden; border-radius: var(--radius-stub); isolation: isolate; }
-.poster-frame img { transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s ease; }
+/* Poster hover — lift + warm vignette instead of a flat opacity wash */
+.poster-frame { position: relative; overflow: hidden; isolation: isolate; @apply rounded-md; }
+.poster-frame img { transition: transform 0.6s cubic-bezier(0.22,1,0.36,1); }
 .poster-frame::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(10,11,16,0.85) 0%, transparent 50%);
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(11,13,16,0.9) 0%, transparent 55%);
   opacity: 0; transition: opacity 0.35s ease;
 }
-.poster-frame:hover img { transform: scale(1.05); }
+.poster-frame:hover img { transform: scale(1.06); }
 .poster-frame:hover::after { opacity: 1; }
 
+/* Primary CTA — amber marquee bulb, not a generic blue button */
 .btn-marquee {
-  position: relative; display: inline-flex; align-items: center; gap: 0.5rem;
-  padding: 0.65rem 1.4rem; background: var(--marquee); color: var(--bg-ink);
-  font-weight: 600; border-radius: 4px; letter-spacing: 0.01em;
-  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  @apply inline-flex items-center gap-2 px-6 py-2.5 rounded-md font-semibold bg-marquee text-ink transition-all;
 }
-.btn-marquee:hover {
-  background: var(--brass); transform: translateY(-1px);
-  box-shadow: 0 8px 20px -8px var(--brass-dim);
-}
+.btn-marquee:hover { @apply bg-marquee-hot -translate-y-0.5; }
+
+/* Rating / badge chips using the reel semantic colors */
+.badge-rating { @apply text-marquee font-bold; }
+.badge-free { @apply text-reel-teal; }
+.badge-paid { @apply text-reel-rose; }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.22,1,0.36,1) forwards; }
 
-@keyframes marquee-pulse {
+@keyframes marqueePulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-.animate-marquee-pulse { animation: marquee-pulse 1.8s ease-in-out infinite; }
+.animate-marquee-pulse { animation: marqueePulse 1.8s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -131,12 +104,15 @@ a:hover { color: var(--brass); }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--ink-line-strong); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); }
+::-webkit-scrollbar-thumb { @apply bg-ink-line; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
 .text-gradient {
   background-clip: text; -webkit-background-clip: text; color: transparent;
-  background-image: linear-gradient(90deg, var(--marquee) 0%, var(--brass) 100%);
+  background-image: linear-gradient(90deg, #E8A33D 0%, #F2B65B 100%);
 }
 
-:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+:focus-visible { @apply outline outline-2 outline-marquee outline-offset-2; }
