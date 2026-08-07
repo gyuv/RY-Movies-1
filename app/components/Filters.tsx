@@ -107,56 +107,59 @@ export default function Filters() {
     years.push({ id: String(i), name: String(i) });
   }
 
+  const selectClass =
+    "bg-ink-raised text-paper text-sm rounded-md px-3 py-2 border border-ink-line focus:outline-none focus:ring-1 focus:ring-marquee transition-colors";
+
   return (
-    <div className="bg-[#14151a] border-b border-white/5 sticky top-0 z-30">
+    <div className="bg-ink-raised/80 backdrop-blur-sm border-b border-ink-line bg-sprockets bg-bottom bg-repeat-x sticky top-0 z-30">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-wrap gap-3 items-center">
           {/* Genre Filter */}
-          <select 
+          <select
             value={genre}
             onChange={(e) => handleFilterChange('genre', e.target.value)}
-            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className={selectClass}
           >
-            {genres.map(g => <option key={g.id} value={g.id} className="bg-[#14151a]">{g.name}</option>)}
+            {genres.map(g => <option key={g.id} value={g.id} className="bg-ink-raised">{g.name}</option>)}
           </select>
 
           {/* Language Filter */}
-          <select 
+          <select
             value={language}
             onChange={(e) => handleFilterChange('language', e.target.value)}
-            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className={selectClass}
           >
-            {languages.map(l => <option key={l.id} value={l.id} className="bg-[#14151a]">{l.name}</option>)}
+            {languages.map(l => <option key={l.id} value={l.id} className="bg-ink-raised">{l.name}</option>)}
           </select>
 
           {/* Year Filter */}
-          <select 
+          <select
             value={year}
             onChange={(e) => handleFilterChange('year', e.target.value)}
-            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className={selectClass}
           >
-            <option value="" className="bg-[#14151a]">All Years</option>
-            {years.map(y => <option key={y.id} value={y.id} className="bg-[#14151a]">{y.name}</option>)}
+            <option value="" className="bg-ink-raised">All Years</option>
+            {years.map(y => <option key={y.id} value={y.id} className="bg-ink-raised">{y.name}</option>)}
           </select>
 
           {/* Actor Filter */}
-          <select 
+          <select
             value={actor}
             onChange={(e) => handleFilterChange('with_people', e.target.value)}
-            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className={`${selectClass} disabled:opacity-40`}
             disabled={actorsList.length === 0}
           >
-            <option value="" className="bg-[#14151a]">Popular Actors</option>
-            {actorsList.map(a => <option key={a.id} value={a.id} className="bg-[#14151a]">{a.name}</option>)}
+            <option value="" className="bg-ink-raised">Popular Actors</option>
+            {actorsList.map(a => <option key={a.id} value={a.id} className="bg-ink-raised">{a.name}</option>)}
           </select>
 
           {/* Sort Filter */}
-          <select 
+          <select
             value={sort}
             onChange={(e) => handleFilterChange('sort', e.target.value)}
-            className="bg-white/5 text-white text-sm rounded-md px-3 py-2 border border-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className={selectClass}
           >
-            {sorts.map(s => <option key={s.id} value={s.id} className="bg-[#14151a]">{s.name}</option>)}
+            {sorts.map(s => <option key={s.id} value={s.id} className="bg-ink-raised">{s.name}</option>)}
           </select>
         </div>
       </div>
