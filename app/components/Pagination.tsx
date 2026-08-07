@@ -24,11 +24,11 @@ export default function Pagination({ currentPage, totalPages }: PaginationProps)
     const pages = [];
     const delta = 2; // Number of pages to show before/after current
     const range = [1, currentPage - delta, currentPage - 1, currentPage, currentPage + 1, currentPage + delta, totalPages];
-    
+
     for (let i = 0; i < range.length - 1; i++) {
       const start = range[i];
       const end = range[i + 1];
-      
+
       if (end - start === 2) {
         for (let j = start; j <= end; j++) {
           pages.push(j);
@@ -41,7 +41,7 @@ export default function Pagination({ currentPage, totalPages }: PaginationProps)
         pages.push(start);
       }
     }
-    
+
     // Filter out duplicates and out-of-bound values
     return Array.from(new Set(pages)).filter(p => p === '...' || (typeof p === 'number' && p >= 1 && p <= totalPages));
   };
@@ -52,9 +52,9 @@ export default function Pagination({ currentPage, totalPages }: PaginationProps)
     <div className="flex justify-center items-center gap-2 mt-8 mb-4 flex-wrap">
       {/* Previous Button */}
       {currentPage > 1 && (
-        <Link 
+        <Link
           href={getPageUrl(currentPage - 1)}
-          className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-md text-white text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-ink-raised hover:bg-ink-raised/70 border border-ink-line rounded-md text-paper text-sm font-medium transition-colors"
         >
           Previous
         </Link>
@@ -63,16 +63,16 @@ export default function Pagination({ currentPage, totalPages }: PaginationProps)
       {/* Page Numbers */}
       {pageNumbers.map((page, index) => {
         if (page === '...') {
-          return <span key={index} className="px-2 text-white/50">...</span>;
+          return <span key={index} className="px-2 text-paper-dim">...</span>;
         }
         return (
           <Link
             key={index}
             href={getPageUrl(page)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors border ${
               currentPage === page
-                ? 'bg-blue-600 text-white'
-                : 'bg-white/5 hover:bg-white/10 text-white/70 hover:text-white'
+                ? 'bg-marquee text-ink border-marquee'
+                : 'bg-ink-raised border-ink-line text-paper-dim hover:text-paper hover:bg-ink-raised/70'
             }`}
           >
             {page}
@@ -82,9 +82,9 @@ export default function Pagination({ currentPage, totalPages }: PaginationProps)
 
       {/* Next Button */}
       {currentPage < totalPages && (
-        <Link 
+        <Link
           href={getPageUrl(currentPage + 1)}
-          className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-md text-white text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-ink-raised hover:bg-ink-raised/70 border border-ink-line rounded-md text-paper text-sm font-medium transition-colors"
         >
           Next
         </Link>
