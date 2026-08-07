@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
-import SearchBar from "./SearchBar";
+import { useRouter } from "next/navigation";
+import SearchBar from "@/app/components/SearchBar";
 
 export default function SiteHeader() {
+  const router = useRouter();
+
   return (
     <header className="sticky top-0 z-50 bg-ink/85 backdrop-blur-xl border-b border-ink-line/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
@@ -13,15 +18,32 @@ export default function SiteHeader() {
         </Link>
 
         <div className="flex-1 flex justify-center max-w-md">
-          <SearchBar />
+          <SearchBar
+            initialValue=""
+            onSearch={(query: string) => {
+              const params = new URLSearchParams();
+              if (query) params.set("q", query);
+              router.push(`/?${params.toString()}`);
+            }}
+          />
         </div>
 
         <nav className="flex items-center gap-5 sm:gap-8 stub-label shrink-0">
           <Link href="/" className="text-marquee hover:text-marquee-hot transition-colors">
             Browse
           </Link>
-          <span className="hidden sm:inline text-paper-dim">Movies</span>
-          <span className="hidden sm:inline text-paper-dim">Series</span>
+          <Link href="/movies" className="hidden sm:inline text-paper-dim hover:text-marquee transition-colors">
+            Movies
+          </Link>
+          <Link href="/series" className="hidden sm:inline text-paper-dim hover:text-marquee transition-colors">
+            Series
+          </Link>
+          <Link href="/anime" className="hidden sm:inline text-paper-dim hover:text-marquee transition-colors">
+            Anime
+          </Link>
+          <Link href="/manga" className="hidden sm:inline text-paper-dim hover:text-marquee transition-colors">
+            Manga
+          </Link>
         </nav>
       </div>
       {/* subtle amber accent line (Prime-like, less bulb-strip) */}
