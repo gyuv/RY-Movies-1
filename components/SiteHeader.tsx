@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import SearchBar from "@/app/components/SearchBar";
+import SearchBar from "@/app/components/Searchbar";
 
 export default function SiteHeader() {
   const router = useRouter();
