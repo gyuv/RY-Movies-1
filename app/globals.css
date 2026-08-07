@@ -3,238 +3,123 @@
 @tailwind utilities;
 
 /* =========================================================================
-   CINEREEL — design tokens
-   A film-ticket identity: warm paper stock, inked type, marquee red,
-   brass foil for accents. Built to match the "Reel No. 001 / stub-label"
-   language already set up in layout.tsx.
+   CINEREEL — late-night cinema theme
+   Matches the dark base already hardcoded in page.tsx (bg-[#0a0b10]) so
+   there's one consistent world instead of light/dark fighting each other.
+   Marquee red + brass gold stand in for the generic blue/purple glow.
    ========================================================================= */
 
 :root {
-  /* Paper + ink */
-  --paper: #f3ecdc;          /* warm ticket stock */
-  --paper-raised: #faf5e9;   /* card surface, slightly lighter */
-  --paper-dim: rgba(23, 20, 15, 0.56);
-  --ink: #17140f;            /* near-black warm ink */
-  --ink-soft: #2c2620;
-  --ink-line: rgba(23, 20, 15, 0.14);
-  --ink-line-strong: rgba(23, 20, 15, 0.28);
+  --bg-ink: #0a0b10;          /* same value page.tsx already hardcodes */
+  --bg-card: #14151d;
+  --bg-card-raised: #191a24;
+  --ink-line: rgba(255, 255, 255, 0.08);
+  --ink-line-strong: rgba(255, 255, 255, 0.16);
 
-  /* Marquee accent (deep theatre red — not the generic terracotta) */
-  --marquee: #a3271f;
-  --marquee-bright: #c73a2f;
-  --marquee-line: rgba(163, 39, 31, 0.35);
+  --paper: #f3ecdc;           /* warm off-white for body text, not pure #fff */
+  --paper-dim: rgba(243, 236, 220, 0.58);
 
-  /* Brass foil accent, used sparingly for the "signature" moments */
-  --brass: #b98a2e;
-  --brass-bright: #d9a83f;
+  --marquee: #e2483b;         /* marquee red, tuned bright enough for dark bg */
+  --marquee-dim: rgba(226, 72, 59, 0.35);
+  --brass: #d9a83f;
+  --brass-dim: rgba(217, 168, 63, 0.3);
 
-  /* Elevation */
-  --shadow-stub: 0 1px 0 rgba(23,20,15,0.06), 0 8px 24px -12px rgba(23,20,15,0.35);
-  --shadow-stub-hover: 0 1px 0 rgba(23,20,15,0.08), 0 20px 40px -16px rgba(23,20,15,0.45);
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -14px rgba(0,0,0,0.7);
+  --shadow-card-hover: 0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 48px -18px rgba(0,0,0,0.8);
 
-  --radius-stub: 4px;
+  --radius-stub: 6px;
 }
 
-* {
-  border-color: var(--ink-line);
-}
-
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background-color: var(--paper);
-  color: var(--ink);
+  background-color: var(--bg-ink);
+  color: var(--paper);
   font-family: var(--font-body), 'Inter', system-ui, -apple-system, sans-serif;
-  position: relative;
-}
-
-/* Subtle film-grain wash over the whole page — cheap, ambient, never distracting */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.05;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain-shift 8s steps(8) infinite;
-}
-
-@keyframes grain-shift {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-1%, -2%); }
-  30% { transform: translate(2%, 1%); }
-  50% { transform: translate(-2%, 2%); }
-  70% { transform: translate(1%, -1%); }
-  90% { transform: translate(-1%, 1%); }
 }
 
 h1, h2, h3, h4 {
   font-family: var(--font-display), 'Fraunces', serif;
-  color: var(--ink);
+  color: var(--paper);
   letter-spacing: -0.01em;
 }
 
-/* Headline underline — a torn-ticket flourish reserved for h2s that lead a section */
-.section-heading {
-  position: relative;
-  display: inline-block;
-  padding-bottom: 0.35rem;
-}
+a { color: var(--marquee); transition: color 0.2s ease; }
+a:hover { color: var(--brass); }
+
+.section-heading { position: relative; display: inline-block; padding-bottom: 0.35rem; }
 .section-heading::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 46px;
-  height: 3px;
-  background: var(--marquee);
-  border-radius: 2px;
+  content: ""; position: absolute; left: 0; bottom: 0;
+  width: 46px; height: 3px; background: var(--marquee); border-radius: 2px;
 }
 
-/* =========================================================================
-   Stub label — small mono caption used for metadata (was referenced,
-   never defined). Reads like the ticket's fine print.
-   ========================================================================= */
 .stub-label {
   font-family: var(--font-mono), 'IBM Plex Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--paper-dim);
 }
 
-/* Ink-toned borders/text referenced by layout.tsx */
 .border-ink-line { border-color: var(--ink-line); }
 .text-paper-dim { color: var(--paper-dim); }
-.text-ink { color: var(--ink); }
-.bg-paper { background-color: var(--paper); }
-.bg-paper-raised { background-color: var(--paper-raised); }
 
-/* =========================================================================
-   Cards — re-skinned in place of the old glassmorphism panels, so any
-   component still using .glass-panel / .glass-card just inherits the
-   new look with no markup changes required.
-   ========================================================================= */
-.glass-panel,
-.glass-card {
-  background: var(--paper-raised);
+.glass-panel, .glass-card {
+  background: var(--bg-card);
   backdrop-filter: none;
   border: 1px solid var(--ink-line);
   border-radius: var(--radius-stub);
-  box-shadow: var(--shadow-stub);
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.35s ease;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.3s ease;
 }
 
-.glass-card {
-  position: relative;
-  overflow: hidden;
-}
+.glass-card { position: relative; overflow: hidden; }
 
-/* Perforated ticket edge along the top of every card — the signature element */
 .glass-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-image: radial-gradient(circle, var(--paper) 1.5px, transparent 1.6px);
-  background-size: 10px 2px;
-  background-position: 0 -1px;
-  opacity: 0.9;
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background-image: radial-gradient(circle, var(--bg-ink) 1.5px, transparent 1.6px);
+  background-size: 10px 2px; opacity: 0.8; z-index: 1;
 }
 
 .glass-card:hover {
-  transform: translateY(-6px) scale(1.015);
-  border-color: var(--marquee-line);
-  box-shadow: var(--shadow-stub-hover);
+  transform: translateY(-6px);
+  border-color: var(--marquee-dim);
+  box-shadow: var(--shadow-card-hover);
   z-index: 10;
 }
 
-/* Poster / thumbnail treatment — "house lights dim" on hover */
-.poster-frame {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-stub);
-  isolation: isolate;
-}
-.poster-frame img {
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s ease;
-  filter: saturate(0.94) contrast(1.02);
-}
+.poster-frame { position: relative; overflow: hidden; border-radius: var(--radius-stub); isolation: isolate; }
+.poster-frame img { transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s ease; }
 .poster-frame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(23,20,15,0.75) 0%, transparent 45%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(10,11,16,0.85) 0%, transparent 50%);
+  opacity: 0; transition: opacity 0.35s ease;
 }
-.poster-frame:hover img {
-  transform: scale(1.06);
-  filter: saturate(1.05) contrast(1.05);
-}
-.poster-frame:hover::after {
-  opacity: 1;
-}
+.poster-frame:hover img { transform: scale(1.05); }
+.poster-frame:hover::after { opacity: 1; }
 
-/* =========================================================================
-   Marquee button — replaces generic gradient CTAs. Bulbs chase around
-   the border on hover, like a cinema marquee sign.
-   ========================================================================= */
 .btn-marquee {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.4rem;
-  background: var(--marquee);
-  color: var(--paper);
-  font-weight: 600;
-  border-radius: 2px;
-  letter-spacing: 0.02em;
-  transition: background 0.25s ease, transform 0.25s ease;
+  position: relative; display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.65rem 1.4rem; background: var(--marquee); color: var(--bg-ink);
+  font-weight: 600; border-radius: 4px; letter-spacing: 0.01em;
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 .btn-marquee:hover {
-  background: var(--marquee-bright);
-  transform: translateY(-1px);
-}
-.btn-marquee:active {
-  transform: translateY(0);
+  background: var(--brass); transform: translateY(-1px);
+  box-shadow: 0 8px 20px -8px var(--brass-dim);
 }
 
-/* =========================================================================
-   Motion — orchestrated, restrained. One load-in sweep, one ambient
-   accent, hover micro-interactions. Respects reduced-motion.
-   ========================================================================= */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes reel-spin {
-  to { transform: rotate(360deg); }
-}
-.animate-reel-spin {
-  animation: reel-spin 6s linear infinite;
-}
+.animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
 @keyframes marquee-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+  50% { opacity: 0.5; }
 }
-.animate-marquee-pulse {
-  animation: marquee-pulse 1.8s ease-in-out infinite;
-}
+.animate-marquee-pulse { animation: marquee-pulse 1.8s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -242,39 +127,16 @@ h1, h2, h3, h4 {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  body::before { display: none; }
 }
 
-/* =========================================================================
-   Scrollbar — inked, not neon
-   ========================================================================= */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--ink-line-strong);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(23, 20, 15, 0.4);
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ink-line-strong); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); }
 
-/* =========================================================================
-   Gradient text — swapped from generic blue/purple/pink to marquee/brass
-   ========================================================================= */
 .text-gradient {
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
+  background-clip: text; -webkit-background-clip: text; color: transparent;
   background-image: linear-gradient(90deg, var(--marquee) 0%, var(--brass) 100%);
 }
 
-/* Accessible focus ring — brass, not the browser default blue */
-:focus-visible {
-  outline: 2px solid var(--brass);
-  outline-offset: 2px;
-}
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
