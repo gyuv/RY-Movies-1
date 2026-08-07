@@ -34,7 +34,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
   return (
     <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
       {/* Background Image */}
-      <div className="absolute inset-0 transition-transform duration-700 ease-in-out">
+      <div key={movie.id} className="absolute inset-0 animate-fade-in-up">
         <Image
           src={backgroundImage}
           alt={movie.title}
@@ -45,38 +45,52 @@ export default function Hero({ movies }: { movies: Movie[] }) {
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10] via-[#0a0b10]/60 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0b10]/90 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink/90 via-transparent to-transparent" />
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-10 max-w-[1600px] mx-auto">
         <div className="max-w-2xl space-y-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-paper leading-tight">
             {movie.title}
           </h1>
-          
-          <div className="flex items-center gap-4 text-sm sm:text-base text-white/80">
-            <span className="text-yellow-400 font-bold">★ {movie.vote_average.toFixed(1)}</span>
+
+          <div className="flex items-center gap-4 text-sm sm:text-base text-paper-dim">
+            <span className="badge-rating">★ {movie.vote_average.toFixed(1)}</span>
             <span>{releaseYear}</span>
           </div>
 
-          <p className="text-white/70 line-clamp-3 text-sm sm:text-base">
+          <p className="text-paper-dim line-clamp-3 text-sm sm:text-base">
             {movie.overview}
           </p>
 
           <div className="flex gap-4 pt-2">
-            <Link 
+            <Link
               href={`/media/${movie.id}`}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center gap-2"
+              className="btn-marquee"
             >
               ▶ Watch Now
             </Link>
-            <Link 
+            <Link
               href={`/media/${movie.id}`}
-              className="bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-md font-medium transition-colors backdrop-blur-sm"
+              className="bg-ink-raised/70 hover:bg-ink-raised text-paper px-6 py-2.5 rounded-md font-medium transition-colors backdrop-blur-sm border border-ink-line"
             >
               More Info
             </Link>
+          </div>
+
+          {/* Slide indicators — reads like a film-strip frame counter */}
+          <div className="flex gap-1.5 pt-2">
+            {movies.slice(0, 8).map((m, i) => (
+              <button
+                key={m.id}
+                onClick={() => setCurrent(i)}
+                aria-label={`Show ${m.title}`}
+                className={`h-1 rounded-full transition-all ${
+                  i === current ? 'w-6 bg-marquee' : 'w-2.5 bg-paper/25 hover:bg-paper/40'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
