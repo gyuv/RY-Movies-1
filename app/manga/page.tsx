@@ -1,5 +1,5 @@
 // Save as: app/manga/page.tsx
-import Pagination from '../../components/Pagination';
+import Pagination from '../components/Pagination';
 import { getMangaList, MangaItem } from '../../lib/jikan';
 
 export default async function MangaPage({
