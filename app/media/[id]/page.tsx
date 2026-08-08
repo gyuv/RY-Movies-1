@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import Footer from '../../../components/Footer';
+import Footer from '../../components/Footer';
 import CastRow from '../../../components/CastRow';
 import WatchBadges from '../../../components/WatchBadges';
 import type { CastMember, WatchOption } from '@/types';
