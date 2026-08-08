@@ -9,10 +9,7 @@ export default async function MangaPage({
 }) {
   const page = Number(searchParams?.page) || 1;
   const sort = (searchParams?.sort as string) || 'popularity.desc';
-  
-  const data = await getMangaList(page, sort);
-  const results = data?.results || [];
-  const total_pages = data?.total_pages || 1;
+  const { results, total_pages } = await getMangaList(page, sort);
 
   return (
     <main className="min-h-screen bg-ink text-paper">
@@ -21,13 +18,11 @@ export default async function MangaPage({
           <h1 className="text-2xl md:text-3xl font-display font-bold text-paper section-heading">
             Manga
           </h1>
-          <p className="stub-label mt-2">Data via MyAnimeList / Jikan (Page {page})</p>
+          <p className="stub-label mt-2">Data via MyAnimeList / Jikan</p>
         </div>
 
         {results.length === 0 ? (
-          <div className="px-4 sm:px-6 lg:px-8 py-12">
-            <p className="text-paper-dim stub-label">No titles found. The Jikan API might be rate-limiting requests. Try refreshing in a few moments.</p>
-          </div>
+          <p className="px-4 sm:px-6 lg:px-8 text-paper-dim stub-label">No titles found.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 px-4 sm:px-6 lg:px-8">
             {results.map((item: MangaItem) => (
@@ -38,12 +33,12 @@ export default async function MangaPage({
                 rel="noreferrer"
                 className="glass-card group block"
               >
-                <div className="poster-frame relative aspect-[2/3] bg-ink-raised">
+                <div className="poster-frame relative aspect-[2/3]">
                   {item.image_url ? (
                     <img
                       src={item.image_url}
                       alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover"
                       loading="lazy"
                     />
                   ) : (
@@ -51,11 +46,11 @@ export default async function MangaPage({
                       No art
                     </div>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 p-2 z-[2] bg-gradient-to-t from-black/90 via-black/60 to-transparent">
+                  <div className="absolute bottom-0 left-0 right-0 p-2 z-[2] bg-gradient-to-t from-black/80 to-transparent">
                     <p className="text-paper text-xs font-medium truncate">{item.title}</p>
                     <p className="text-paper-dim text-[10px] mt-1 flex items-center justify-between">
-                      <span className="truncate max-w-[70%]" title={item.status}>{item.status}</span>
-                      <span className="badge-rating shrink-0">★ {item.score ? item.score.toFixed(1) : '—'}</span>
+                      <span>{item.status}</span>
+                      <span className="badge-rating">★ {item.score ? item.score.toFixed(1) : '—'}</span>
                     </p>
                   </div>
                 </div>
