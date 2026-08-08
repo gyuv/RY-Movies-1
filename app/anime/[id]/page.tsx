@@ -18,6 +18,7 @@ interface AnimeDetail {
 
 async function fetchAnimeById(id: number): Promise<AnimeDetail | null> {
   try {
+    // Use a timeout or cache to prevent build timeouts
     const res = await fetch(`https://api.jikan.moe/v4/anime/${id}?sfw`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
@@ -34,7 +35,7 @@ async function fetchAnimeById(id: number): Promise<AnimeDetail | null> {
       score: anime.score,
       episodes: anime.episodes,
       status: anime.status,
-      genres: anime.genres,
+      genres: anime.genres || [],
       trailer: anime.trailer,
     };
   } catch (error) {
@@ -65,6 +66,7 @@ export default async function AnimeDetailPage({
             fill
             className="object-cover opacity-40"
             priority
+            sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/80 to-transparent" />
         </div>
@@ -79,6 +81,7 @@ export default async function AnimeDetailPage({
                 width={300}
                 height={450}
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, 300px"
               />
             </div>
 
@@ -106,6 +109,7 @@ export default async function AnimeDetailPage({
               </div>
 
               <div className="flex gap-4 mb-6">
+                {/* Link to the media player page */}
                 <Link 
                   href={`/media/${anime.mal_id}`} 
                   className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2"
