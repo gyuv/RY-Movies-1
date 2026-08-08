@@ -12,8 +12,14 @@ interface SearchResult {
   vote_average: number;
 }
 
-export default function SearchBar() {
-  const [query, setQuery] = useState('');
+interface SearchBarProps {
+  initialValue?: string;
+  variant?: string;
+  onSearch?: (query: string) => void;
+}
+
+export default function SearchBar({ initialValue = '', variant, onSearch }: SearchBarProps) {
+  const [query, setQuery] = useState(initialValue);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -21,6 +27,10 @@ export default function SearchBar() {
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setQuery(initialValue);
+  }, [initialValue]);
 
   // Debounced live dropdown fetch
   useEffect(() => {
@@ -67,7 +77,11 @@ export default function SearchBar() {
     e.preventDefault();
     if (!query.trim()) return;
     setOpen(false);
-    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    if (onSearch) {
+      onSearch(query.trim());
+    } else {
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    }
   };
 
   const handleKeyDown = useCallback(
