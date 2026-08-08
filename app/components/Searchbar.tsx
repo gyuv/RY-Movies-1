@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface SearchResult {
@@ -19,8 +20,9 @@ export default function SearchBar() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const router = useRouter();
 
-  // Debounced fetch — waits for the person to pause typing before calling the API
+  // Debounced live dropdown fetch
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -61,6 +63,13 @@ export default function SearchBar() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    setOpen(false);
+    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+  };
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!open || results.length === 0) return;
@@ -72,14 +81,18 @@ export default function SearchBar() {
         setActiveIndex((i) => (i - 1 + results.length) % results.length);
       } else if (e.key === 'Escape') {
         setOpen(false);
+      } else if (e.key === 'Enter' && activeIndex >= 0 && results[activeIndex]) {
+        e.preventDefault();
+        router.push(`/media/${results[activeIndex].id}`);
+        setOpen(false);
       }
     },
-    [open, results]
+    [open, results, activeIndex, router]
   );
 
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
-      <div className="relative">
+      <form onSubmit={handleSubmit} className="relative">
         <svg
           className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-paper-dim pointer-events-none"
           fill="none" viewBox="0 0 24 24" stroke="currentColor"
@@ -99,7 +112,7 @@ export default function SearchBar() {
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-paper-dim border-t-marquee rounded-full animate-spin" />
         )}
-      </div>
+      </form>
 
       {open && query.trim().length >= 2 && (
         <div className="absolute mt-2 w-full bg-ink-raised border border-ink-line rounded-md shadow-2xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
