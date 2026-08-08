@@ -1,6 +1,6 @@
 // Save as: app/anime/page.tsx
 import Pagination from '../components/Pagination';
-import { getAnimeList } from '@/lib/jikan';
+import { getAnimeList } from '.././lib/jikan';
 
 export default async function AnimePage({
   searchParams,
