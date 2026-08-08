@@ -1,5 +1,5 @@
-import MoviesSection from '@/components/MoviesSection';
-import Footer from '@/components/Footer';
+import MoviesSection from "../components/MoviesSection';
+import Footer from '../components/Footer';
 import Link from 'next/link';
 
 async function getEroticMovies() {
