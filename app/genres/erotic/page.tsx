@@ -1,152 +1,100 @@
-import MoviesSection from '../../components/MoviesSection';
-import Footer from '../../components/Footer';
-import Link from 'next/link';
+// app/genres/erotic/page.tsx
+import Image from 'next/image';
 
-async function getFilteredEroticMovies(searchParams: { [key: string]: string | string[] | undefined }) {
-  const apiKey = process.env.TMDB_API_KEY;
-  if (!apiKey) return [];
+// TMDB API Configuration
+const TMDB_API_KEY = process.env.TMDB_API_KEY; // Add this to your .env.local
+const BASE_URL = 'https://api.themoviedb.org/3';
+const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
-  const getParam = (key: string) => {
-    const v = searchParams[key];
-    return Array.isArray(v) ? v[0] : (v || '');
-  };
+// Language codes for Tamil, Telugu, Malayalam, Hindi
+const LANGUAGES = [
+  { code: 'ta', name: 'Tamil' },
+  { code: 'te', name: 'Telugu' },
+  { code: 'ml', name: 'Malayalam' },
+  { code: 'hi', name: 'Hindi' },
+];
 
-  const year = getParam('year');
-  const language = getParam('language') || 'hi'; // Default to Hindi or English as primary preference
-  const type = getParam('type');
+// Genre IDs: 10749 is Romance, 55 is Adult (if available)
+// Note: TMDB doesn't have a dedicated "Erotic" genre, so we use Romance + filter by popularity/vote
+const GENRE_ID = 10749; // Romance
 
-  const params = new URLSearchParams();
-  params.set('api_key', apiKey);
-  params.set('language', 'en-US');
-  params.set('sort_by', 'popularity.desc');
-  params.set('with_original_language', language);
+interface Movie {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string;
+  vote_average: number;
+  original_language: string;
+}
 
-  // Using Romance (10749) and Drama (18) as the baseline genre scope for mature/intense content
-  params.set('with_genres', '10749,18');
-
-  if (year) {
-    params.set('primary_release_date.gte', `${year}-01-01`);
-    params.set('primary_release_date.lte', `${year}-12-31`);
-  } else {
-    params.set('primary_release_date.gte', '1990-01-01');
-    const today = new Date().toISOString().split('T')[0];
-    params.set('primary_release_date.lte', today);
-  }
-
-  // Optional thematic keywords mapping
-  if (type === 'lesbian') {
-    params.append('with_keywords', '9840');
-  } else if (type === 'stepmom' || type === 'stepdad' || type === 'old_woman_young_boy') {
-    params.append('with_keywords', '1706'); // family/relationship drama keyword
-  }
-
+async function fetchEroticMovies(): Promise<Movie[]> {
   try {
-    const res = await fetch(`https://api.themoviedb.org/3/discover/movie?${params.toString()}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return [];
+    // Fetch top romantic movies across all languages
+    const res = await fetch(
+      `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${GENRE_ID}&sort_by=popularity.desc&language=en-US`,
+      { next: { revalidate: 3600 } } // Cache for 1 hour
+    );
+
+    if (!res.ok) {
+      throw new Error('Failed to fetch movies');
+    }
+
     const data = await res.json();
-    return data.results || [];
-  } catch (e) {
+    
+    // Filter for Tamil, Telugu, Malayalam, and Hindi
+    const filteredMovies = data.results.filter((movie: Movie) => {
+      const langCode = movie.original_language;
+      return LANGUAGES.some(l => l.code === langCode);
+    });
+
+    return filteredMovies.slice(0, 20); // Limit to 20 movies
+  } catch (error) {
+    console.error('Error fetching movies:', error);
     return [];
   }
 }
 
-export default async function EroticGenrePage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const movies = await getFilteredEroticMovies(searchParams);
-  
-  const getParam = (key: string) => {
-    const v = searchParams[key];
-    return Array.isArray(v) ? v[0] : (v || '');
-  };
-
-  const currentType = getParam('type');
-  const currentYear = getParam('year');
-  const currentLang = getParam('language') || 'hi';
+export default async function EroticPage() {
+  const movies = await fetchEroticMovies();
 
   return (
-    <main className="min-h-screen bg-[#0a0b10] text-white">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link href="/" className="text-blue-400 hover:underline text-sm mb-6 inline-block">
-          &larr; Back to Home
-        </Link>
-        
-        <h1 className="text-3xl font-bold mb-2">Erotic &amp; Romance Collection</h1>
-        <p className="text-gray-400 text-sm mb-8">Explore specialized cinematic content across Hindi, Tamil, Telugu, Malayalam, and more.</p>
+    <div className="min-h-screen bg-gray-900 text-white p-8">
+      <h1 className="text-3xl font-bold mb-8 text-center">Erotic & Romantic Collection</h1>
+      
+      {movies.length === 0 ? (
+        <p className="text-center text-gray-400">No movies found. Check your TMDB API Key.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {movies.map((movie) => {
+            // Determine language name
+            const langName = LANGUAGES.find(l => l.code === movie.original_language)?.name || 'Other';
 
-        {/* Unique Filter Bar */}
-        <form method="GET" className="bg-[#12141c] p-4 rounded-xl border border-gray-800 flex flex-wrap gap-4 items-center mb-8">
-          {/* Type / Sub-category Filter */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 font-medium">Category / Theme</label>
-            <select 
-              name="type" 
-              defaultValue={currentType}
-              className="bg-[#1a1d29] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-            >
-              <option value="">All Themes</option>
-              <option value="lesbian">Lesbian</option>
-              <option value="stepmom">Stepmom</option>
-              <option value="stepdad">Stepdad</option>
-              <option value="old_woman_young_boy">Older Woman / Younger Man</option>
-              <option value="old_guy_young_woman">Older Man / Younger Woman</option>
-            </select>
-          </div>
-
-          {/* Language Filter */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 font-medium">Language</label>
-            <select 
-              name="language" 
-              defaultValue={currentLang}
-              className="bg-[#1a1d29] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-            >
-              <option value="hi">Hindi</option>
-              <option value="ta">Tamil</option>
-              <option value="te">Telugu</option>
-              <option value="ml">Malayalam</option>
-              <option value="en">English</option>
-              <option value="ko">Korean</option>
-              <option value="ja">Japanese</option>
-            </select>
-          </div>
-
-          {/* Year Filter */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 font-medium">Release Year</label>
-            <input 
-              type="number" 
-              name="year" 
-              placeholder="e.g. 2023" 
-              defaultValue={currentYear}
-              className="bg-[#1a1d29] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm w-32 focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex items-end self-end">
-            <button 
-              type="submit" 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors"
-            >
-              Apply Filters
-            </button>
-          </div>
-        </form>
-
-        {/* Results Section */}
-        {movies.length > 0 ? (
-          <MoviesSection movies={movies} />
-        ) : (
-          <div className="text-center py-20 bg-[#12141c] rounded-xl border border-gray-800">
-            <p className="text-gray-400">No content available for this specific combination. Try changing the language or theme.</p>
-          </div>
-        )}
-      </div>
-      <Footer />
-    </main>
+            return (
+              <div key={movie.id} className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:scale-105 transition-transform">
+                <div className="relative w-full h-80">
+                  <Image
+                    src={`${IMAGE_BASE_URL}${movie.poster_path}`}
+                    alt={movie.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                  />
+                  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                    {langName}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold mb-1 truncate">{movie.title}</h2>
+                  <p className="text-gray-400 text-sm line-clamp-2">{movie.overview}</p>
+                  <div className="mt-2 text-yellow-400 text-sm">
+                    ⭐ {movie.vote_average.toFixed(1)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
