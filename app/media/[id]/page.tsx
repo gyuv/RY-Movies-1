@@ -198,11 +198,14 @@ export default async function MediaPage({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {anime.genres?.map((genre) => (
-                    <span 
-                      key={genre.name} 
-                      className="text-xs text-gray-400 uppercase tracking-wider border border-white/10 px-2 py-1 rounded"
-                    >
+                  {anime.genres?.map((genre: { name: string }) => (
+  <span 
+    key={genre.name} 
+    className="text-xs text-gray-400 uppercase tracking-wider border border-white/10 px-2 py-1 rounded"
+  >
+    {genre.name}
+  </span>
+))}
                       {genre.name}
                     </span>
                   ))}
