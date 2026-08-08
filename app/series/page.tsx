@@ -1,6 +1,6 @@
 // Save as: app/series/page.tsx
-import MoviesSection from '@app/components/MoviesSection';
-import Pagination from '@app/components/Pagination';
+import MoviesSection from '../components/MoviesSection';
+import Pagination from '../components/Pagination';
 
 const MOCK_SHOW = {
   id: 199, title: "Mock Series", poster_path: "/9lH0V6e4b4w8r5k6j7h8g9f0d1s2a3.jpg",
