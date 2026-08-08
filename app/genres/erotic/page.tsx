@@ -17,10 +17,6 @@ interface Movie {
   release_date: string;
 }
 
-// Keywords to search for "Erotic" content
-// 620 = Erotic, 2123 = Bed Scene, 1896 = Love Triangle, 1493 = Passion
-const ERROTIC_KEYWORDS = '620,2123,1896,1493';
-
 // Target Languages
 const TARGET_LANGUAGES = ['hi', 'ta', 'te', 'ml']; // Hindi, Tamil, Telugu, Malayalam
 
@@ -31,12 +27,12 @@ async function fetchEroticContent(): Promise<Movie[]> {
   }
 
   try {
-    // We will fetch movies for each language separately to ensure we get results
+    // Strategy: Fetch Romance (10749) movies for each language separately.
+    // This ensures we get Indian movies, not just Hollywood.
     const promises = TARGET_LANGUAGES.map(async (lang) => {
-      // Search movies with specific Keywords (Erotic, Bed Scene, etc.)
-      // using_original_language ensures we get Indian movies
+      // Fetch top 10 Romance movies for this language
       const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${ERROTIC_KEYWORDS}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=20&include_adult=true&include_video=false`,
+        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=10749&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=20&include_adult=true`,
         { 
           next: { revalidate: 3600 },
           headers: { 'Accept': 'application/json' }
@@ -49,23 +45,23 @@ async function fetchEroticContent(): Promise<Movie[]> {
       return data.results || [];
     });
 
-    // Wait for all language fetches to complete
+    // Wait for all language fetches
     const results = await Promise.all(promises);
     
-    // Flatten the array of arrays into one big array
+    // Flatten array
     const allMovies: Movie[] = results.flat();
 
-    // Remove duplicates based on Movie ID
+    // Remove duplicates (e.g., if a movie is tagged as both Hindi and English)
     const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
 
-    // Sort by Vote Average to get the best rated ones
+    // Sort by Vote Average (Best rated first)
     const sortedMovies = uniqueMovies.sort((a, b) => b.vote_average - a.vote_average);
 
     // Return top 20
     return sortedMovies.slice(0, 20);
 
   } catch (error) {
-    console.error("Error fetching erotic content:", error);
+    console.error("Error fetching content:", error);
     return [];
   }
 }
@@ -93,19 +89,15 @@ export default async function EroticPage() {
           Erotic & Romantic Collection
         </h1>
         <p className="text-center text-gray-400 mb-8">
-          Curated Erotic Cinema from India (Tagged: Erotic, Passion, Bed Scene)
+          Top Rated Romance from Indian Cinema
         </p>
         
         {movies.length === 0 ? (
           <div className="text-center text-gray-400 py-20">
             <p className="text-xl font-semibold text-pink-400">No movies found.</p>
-            <p className="text-sm mt-2">
-              TMDB has limited "Erotic" tags for Indian cinema. Try adding more keywords or expanding to English.
-            </p>
             <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
               <p><strong>Debug:</strong></p>
               <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
-              <p>Keywords Used: {ERROTIC_KEYWORDS}</p>
               <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
             </div>
           </div>
@@ -117,7 +109,7 @@ export default async function EroticPage() {
                   <Image
                     src={movie.poster_path 
                       ? `${IMAGE_BASE_URL}${movie.poster_path}` 
-                      : `${IMAGE_BASE_URL}/7WsyChQlftoju694BhMqR8yV7j.jpg`} // Fallback poster
+                      : `${IMAGE_BASE_URL}/7WsyChQlftoju694BhMqR8yV7j.jpg`}
                     alt={movie.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
