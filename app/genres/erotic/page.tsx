@@ -12,8 +12,8 @@ async function getFilteredEroticMovies(searchParams: { [key: string]: string | s
   };
 
   const year = getParam('year');
-  const language = getParam('language') || 'en';
-  const type = getParam('type'); // e.g., stepmom, lesbian, older_woman, etc.
+  const language = getParam('language') || 'hi'; // Default to Hindi or English as primary preference
+  const type = getParam('type');
 
   const params = new URLSearchParams();
   params.set('api_key', apiKey);
@@ -21,24 +21,23 @@ async function getFilteredEroticMovies(searchParams: { [key: string]: string | s
   params.set('sort_by', 'popularity.desc');
   params.set('with_original_language', language);
 
-  // Base Romance/Drama genre ID on TMDB as a foundation
-  params.set('with_genres', '10749');
+  // Using Romance (10749) and Drama (18) as the baseline genre scope for mature/intense content
+  params.set('with_genres', '10749,18');
 
   if (year) {
     params.set('primary_release_date.gte', `${year}-01-01`);
     params.set('primary_release_date.lte', `${year}-12-31`);
+  } else {
+    params.set('primary_release_date.gte', '1990-01-01');
+    const today = new Date().toISOString().split('T')[0];
+    params.set('primary_release_date.lte', today);
   }
 
-  // Map custom sub-categories/types to TMDB query parameters or keyword filters if applicable
-  // (You can also map specific keyword IDs if you have them from TMDB keyword searches)
-  if (type) {
-    // Example query adjustments based on selected theme/type
-    // TMDB uses comma for AND logic, pipe (|) for OR logic
-    if (type === 'lesbian') {
-      params.append('with_keywords', '9840'); // Example TMDB keyword ID for lesbian theme or similar
-    } else if (type === 'stepmom' || type === 'stepdad') {
-      params.append('with_keywords', '1706'); // Family drama / taboo keyword mapping placeholder
-    }
+  // Optional thematic keywords mapping
+  if (type === 'lesbian') {
+    params.append('with_keywords', '9840');
+  } else if (type === 'stepmom' || type === 'stepdad' || type === 'old_woman_young_boy') {
+    params.append('with_keywords', '1706'); // family/relationship drama keyword
   }
 
   try {
@@ -67,7 +66,7 @@ export default async function EroticGenrePage({
 
   const currentType = getParam('type');
   const currentYear = getParam('year');
-  const currentLang = getParam('language') || 'en';
+  const currentLang = getParam('language') || 'hi';
 
   return (
     <main className="min-h-screen bg-[#0a0b10] text-white">
@@ -77,7 +76,7 @@ export default async function EroticGenrePage({
         </Link>
         
         <h1 className="text-3xl font-bold mb-2">Erotic &amp; Romance Collection</h1>
-        <p className="text-gray-400 text-sm mb-8">Discover tailored collections based on your preferences.</p>
+        <p className="text-gray-400 text-sm mb-8">Explore specialized cinematic content across Hindi, Tamil, Telugu, Malayalam, and more.</p>
 
         {/* Unique Filter Bar */}
         <form method="GET" className="bg-[#12141c] p-4 rounded-xl border border-gray-800 flex flex-wrap gap-4 items-center mb-8">
@@ -106,11 +105,13 @@ export default async function EroticGenrePage({
               defaultValue={currentLang}
               className="bg-[#1a1d29] text-white border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
             >
+              <option value="hi">Hindi</option>
+              <option value="ta">Tamil</option>
+              <option value="te">Telugu</option>
+              <option value="ml">Malayalam</option>
               <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="ja">Japanese</option>
               <option value="ko">Korean</option>
+              <option value="ja">Japanese</option>
             </select>
           </div>
 
@@ -141,7 +142,7 @@ export default async function EroticGenrePage({
           <MoviesSection movies={movies} />
         ) : (
           <div className="text-center py-20 bg-[#12141c] rounded-xl border border-gray-800">
-            <p className="text-gray-400">No movies match your selected filters.</p>
+            <p className="text-gray-400">No content available for this specific combination. Try changing the language or theme.</p>
           </div>
         )}
       </div>
