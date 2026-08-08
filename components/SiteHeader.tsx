@@ -17,7 +17,7 @@ export default function SiteHeader() {
           <span className="stub-label hidden md:inline text-paper-dim">chill beer with a good movie...what else?</span>
         </Link>
 
-        <div className="flex-1 flex justify-center max-w-md">
+        <div className="flex-1 min-w-0 flex justify-center max-w-xl mx-2">
           <SearchBar
             initialValue=""
             onSearch={(query: string) => {
