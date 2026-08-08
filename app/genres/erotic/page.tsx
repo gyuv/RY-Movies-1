@@ -17,8 +17,16 @@ interface Movie {
   release_date: string;
 }
 
-// Target Languages
-const TARGET_LANGUAGES = ['hi', 'ta', 'te', 'ml']; // Hindi, Tamil, Telugu, Malayalam
+// Keywords for "Hardcore" content:
+// 620 = Erotic
+// 2123 = Bed Scene
+// 1493 = Passion
+// 1896 = Love Triangle
+const ERROTIC_KEYWORDS = '620,2123,1493,1896';
+
+// Target Languages for Hardcore Content
+// Polish (365 Days), Korean (The Handmaiden), French (Nymphomaniac), English, Spanish, plus Indian
+const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml'];
 
 async function fetchEroticContent(): Promise<Movie[]> {
   if (!TMDB_API_KEY) {
@@ -27,12 +35,10 @@ async function fetchEroticContent(): Promise<Movie[]> {
   }
 
   try {
-    // Strategy: Fetch Romance (10749) movies for each language separately.
-    // This ensures we get Indian movies, not just Hollywood.
+    // Strategy: Fetch movies with "Erotic" keywords for each language
     const promises = TARGET_LANGUAGES.map(async (lang) => {
-      // Fetch top 10 Romance movies for this language
       const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=10749&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=20&include_adult=true`,
+        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${ERROTIC_KEYWORDS}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=20&include_adult=true&include_video=false`,
         { 
           next: { revalidate: 3600 },
           headers: { 'Accept': 'application/json' }
@@ -51,17 +57,17 @@ async function fetchEroticContent(): Promise<Movie[]> {
     // Flatten array
     const allMovies: Movie[] = results.flat();
 
-    // Remove duplicates (e.g., if a movie is tagged as both Hindi and English)
+    // Remove duplicates
     const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
 
-    // Sort by Vote Average (Best rated first)
-    const sortedMovies = uniqueMovies.sort((a, b) => b.vote_average - a.vote_average);
+    // Sort by Popularity (to get the big hits like 365 Days first)
+    const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
 
     // Return top 20
     return sortedMovies.slice(0, 20);
 
   } catch (error) {
-    console.error("Error fetching content:", error);
+    console.error("Error fetching erotic content:", error);
     return [];
   }
 }
@@ -71,13 +77,18 @@ export default async function EroticPage() {
 
   const getLangName = (code: string) => {
     const langs: Record<string, string> = {
+      pl: 'Polish',
+      ko: 'Korean',
+      fr: 'French',
+      en: 'English',
+      es: 'Spanish',
       hi: 'Hindi',
       ta: 'Tamil',
       te: 'Telugu',
       ml: 'Malayalam',
       bn: 'Bengali',
-      kn: 'Kannada',
-      en: 'English'
+      de: 'German',
+      it: 'Italian'
     };
     return langs[code] || code.toUpperCase();
   };
@@ -86,10 +97,10 @@ export default async function EroticPage() {
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-2 text-pink-500">
-          Erotic & Romantic Collection
+          Hardcore Erotic Collection
         </h1>
         <p className="text-center text-gray-400 mb-8">
-          Top Rated Romance from Indian Cinema
+          Global Hits: 365 Days, The Handmaiden, Nymphomaniac & More
         </p>
         
         {movies.length === 0 ? (
@@ -98,6 +109,7 @@ export default async function EroticPage() {
             <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
               <p><strong>Debug:</strong></p>
               <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
+              <p>Keywords: {ERROTIC_KEYWORDS}</p>
               <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
             </div>
           </div>
