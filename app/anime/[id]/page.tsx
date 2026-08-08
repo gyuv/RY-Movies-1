@@ -111,12 +111,12 @@ export default async function AnimeDetailPage({
               <div className="flex gap-4 mb-6">
                 {/* Link to the media player page */}
                 <Link 
-                  href={`/media/${anime.mal_id}`} 
-                  className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                  Watch Now
-                </Link>
+  href={`/media/${anime.mal_id}?type=anime`} 
+  className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2"
+>
+  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+  Watch Now
+</Link>
                 <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-bold py-3 px-8 rounded-lg transition-colors border border-white/10">
                   + My List
                 </button>
