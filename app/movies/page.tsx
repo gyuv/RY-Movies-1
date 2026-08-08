@@ -1,3 +1,5 @@
+// Save as: app/movies/page.tsx
+import { Suspense } from 'react';
 import MoviesSection from '../components/MoviesSection';
 import Pagination from '../components/Pagination';
 import SectionFilters from '../components/SectionFilters';
@@ -40,6 +42,12 @@ export default async function MoviesPage({
   const sort = (searchParams?.sort as string) || 'popularity.desc';
   const data = await getMovies(page, sort);
 
+  const sortOptions = [
+    { label: 'Most Popular', value: 'popularity.desc' },
+    { label: 'Highest Rated', value: 'vote_average.desc' },
+    { label: 'Newest Releases', value: 'primary_release_date.desc' },
+  ];
+
   return (
     <main className="min-h-screen bg-ink text-paper">
       <div className="max-w-[1600px] mx-auto py-10">
@@ -51,6 +59,11 @@ export default async function MoviesPage({
             {data.total_results ? `${data.total_results.toLocaleString()} titles` : ''}
           </p>
         </div>
+
+        {/* Filter bar wrapped in Suspense for Next.js client-side search params */}
+        <Suspense fallback={<div className="h-10 mb-8 px-4 text-paper-dim text-xs">Loading filters...</div>}>
+          <SectionFilters sortOptions={sortOptions} />
+        </Suspense>
 
         <MoviesSection movies={data.results || []} />
 
