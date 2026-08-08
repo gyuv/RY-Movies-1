@@ -1,6 +1,7 @@
 // app/anime/page.tsx
 import HeroSlider from '../components/HeroSlider';
 import AnimeRow from '../components/AnimeRow';
+import AnimeCard from '../components/AnimeCard';
 import { getAnimeList, getTrendingAnime, getTopAnime, AnimeItem } from '../../lib/jikan'; // Import AnimeItem
 import Link from 'next/link';
 
