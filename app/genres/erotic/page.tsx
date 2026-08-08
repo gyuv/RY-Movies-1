@@ -15,6 +15,7 @@ interface Movie {
   vote_average: number;
   original_language: string;
   release_date: string;
+  popularity: number; // <--- ADDED THIS LINE
 }
 
 // Keywords for "Hardcore" content:
