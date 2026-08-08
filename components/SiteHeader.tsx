@@ -20,6 +20,7 @@ export default function SiteHeader() {
         <div className="flex-1 min-w-0 flex justify-center max-w-xl mx-2">
           <SearchBar
             initialValue=""
+            variant="compact"
             onSearch={(query: string) => {
               const params = new URLSearchParams();
               if (query) params.set("q", query);
