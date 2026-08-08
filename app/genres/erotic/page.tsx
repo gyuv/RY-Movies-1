@@ -17,43 +17,57 @@ interface Movie {
   release_date: string;
 }
 
-// Helper: Fetch movies for a specific language
-async function fetchMoviesByLanguage(lang: string): Promise<Movie[]> {
-  if (!TMDB_API_KEY) return [];
-  
-  try {
-    // Fetch Romance (10749) movies for this specific language
-    const res = await fetch(
-      `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=10749&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=50&include_adult=false`,
-      { next: { revalidate: 3600 } }
-    );
+// Keywords to search for "Erotic" content
+// 620 = Erotic, 2123 = Bed Scene, 1896 = Love Triangle, 1493 = Passion
+const ERROTIC_KEYWORDS = '620,2123,1896,1493';
 
-    if (!res.ok) return [];
-    
-    const data = await res.json();
-    return data.results || [];
-  } catch (error) {
-    console.error(`Error fetching ${lang} movies:`, error);
+// Target Languages
+const TARGET_LANGUAGES = ['hi', 'ta', 'te', 'ml']; // Hindi, Tamil, Telugu, Malayalam
+
+async function fetchEroticContent(): Promise<Movie[]> {
+  if (!TMDB_API_KEY) {
+    console.error("TMDB_API_KEY is missing!");
     return [];
   }
-}
 
-// Fetch all target languages in parallel
-async function fetchEroticContent(): Promise<Movie[]> {
-  const languages = ['hi', 'ta', 'te', 'ml']; // Hindi, Tamil, Telugu, Malayalam
+  try {
+    // We will fetch movies for each language separately to ensure we get results
+    const promises = TARGET_LANGUAGES.map(async (lang) => {
+      // Search movies with specific Keywords (Erotic, Bed Scene, etc.)
+      // using_original_language ensures we get Indian movies
+      const res = await fetch(
+        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${ERROTIC_KEYWORDS}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=20&include_adult=true&include_video=false`,
+        { 
+          next: { revalidate: 3600 },
+          headers: { 'Accept': 'application/json' }
+        }
+      );
 
-  // Fetch all languages simultaneously
-  const promises = languages.map(lang => fetchMoviesByLanguage(lang));
-  const results = await Promise.all(promises);
+      if (!res.ok) return [];
+      
+      const data = await res.json();
+      return data.results || [];
+    });
 
-  // Flatten the array of arrays into one big array
-  const allMovies: Movie[] = results.flat();
+    // Wait for all language fetches to complete
+    const results = await Promise.all(promises);
+    
+    // Flatten the array of arrays into one big array
+    const allMovies: Movie[] = results.flat();
 
-  // Sort by Vote Average to get the "best" ones
-  const sortedMovies = allMovies.sort((a, b) => b.vote_average - a.vote_average);
+    // Remove duplicates based on Movie ID
+    const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
 
-  // Return top 20
-  return sortedMovies.slice(0, 20);
+    // Sort by Vote Average to get the best rated ones
+    const sortedMovies = uniqueMovies.sort((a, b) => b.vote_average - a.vote_average);
+
+    // Return top 20
+    return sortedMovies.slice(0, 20);
+
+  } catch (error) {
+    console.error("Error fetching erotic content:", error);
+    return [];
+  }
 }
 
 export default async function EroticPage() {
@@ -79,16 +93,20 @@ export default async function EroticPage() {
           Erotic & Romantic Collection
         </h1>
         <p className="text-center text-gray-400 mb-8">
-          Curated Romance from Indian Cinema
+          Curated Erotic Cinema from India (Tagged: Erotic, Passion, Bed Scene)
         </p>
         
         {movies.length === 0 ? (
           <div className="text-center text-gray-400 py-20">
             <p className="text-xl font-semibold text-pink-400">No movies found.</p>
-            <p className="text-sm mt-2">Check your TMDB API Key and Internet Connection.</p>
+            <p className="text-sm mt-2">
+              TMDB has limited "Erotic" tags for Indian cinema. Try adding more keywords or expanding to English.
+            </p>
             <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
               <p><strong>Debug:</strong></p>
               <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
+              <p>Keywords Used: {ERROTIC_KEYWORDS}</p>
+              <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
             </div>
           </div>
         ) : (
