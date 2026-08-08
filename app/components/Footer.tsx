@@ -27,6 +27,7 @@ export default function Footer() {
               <li><a href="#" className="hover:text-marquee transition-colors">Comedy</a></li>
               <li><a href="#" className="hover:text-marquee transition-colors">Drama</a></li>
               <li><a href="#" className="hover:text-marquee transition-colors">Horror</a></li>
+              <li><a href="/genres/erotic" className="hover:text-marquee transition-colors">Erotic</a></li>
             </ul>
           </div>
 
