@@ -1,15 +1,13 @@
-// app/media/[id]/page.tsx
 import Link from 'next/link';
 import Image from 'next/image';
 import Footer from '../../components/Footer';
 import StreamingPlayer from '../../components/StreamingPlayer';
 import CastRow from '../../../components/CastRow';
 import type { CastMember } from '@/types';
-import { notFound } from 'next/navigation';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p';
 
-// --- TMDB HELPERS ---
+// Helper to find the best trailer (YouTube is most common)
 function getBestTrailer(videos: any) {
   if (!videos?.results) return null;
   const trailers = videos.results.filter((v: any) => v.type === 'Trailer');
@@ -18,9 +16,27 @@ function getBestTrailer(videos: any) {
          trailers[0];
 }
 
-async function getTmdbDetails(id: string, type: 'movie' | 'tv') {
+async function getMediaDetails(id: string, type: 'movie' | 'tv') {
   const apiKey = process.env.TMDB_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    return {
+      title: 'Mock Title',
+      overview: 'This is a mock overview because the API key is missing.',
+      poster_path: '/9lH0V6e4b4w8r5k6j7h8g9f0d1s2a3.jpg',
+      backdrop_path: '/9lH0V6e4b4w8r5k6j7h8g9f0d1s2a3.jpg',
+      vote_average: 8.5,
+      release_date: '2023-01-01',
+      runtime: 120,
+      genres: [{ name: 'Drama' }, { name: 'Action' }],
+      videos: { results: [] },
+      cast: [] as CastMember[],
+      original_title: 'Mock Title',
+      status: 'Released',
+      original_language: 'en',
+      popularity: 0,
+      id: parseInt(id),
+    };
+  }
 
   try {
     const detailPath = type === 'tv' ? 'tv' : 'movie';
@@ -55,54 +71,7 @@ async function getTmdbDetails(id: string, type: 'movie' | 'tv') {
 
     return { ...normalized, videos, cast, id: parseInt(id) };
   } catch (error) {
-    console.error('Error fetching TMDB media:', error);
-    return null;
-  }
-}
-
-// --- ANIME TYPES & HELPERS ---
-
-interface AnimeGenre {
-  mal_id: number;
-  name: string;
-}
-
-interface AnimeMedia {
-  mal_id: number;
-  title: string;
-  title_english: string;
-  image_url: string;
-  synopsis: string;
-  score: number;
-  episodes: number;
-  status: string;
-  genres: AnimeGenre[];
-  trailer: { youtube_id: string } | null;
-}
-
-async function getAnimeDetails(malId: number): Promise<AnimeMedia | null> {
-  try {
-    const res = await fetch(`https://api.jikan.moe/v4/anime/${malId}?sfw`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const anime = data.data;
-
-    return {
-      mal_id: anime.mal_id,
-      title: anime.title,
-      title_english: anime.title_english,
-      image_url: anime.images.jpg.large_image_url,
-      synopsis: anime.synopsis,
-      score: anime.score,
-      episodes: anime.episodes,
-      status: anime.status,
-      genres: anime.genres || [],
-      trailer: anime.trailer,
-    };
-  } catch (error) {
-    console.error('Error fetching Anime details:', error);
+    console.error('Error fetching media:', error);
     return null;
   }
 }
@@ -114,26 +83,12 @@ export async function generateMetadata({
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const type = (searchParams?.type as 'movie' | 'tv' | 'anime') || 'movie';
-  
-  let title = 'Not Found - Cinereel';
-  let description = 'View details about your favorite movies and series.';
-
-  if (type === 'anime') {
-    const anime = await getAnimeDetails(parseInt(params.id));
-    if (anime) {
-      title = `${anime.title} - Cinereel`;
-      description = anime.synopsis;
-    }
-  } else {
-    const media = await getTmdbDetails(params.id, type as 'movie' | 'tv');
-    if (media) {
-      title = `${media.title} - Cinereel`;
-      description = media.overview;
-    }
-  }
-
-  return { title, description };
+  const type = (searchParams?.type as 'movie' | 'tv') || 'movie';
+  const media = await getMediaDetails(params.id, type);
+  return {
+    title: media ? `${media.title} - Cinereel` : 'Not Found - Cinereel',
+    description: media ? media.overview : 'View details about your favorite movies and series.',
+  };
 }
 
 export default async function MediaPage({
@@ -143,223 +98,151 @@ export default async function MediaPage({
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const type = (searchParams?.type as 'movie' | 'tv' | 'anime') || 'movie';
+  const type = (searchParams?.type as 'movie' | 'tv') || 'movie';
+  const media = await getMediaDetails(params.id, type);
 
-  // --- HANDLE ANIME ---
-  if (type === 'anime') {
-    const anime = await getAnimeDetails(parseInt(params.id));
-    
-    if (!anime) {
-      notFound();
-    }
-
+  if (!media) {
     return (
-      <main className="min-h-screen bg-[#0f0f0f] text-white">
-        {/* Hero Background */}
-        <div className="relative w-full h-[50vh] md:h-[60vh]">
-          <div className="absolute inset-0">
-            <Image
-              src={anime.image_url}
-              alt={anime.title}
-              fill
-              className="object-cover opacity-40"
-              priority
-              sizes="100vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/80 to-transparent" />
-          </div>
-
-          <div className="absolute bottom-0 left-0 p-6 md:p-12 max-w-5xl z-10">
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <div className="hidden md:block w-48 lg:w-64 rounded-lg overflow-hidden shadow-2xl border-2 border-white/10">
-                <Image
-                  src={anime.image_url}
-                  alt={anime.title}
-                  width={300}
-                  height={450}
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 300px"
-                />
-              </div>
-
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-5xl font-bold mb-2">{anime.title}</h1>
-                {anime.title_english && anime.title_english !== anime.title && (
-                  <p className="text-xl text-gray-300 mb-4">{anime.title_english}</p>
-                )}
-                
-                <div className="flex flex-wrap gap-3 mb-4">
-                  {anime.score && (
-                    <span className="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-sm font-bold border border-yellow-500/30">
-                      ★ {anime.score}
-                    </span>
-                  )}
-                  {anime.episodes && (
-                    <span className="bg-white/10 text-gray-200 px-3 py-1 rounded-full text-sm border border-white/10">
-                      {anime.episodes} Episodes
-                    </span>
-                  )}
-                  <span className="bg-white/10 text-gray-200 px-3 py-1 rounded-full text-sm border border-white/10">
-                    {anime.status}
-                  </span>
-                </div>
-
-                <div className="flex gap-4 mb-6">
-                  <button className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2">
-                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    Watch Now
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {anime.genres.map((genre: AnimeGenre) => (
-                    <span 
-                      key={genre.mal_id} 
-                      className="text-xs text-gray-400 uppercase tracking-wider border border-white/10 px-2 py-1 rounded"
-                    >
-                      {genre.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+      <main className="min-h-screen bg-ink text-paper flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-display font-bold mb-4">Not Found</h1>
+          <Link href="/" className="text-marquee hover:text-marquee-hot transition-colors">
+            ← Back to Home
+          </Link>
         </div>
-
-        {/* Player Section for Anime */}
-        <div className="max-w-[1600px] mx-auto py-8 px-4">
-          <h2 className="text-2xl font-bold mb-4 border-l-4 border-yellow-500 pl-3">Episode 1</h2>
-          <div className="aspect-video w-full bg-black rounded-lg overflow-hidden relative">
-             <iframe
-               src={`https://gogoanime3.ldh.xyz/embedplus.php?id=${anime.mal_id}&autoPlay=true`}
-               className="w-full h-full"
-               title="Anime Player"
-               allowFullScreen
-             />
-          </div>
-          
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4 border-l-4 border-yellow-500 pl-3">Synopsis</h2>
-            <p className="text-gray-300 leading-relaxed">{anime.synopsis}</p>
-          </div>
-        </div>
-
-        <Footer />
       </main>
     );
   }
 
-  // --- HANDLE MOVIE/TV (TMDB) ---
-  const media = await getTmdbDetails(params.id, type as 'movie' | 'tv');
-
-  if (!media) {
-    notFound();
-  }
+  const releaseYear = media.release_date?.split('-')[0] || 'TBA';
+  const runtimeHours = Math.floor((media.runtime || 120) / 60);
+  const runtimeMins = (media.runtime || 120) % 60;
+  const trailer = getBestTrailer(media.videos);
+  const youtubeKey = trailer?.key;
 
   return (
-    <main className="min-h-screen bg-[#0f0f0f] text-white">
-      {/* Hero Background */}
-      <div className="relative w-full h-[50vh] md:h-[60vh]">
-        <div className="absolute inset-0">
-          <Image
-            src={`${IMG_BASE}/original${media.backdrop_path}`}
-            alt={media.title}
-            fill
-            className="object-cover opacity-40"
-            priority
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/80 to-transparent" />
-        </div>
+    <main className="min-h-screen bg-ink text-paper">
+      {/* Backdrop Header */}
+      <div className="relative h-[55vh] md:h-[65vh] w-full">
+        <Image
+          src={`${IMG_BASE}/original${media.backdrop_path}`}
+          alt={media.title}
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-transparent to-transparent" />
 
-        <div className="absolute bottom-0 left-0 p-6 md:p-12 max-w-5xl z-10">
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="hidden md:block w-48 lg:w-64 rounded-lg overflow-hidden shadow-2xl border-2 border-white/10">
-              <Image
-                src={`${IMG_BASE}/w500${media.poster_path}`}
-                alt={media.title}
-                width={300}
-                height={450}
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 300px"
-              />
-            </div>
-
-            <div className="flex-1">
-              <h1 className="text-3xl md:text-5xl font-bold mb-2">{media.title}</h1>
-              {media.original_title && media.original_title !== media.title && (
-                <p className="text-xl text-gray-300 mb-4">{media.original_title}</p>
-              )}
-              
-              <div className="flex flex-wrap gap-3 mb-4">
-                {media.vote_average && (
-                  <span className="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-sm font-bold border border-yellow-500/30">
-                    ★ {media.vote_average}
-                  </span>
-                )}
-                {media.runtime && (
-                  <span className="bg-white/10 text-gray-200 px-3 py-1 rounded-full text-sm border border-white/10">
-                    {media.runtime} min
-                  </span>
-                )}
-                <span className="bg-white/10 text-gray-200 px-3 py-1 rounded-full text-sm border border-white/10">
-                  {media.release_date?.split('-')[0] || 'TBD'}
-                </span>
-              </div>
-
-              <div className="flex gap-4 mb-6">
-                <button className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-8 rounded-lg transition-colors flex items-center gap-2">
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                  Watch Now
-                </button>
-                <button className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-bold py-3 px-8 rounded-lg transition-colors border border-white/10">
-                  + My List
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {media.genres?.map((genre: { id?: number; name: string }) => (
-                  <span 
-                    key={genre.id || genre.name} 
-                    className="text-xs text-gray-400 uppercase tracking-wider border border-white/10 px-2 py-1 rounded"
-                  >
-                    {genre.name}
-                  </span>
-                ))}
-              </div>
-            </div>
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
+          <p className="stub-label mb-2">{type === 'tv' ? 'Series' : 'Film'}</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold mb-4 leading-tight">
+            {media.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-4 text-sm sm:text-base text-paper-dim">
+            <span className="badge-rating">★ {media.vote_average?.toFixed(1) ?? '—'}</span>
+            <span>{releaseYear}</span>
+            <span>{runtimeHours}h {runtimeMins}m</span>
+            {media.genres?.map((genre: { name: string }) => (
+              <span key={genre.name} className="border border-ink-line px-2 py-0.5 rounded text-xs uppercase tracking-wide">
+                {genre.name}
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Player & Details */}
-      <div className="max-w-[1600px] mx-auto py-8 px-4">
-        {/* Streaming Player for TMDB Content */}
-        <StreamingPlayer movieId={media.id} type={type as 'movie' | 'tv'} />
-
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold mb-4 border-l-4 border-yellow-500 pl-3">Overview</h2>
-            <p className="text-gray-300 leading-relaxed">{media.overview}</p>
-            
-            {getBestTrailer(media.videos) && (
-              <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4 border-l-4 border-yellow-500 pl-3">Trailer</h2>
-                <div className="aspect-video w-full rounded-lg overflow-hidden bg-black">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${getBestTrailer(media.videos).key}`}
-                    title="Trailer"
-                    className="w-full h-full"
-                    allowFullScreen
-                  />
-                </div>
+      {/* Content */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Poster + back link */}
+          <div className="lg:col-span-1">
+            <div className="lg:sticky lg:top-24 space-y-6">
+              <div className="glass-card">
+                <Image
+                  src={`${IMG_BASE}/w500${media.poster_path}`}
+                  alt={media.title}
+                  width={500}
+                  height={750}
+                  className="w-full"
+                />
               </div>
-            )}
+              <Link
+                href="/"
+                className="block w-full text-center py-3 border border-ink-line rounded-md hover:border-marquee hover:text-marquee transition-colors stub-label"
+              >
+                ← Back to Browse
+              </Link>
+            </div>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-bold mb-4 border-l-4 border-yellow-500 pl-3">Cast</h2>
-            <CastRow cast={media.cast} />
+          {/* Details column */}
+          <div className="lg:col-span-2 space-y-10">
+            
+            <section>
+              <h2 className="text-xl font-display font-bold mb-3 section-heading">Overview</h2>
+              <p className="text-paper-dim leading-relaxed text-lg">
+                {media.overview || 'No overview available.'}
+              </p>
+            </section>
+
+            {youtubeKey && (
+              <section>
+                <h2 className="text-xl font-display font-bold mb-3 section-heading">Official Trailer</h2>
+                <div className="aspect-video bg-black rounded-md overflow-hidden border border-ink-line shadow-2xl">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=0&rel=0&modestbranding=1`}
+                    title={`${media.title} Trailer`}
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                </div>
+              </section>
+            )}
+
+            {media.cast?.length > 0 && (
+              <section>
+                <h2 className="text-xl font-display font-bold mb-3 section-heading">Cast</h2>
+                <CastRow cast={media.cast} />
+              </section>
+            )}
+
+            <section>
+              <h2 className="text-xl font-display font-bold mb-4 section-heading">Details</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="stub-label">Original Title</span>
+                  <p className="font-medium mt-1">{media.original_title}</p>
+                </div>
+                <div>
+                  <span className="stub-label">Status</span>
+                  <p className="font-medium mt-1">{media.status}</p>
+                </div>
+                <div>
+                  <span className="stub-label">Language</span>
+                  <p className="font-medium mt-1">{media.original_language?.toUpperCase()}</p>
+                </div>
+                <div>
+                  <span className="stub-label">Popularity</span>
+                  <p className="font-medium mt-1">{media.popularity?.toFixed(0) ?? '—'}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* WATCH ONLINE PLAYER SECTION (Moved below Details) */}
+            <section className="bg-[#12141c] p-6 rounded-2xl border border-ink-line shadow-xl">
+              <h2 className="text-xl font-display font-bold mb-4 section-heading flex items-center gap-2">
+                <span className="w-2.5 h-6 bg-marquee rounded-full"></span>
+                Watch Online
+              </h2>
+              <StreamingPlayer 
+                movieId={media.id} 
+                type={type} 
+                language={media.original_language} 
+              />
+            </section>
+
           </div>
         </div>
       </div>
