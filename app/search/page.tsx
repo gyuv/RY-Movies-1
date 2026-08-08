@@ -1,7 +1,7 @@
 // Save as: app/search/page.tsx
 import Link from 'next/link';
 import Image from 'next/image';
-import Footer from '../../components/Footer';
+import Footer from '../components/Footer';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p';
 
