@@ -7,11 +7,7 @@ import WatchBadges from '../../../components/WatchBadges';
 import type { CastMember, WatchOption } from '@/types';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p';
-
-// Picks a watch region from TMDb's per-country provider map. Defaults to
-// US since that's the widest-covered region in TMDb's data; swap this for
-// geo-detection later if you want per-visitor regions.
-const WATCH_REGION = 'US';
+const WATCH_REGION = 'US'; // Default region for watch providers
 
 function mapProviders(providerResults: any): WatchOption[] {
  const region = providerResults?.[WATCH_REGION];
@@ -32,12 +28,22 @@ function mapProviders(providerResults: any): WatchOption[] {
  tier: key,
  providerId: p.provider_id,
  providerName: p.provider_name,
- logoUrl: p.logo_path ? `${IMG_BASE}/w92${p.logo_path}` : '', // <--- ADDED LOGO URL
- deepLink: p.link || region.link, // <--- FIXED DEEPLINK: Prefer provider-specific link
+ logoUrl: p.logo_path ? `${IMG_BASE}/w92${p.logo_path}` : '',
+ deepLink: p.link || region.link,
  });
  }
  }
  return options;
+}
+
+// Helper to find the best trailer (YouTube is most common)
+function getBestTrailer(videos: any) {
+ if (!videos?.results) return null;
+ const trailers = videos.results.filter((v: any) => v.type === 'Trailer');
+ // Prefer YouTube, then official, then by popularity
+ return trailers.find((v: any) => v.site === 'YouTube' && v.official) || 
+        trailers.find((v: any) => v.site === 'YouTube') || 
+        trailers[0];
 }
 
 async function getMediaDetails(id: string, type: 'movie' | 'tv') {
@@ -59,6 +65,7 @@ async function getMediaDetails(id: string, type: 'movie' | 'tv') {
  status: 'Released',
  original_language: 'en',
  popularity: 0,
+ id: parseInt(id),
  };
  }
 
@@ -98,7 +105,7 @@ async function getMediaDetails(id: string, type: 'movie' | 'tv') {
 
  const watchOptions = mapProviders(providers.results);
 
- return { ...normalized, videos, cast, watchOptions };
+ return { ...normalized, videos, cast, watchOptions, id: parseInt(id) };
  } catch (error) {
  console.error('Error fetching media:', error);
  return null;
@@ -146,7 +153,7 @@ export default async function MediaPage({
  const releaseYear = media.release_date?.split('-')[0] || 'TBA';
  const runtimeHours = Math.floor((media.runtime || 120) / 60);
  const runtimeMins = (media.runtime || 120) % 60;
- const trailer = media.videos?.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube');
+ const trailer = getBestTrailer(media.videos);
  const youtubeKey = trailer?.key;
 
  return (
@@ -207,24 +214,79 @@ export default async function MediaPage({
 
  {/* Details column */}
  <div className="lg:col-span-2 space-y-10">
- {youtubeKey && (
+ 
+ {/* VIDEO PLAYER SECTION */}
  <section>
- <h2 className="text-xl font-display font-bold mb-3 section-heading">Trailer</h2>
- <div className="aspect-video bg-black rounded-md overflow-hidden border border-ink-line">
+ <h2 className="text-xl font-display font-bold mb-3 section-heading">Watch Now</h2>
+ 
+ {/* Tabs for Trailer vs Streaming Player */}
+ <div className="flex space-x-4 mb-4 border-b border-ink-line pb-2">
+ <button className="text-marquee font-bold border-b-2 border-marquee pb-2">Trailer</button>
+ <button className="text-paper-dim hover:text-paper transition-colors pb-2">Streaming Info</button>
+ </div>
+
+ {youtubeKey ? (
+ <div className="aspect-video bg-black rounded-md overflow-hidden border border-ink-line shadow-2xl">
  <iframe
- src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=0&rel=0`}
+ src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=0&rel=0&modestbranding=1`}
  title={`${media.title} Trailer`}
  className="w-full h-full"
  allowFullScreen
  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
  />
  </div>
- </section>
+ ) : (
+ <div className="aspect-video bg-gray-900 rounded-md flex items-center justify-center border border-ink-line">
+ <p className="text-paper-dim">No Trailer Found</p>
+ </div>
  )}
 
- <section>
- <h2 className="text-xl font-display font-bold mb-3 section-heading">Watch Online</h2>
- <WatchBadges options={media.watchOptions} />
+ {/* Streaming Provider Links (The "Player" Logic) */}
+ {media.watchOptions.length > 0 ? (
+ <div className="mt-6">
+ <h3 className="text-lg font-bold mb-3">Available on:</h3>
+ <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+ {media.watchOptions.map((option) => (
+ <a
+ key={option.providerId}
+ href={option.deepLink}
+ target="_blank"
+ rel="noopener noreferrer"
+ className="flex items-center gap-3 p-3 bg-gray-900 hover:bg-gray-800 rounded-lg border border-ink-line transition-all hover:border-marquee group"
+ >
+ <div className="w-8 h-8 flex-shrink-0">
+ {option.logoUrl ? (
+ <Image 
+ src={option.logoUrl} 
+ alt={option.providerName} 
+ width={32} 
+ height={32} 
+ className="object-contain rounded"
+ />
+ ) : (
+ <div className="w-8 h-8 bg-gray-700 rounded flex items-center justify-center text-xs">
+ {option.providerName.charAt(0)}
+ </div>
+ )}
+ </div>
+ <div className="flex-1 min-w-0">
+ <p className="text-sm font-medium truncate group-hover:text-marquee transition-colors">
+ {option.providerName}
+ </p>
+ <p className="text-xs text-paper-dim uppercase">
+ {option.tier === 'rent' || option.tier === 'buy' ? option.tier : 'Stream'}
+ </p>
+ </div>
+ </a>
+ ))}
+ </div>
+ </div>
+ ) : (
+ <div className="mt-6 p-4 bg-gray-900 rounded-lg border border-ink-line text-center text-paper-dim">
+ <p>No streaming providers found for <strong>{WATCH_REGION}</strong>.</p>
+ <p className="text-xs mt-1">Check Netflix, Hulu, or Prime Video manually.</p>
+ </div>
+ )}
  </section>
 
  <section>
