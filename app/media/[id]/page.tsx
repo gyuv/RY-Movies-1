@@ -9,7 +9,7 @@ import { notFound } from 'next/navigation';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p';
 
-// --- TMDB HELPERS (Keep your existing logic) ---
+// --- TMDB HELPERS ---
 function getBestTrailer(videos: any) {
   if (!videos?.results) return null;
   const trailers = videos.results.filter((v: any) => v.type === 'Trailer');
@@ -60,9 +60,27 @@ async function getTmdbDetails(id: string, type: 'movie' | 'tv') {
   }
 }
 
-// --- ANIME HELPERS (New) ---
+// --- ANIME TYPES & HELPERS ---
 
-async function getAnimeDetails(malId: number) {
+interface AnimeGenre {
+  mal_id: number;
+  name: string;
+}
+
+interface AnimeMedia {
+  mal_id: number;
+  title: string;
+  title_english: string;
+  image_url: string;
+  synopsis: string;
+  score: number;
+  episodes: number;
+  status: string;
+  genres: AnimeGenre[];
+  trailer: { youtube_id: string } | null;
+}
+
+async function getAnimeDetails(malId: number): Promise<AnimeMedia | null> {
   try {
     const res = await fetch(`https://api.jikan.moe/v4/anime/${malId}?sfw`, {
       next: { revalidate: 3600 },
@@ -80,7 +98,7 @@ async function getAnimeDetails(malId: number) {
       score: anime.score,
       episodes: anime.episodes,
       status: anime.status,
-      genres: anime.genres,
+      genres: anime.genres || [],
       trailer: anime.trailer,
     };
   } catch (error) {
@@ -135,10 +153,6 @@ export default async function MediaPage({
       notFound();
     }
 
-    // For Anime, we use a simple iframe embed from GogoAnime or similar
-    // Note: StreamingPlayer is likely built for TMDB/HLS. 
-    // If StreamingPlayer can accept a URL, pass it. Otherwise, use a direct iframe.
-    
     return (
       <main className="min-h-screen bg-[#0f0f0f] text-white">
         {/* Hero Background */}
@@ -198,14 +212,11 @@ export default async function MediaPage({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {anime.genres?.map((genre: { name: string }) => (
-  <span 
-    key={genre.name} 
-    className="text-xs text-gray-400 uppercase tracking-wider border border-white/10 px-2 py-1 rounded"
-  >
-    {genre.name}
-  </span>
-))}
+                  {anime.genres.map((genre: AnimeGenre) => (
+                    <span 
+                      key={genre.mal_id} 
+                      className="text-xs text-gray-400 uppercase tracking-wider border border-white/10 px-2 py-1 rounded"
+                    >
                       {genre.name}
                     </span>
                   ))}
@@ -219,11 +230,6 @@ export default async function MediaPage({
         <div className="max-w-[1600px] mx-auto py-8 px-4">
           <h2 className="text-2xl font-bold mb-4 border-l-4 border-yellow-500 pl-3">Episode 1</h2>
           <div className="aspect-video w-full bg-black rounded-lg overflow-hidden relative">
-             {/* 
-               NOTE: To stream anime, you need an iframe URL. 
-               GogoAnime is a common free source.
-               Replace with your actual StreamingPlayer if it supports iframe URLs.
-             */}
              <iframe
                src={`https://gogoanime3.ldh.xyz/embedplus.php?id=${anime.mal_id}&autoPlay=true`}
                className="w-full h-full"
@@ -249,10 +255,6 @@ export default async function MediaPage({
   if (!media) {
     notFound();
   }
-
-  // Your existing TMDB logic continues below...
-  // ... (Keep your existing return statement for TMDB movies/shows)
-  // Make sure to include the Footer at the end.
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-white">
