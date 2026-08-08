@@ -318,7 +318,7 @@ export default async function MediaPage({
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {media.genres?.map((genre) => (
+                {media.genres?.map((genre: { id?: number; name: string }) => (
                   <span 
                     key={genre.id || genre.name} 
                     className="text-xs text-gray-400 uppercase tracking-wider border border-white/10 px-2 py-1 rounded"
