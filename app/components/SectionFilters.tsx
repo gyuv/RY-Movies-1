@@ -9,7 +9,6 @@ interface FilterOption {
 }
 
 interface SectionFiltersProps {
-  interface SectionFiltersProps {
   sortOptions: FilterOption[];
   extraOptions?: {
     name: string;
@@ -54,7 +53,7 @@ export default function SectionFilters({ sortOptions, extraOptions = [] }: Secti
         </select>
       </div>
 
-      {/* Additional Optional Filters (e.g., Status, Type) */}
+      {/* Additional Optional Filters */}
       {extraOptions.map((extra) => {
         const currentVal = searchParams.get(extra.name) || '';
         return (
