@@ -1,185 +1,265 @@
-import StreamingPlayer from '../../components/StreamingPlayer';
-import StreamSelector from '../../components/StreamSelector';
 import Link from 'next/link';
 import Image from 'next/image';
-import Footer from '../../components/Footer';
-import VideoEmbed from '../../components/VideoEmbed';
+import Footer from '../../../components/Footer';
+import CastRow from '../../../components/CastRow';
+import WatchBadges from '../../../components/WatchBadges';
+import type { CastMember, WatchOption } from '@/types';
 
-// Helper to fetch movie details
-async function getMovieDetails(id: string) {
+const IMG_BASE = 'https://image.tmdb.org/t/p';
+
+// Picks a watch region from TMDb's per-country provider map. Defaults to
+// US since that's the widest-covered region in TMDb's data; swap this for
+// geo-detection later if you want per-visitor regions.
+const WATCH_REGION = 'US';
+
+function mapProviders(providerResults: any): WatchOption[] {
+  const region = providerResults?.[WATCH_REGION];
+  if (!region) return [];
+
+  const tiers: { key: 'flatrate' | 'free' | 'ads' | 'rent' | 'buy'; list: any[] }[] = [
+    { key: 'flatrate', list: region.flatrate || [] },
+    { key: 'free', list: region.free || [] },
+    { key: 'ads', list: region.ads || [] },
+    { key: 'rent', list: region.rent || [] },
+    { key: 'buy', list: region.buy || [] },
+  ];
+
+  const options: WatchOption[] = [];
+  for (const { key, list } of tiers) {
+    for (const p of list) {
+      options.push({
+        tier: key,
+        providerId: p.provider_id,
+        providerName: p.provider_name,
+        deepLink: region.link, // TMDb only gives one deep link per region, not per-provider
+      });
+    }
+  }
+  return options;
+}
+
+async function getMediaDetails(id: string, type: 'movie' | 'tv') {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) {
     return {
-      title: "Mock Movie",
-      overview: "This is a mock overview because the API key is missing.",
-      poster_path: "/9lH0V6e4b4w8r5k6j7h8g9f0d1s2a3.jpg",
-      backdrop_path: "/9lH0V6e4b4w8r5k6j7h8g9f0d1s2a3.jpg",
+      title: 'Mock Title',
+      overview: 'This is a mock overview because the API key is missing.',
+      poster_path: '/9lH0V6e4b4w8r5k6j7h8g9f0d1s2a3.jpg',
+      backdrop_path: '/9lH0V6e4b4w8r5k6j7h8g9f0d1s2a3.jpg',
       vote_average: 8.5,
-      release_date: "2023-01-01",
+      release_date: '2023-01-01',
       runtime: 120,
-      genres: [{ name: "Drama" }, { name: "Action" }],
+      genres: [{ name: 'Drama' }, { name: 'Action' }],
       videos: { results: [] },
-      provider_results: [],
+      cast: [] as CastMember[],
+      watchOptions: [] as WatchOption[],
+      original_title: 'Mock Title',
+      status: 'Released',
+      original_language: 'en',
+      popularity: 0,
     };
   }
 
   try {
-    // Fetch Movie Details AND Videos AND Streaming Providers in parallel
-    const [detailsRes, videosRes, providersRes] = await Promise.all([
-      fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&language=en-US`, { next: { revalidate: 3600 } }),
-      fetch(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${apiKey}&language=en-US`, { next: { revalidate: 3600 } }),
-      fetch(`https://api.themoviedb.org/3/movie/${id}/watch/providers?api_key=${apiKey}`, { next: { revalidate: 3600 } })
+    const detailPath = type === 'tv' ? 'tv' : 'movie';
+    const [detailsRes, videosRes, creditsRes, providersRes] = await Promise.all([
+      fetch(`https://api.themoviedb.org/3/${detailPath}/${id}?api_key=${apiKey}&language=en-US`, { next: { revalidate: 3600 } }),
+      fetch(`https://api.themoviedb.org/3/${detailPath}/${id}/videos?api_key=${apiKey}&language=en-US`, { next: { revalidate: 3600 } }),
+      fetch(`https://api.themoviedb.org/3/${detailPath}/${id}/credits?api_key=${apiKey}&language=en-US`, { next: { revalidate: 3600 } }),
+      fetch(`https://api.themoviedb.org/3/${detailPath}/${id}/watch/providers?api_key=${apiKey}`, { next: { revalidate: 3600 } }),
     ]);
 
-    if (!detailsRes.ok) throw new Error("Failed to fetch movie details");
-    
+    if (!detailsRes.ok) throw new Error('Failed to fetch media details');
+
     const details = await detailsRes.json();
     const videos = await videosRes.json();
+    const credits = await creditsRes.json();
     const providers = await providersRes.json();
 
-    return { ...details, videos, provider_results: providers.results };
+    // Normalize TV shape onto the movie shape the rest of the page expects
+    const normalized = type === 'tv'
+      ? {
+          ...details,
+          title: details.name,
+          original_title: details.original_name,
+          release_date: details.first_air_date,
+          runtime: details.episode_run_time?.[0] || 45,
+        }
+      : details;
+
+    const cast: CastMember[] = (credits.cast || []).slice(0, 20).map((c: any) => ({
+      id: c.id,
+      name: c.name,
+      character: c.character,
+      photoUrl: c.profile_path ? `${IMG_BASE}/w185${c.profile_path}` : null,
+    }));
+
+    const watchOptions = mapProviders(providers.results);
+
+    return { ...normalized, videos, cast, watchOptions };
   } catch (error) {
-    console.error("Error fetching movie:", error);
+    console.error('Error fetching media:', error);
     return null;
   }
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const movie = await getMovieDetails(params.id);
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const type = (searchParams?.type as 'movie' | 'tv') || 'movie';
+  const media = await getMediaDetails(params.id, type);
   return {
-    title: movie ? `${movie.title} - Cinereel` : "Movie Not Found - Cinereel",
-    description: movie ? movie.overview : "View details about your favorite movies.",
+    title: media ? `${media.title} - Cinereel` : 'Not Found - Cinereel',
+    description: media ? media.overview : 'View details about your favorite movies and series.',
   };
 }
 
-export default async function MoviePage({ params }: { params: { id: string } }) {
-  const movie = await getMovieDetails(params.id);
+export default async function MediaPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const type = (searchParams?.type as 'movie' | 'tv') || 'movie';
+  const media = await getMediaDetails(params.id, type);
 
-  if (!movie) {
+  if (!media) {
     return (
-      <main className="min-h-screen bg-[#0a0b10] text-white flex items-center justify-center">
+      <main className="min-h-screen bg-ink text-paper flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Movie Not Found</h1>
-          <Link href="/" className="text-blue-400 hover:underline">
-            Back to Home
+          <h1 className="text-4xl font-display font-bold mb-4">Not Found</h1>
+          <Link href="/" className="text-marquee hover:text-marquee-hot transition-colors">
+            ← Back to Home
           </Link>
         </div>
       </main>
     );
   }
 
-  const releaseYear = movie.release_date?.split('-')[0] || "TBA";
-  const runtimeMinutes = Math.floor((movie.runtime || 120) / 60);
-  const runtimeSeconds = (movie.runtime || 120) % 60;
-
-  // Find the first trailer (YouTube)
-  const trailer = movie.videos?.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube');
+  const releaseYear = media.release_date?.split('-')[0] || 'TBA';
+  const runtimeHours = Math.floor((media.runtime || 120) / 60);
+  const runtimeMins = (media.runtime || 120) % 60;
+  const trailer = media.videos?.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube');
   const youtubeKey = trailer?.key;
 
   return (
-    <main className="min-h-screen bg-[#0a0b10] text-white">
-      {/* Backdrop Header */}
-      <div className="relative h-[60vh] w-full">
+    <main className="min-h-screen bg-ink text-paper">
+      {/* Backdrop */}
+      <div className="relative h-[55vh] md:h-[65vh] w-full">
         <Image
-          src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
-          alt={movie.title}
+          src={`${IMG_BASE}/original${media.backdrop_path}`}
+          alt={media.title}
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10] via-[#0a0b10]/60 to-transparent" />
-        
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-transparent to-transparent" />
+
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">{movie.title}</h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm sm:text-base text-white/80">
-            <span className="text-yellow-400 font-bold">★ {movie.vote_average.toFixed(1)}</span>
+          <p className="stub-label mb-2">{type === 'tv' ? 'Series' : 'Film'}</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold mb-4 leading-tight">
+            {media.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-4 text-sm sm:text-base text-paper-dim">
+            <span className="badge-rating">★ {media.vote_average?.toFixed(1) ?? '—'}</span>
             <span>{releaseYear}</span>
-            <span>{runtimeMinutes}h {runtimeSeconds}m</span>
-            {movie.genres?.map((genre: { name: string }) => (
-              <span key={genre.name} className="bg-white/10 px-2 py-0.5 rounded">{genre.name}</span>
+            <span>{runtimeHours}h {runtimeMins}m</span>
+            {media.genres?.map((genre: { name: string }) => (
+              <span key={genre.name} className="border border-ink-line px-2 py-0.5 rounded text-xs uppercase tracking-wide">
+                {genre.name}
+              </span>
             ))}
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Poster & Quick Info */}
+          {/* Poster + back link */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-6">
-              <Image
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title}
-                width={500}
-                height={750}
-                className="rounded-lg shadow-2xl w-full"
-              />
-              <Link href="/" className="block w-full bg-white/10 hover:bg-white/20 text-center py-3 rounded-lg transition-colors">
+            <div className="lg:sticky lg:top-24 space-y-6">
+              <div className="glass-card">
+                <Image
+                  src={`${IMG_BASE}/w500${media.poster_path}`}
+                  alt={media.title}
+                  width={500}
+                  height={750}
+                  className="w-full"
+                />
+              </div>
+              <Link
+                href="/"
+                className="block w-full text-center py-3 border border-ink-line rounded-md hover:border-marquee hover:text-marquee transition-colors stub-label"
+              >
                 ← Back to Browse
               </Link>
             </div>
           </div>
 
-          {/* Right Column: Players & Content */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* 1. Trailer (YouTube) */}
+          {/* Details column */}
+          <div className="lg:col-span-2 space-y-10">
             {youtubeKey && (
-              <div>
-                <h3 className="text-xl font-bold mb-3">Trailer</h3>
-                <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+              <section>
+                <h2 className="text-xl font-display font-bold mb-3 section-heading">Trailer</h2>
+                <div className="aspect-video bg-black rounded-md overflow-hidden border border-ink-line">
                   <iframe
                     src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=0&rel=0`}
-                    title={`${movie.title} Trailer`}
+                    title={`${media.title} Trailer`}
                     className="w-full h-full"
                     allowFullScreen
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   />
                 </div>
-              </div>
+              </section>
             )}
 
-                       {/* 2. Streaming Player with Provider Selector */}
-            <div>
-              <h3 className="text-xl font-bold mb-3">Watch Online</h3>
-              <StreamingPlayer 
-                movieId={movie.id} 
-                type="movie"
-                language={movie.original_language}
-              />
-            </div>
+            <section>
+              <h2 className="text-xl font-display font-bold mb-3 section-heading">Watch Online</h2>
+              <WatchBadges options={media.watchOptions} />
+            </section>
 
-            {/* 3. Overview */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Overview</h2>
-              <p className="text-white/80 leading-relaxed text-lg">
-                {movie.overview || "No overview available."}
+            <section>
+              <h2 className="text-xl font-display font-bold mb-3 section-heading">Overview</h2>
+              <p className="text-paper-dim leading-relaxed text-lg">
+                {media.overview || 'No overview available.'}
               </p>
-            </div>
+            </section>
 
-            {/* 4. Details */}
-            <div>
-              <h3 className="text-xl font-bold mb-4">Details</h3>
+            {media.cast?.length > 0 && (
+              <section>
+                <h2 className="text-xl font-display font-bold mb-3 section-heading">Cast</h2>
+                <CastRow cast={media.cast} />
+              </section>
+            )}
+
+            <section>
+              <h2 className="text-xl font-display font-bold mb-4 section-heading">Details</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-white/60 text-sm">Original Title</span>
-                  <p className="font-medium">{movie.original_title}</p>
+                  <span className="stub-label">Original Title</span>
+                  <p className="font-medium mt-1">{media.original_title}</p>
                 </div>
                 <div>
-                  <span className="text-white/60 text-sm">Status</span>
-                  <p className="font-medium">{movie.status}</p>
+                  <span className="stub-label">Status</span>
+                  <p className="font-medium mt-1">{media.status}</p>
                 </div>
                 <div>
-                  <span className="text-white/60 text-sm">Language</span>
-                  <p className="font-medium">{movie.original_language?.toUpperCase()}</p>
+                  <span className="stub-label">Language</span>
+                  <p className="font-medium mt-1">{media.original_language?.toUpperCase()}</p>
                 </div>
                 <div>
-                  <span className="text-white/60 text-sm">Popularity</span>
-                  <p className="font-medium">{movie.popularity.toFixed(0)}</p>
+                  <span className="stub-label">Popularity</span>
+                  <p className="font-medium mt-1">{media.popularity?.toFixed(0) ?? '—'}</p>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
         </div>
       </div>
