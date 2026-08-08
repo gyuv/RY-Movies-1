@@ -1,4 +1,4 @@
-import MoviesSection from "../components/MoviesSection';
+import MoviesSection from '../components/MoviesSection';
 import Footer from '../components/Footer';
 import Link from 'next/link';
 
