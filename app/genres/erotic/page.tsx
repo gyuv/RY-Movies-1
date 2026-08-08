@@ -2,30 +2,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-// 1. Check your Vercel Environment Variable name!
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY;
 
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-
-// Expanded Language Map for better matching
-const LANGUAGE_MAP: Record<string, string> = {
-  ta: 'Tamil',
-  tamil: 'Tamil',
-  te: 'Telugu',
-  telugu: 'Telugu',
-  ml: 'Malayalam',
-  malayalam: 'Malayalam',
-  hi: 'Hindi',
-  hindi: 'Hindi',
-  bn: 'Bengali',
-  bengali: 'Bengali',
-  kn: 'Kannada',
-  kannada: 'Kannada',
-};
-
-// Target Language Keys (lowercase)
-const TARGET_LANGUAGES = Object.keys(LANGUAGE_MAP);
 
 interface Movie {
   id: number;
@@ -37,69 +17,59 @@ interface Movie {
   release_date: string;
 }
 
-async function fetchEroticContent(): Promise<Movie[]> {
-  if (!TMDB_API_KEY) {
-    console.error("TMDB_API_KEY is missing!");
-    return [];
-  }
-
+// Helper: Fetch movies for a specific language
+async function fetchMoviesByLanguage(lang: string): Promise<Movie[]> {
+  if (!TMDB_API_KEY) return [];
+  
   try {
-    // Strategy: Fetch Romance movies (10749) and filter by Indian Languages
-    // We fetch more pages to ensure we get Indian content
-    const genres = "10749"; // Romance
-    const limit = 50; // Fetch more to filter down
-    const sort_by = "popularity.desc";
-    
-    // Note: TMDB API 'with_original_language' takes a single code. 
-    // Since we have multiple, we'll fetch a broader set and filter client-side.
-    
+    // Fetch Romance (10749) movies for this specific language
     const res = await fetch(
-      `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genres}&sort_by=${sort_by}&vote_count.gte=50&language=en-US&page=1&include_adult=false`,
-      { 
-        next: { revalidate: 3600 },
-        headers: {
-          'Accept': 'application/json'
-        }
-      }
+      `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=10749&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=50&include_adult=false`,
+      { next: { revalidate: 3600 } }
     );
 
-    if (!res.ok) {
-      throw new Error(`TMDB Error: ${res.status}`);
-    }
-
+    if (!res.ok) return [];
+    
     const data = await res.json();
-    const allMovies: Movie[] = data.results;
-
-    console.log(`Fetched ${allMovies.length} movies from TMDB. Languages found:`, 
-      allMovies.map(m => m.original_language).slice(0, 5));
-
-    // Filter for Indian Languages
-    const filteredMovies = allMovies.filter((movie: Movie) => {
-      const lang = movie.original_language.toLowerCase();
-      return TARGET_LANGUAGES.includes(lang);
-    });
-
-    console.log(`Filtered ${filteredMovies.length} Indian movies.`);
-
-    // Sort by Vote Average
-    const sortedMovies = filteredMovies.sort((a, b) => b.vote_average - a.vote_average);
-
-    // Limit to 20
-    return sortedMovies.slice(0, 20);
-
+    return data.results || [];
   } catch (error) {
-    console.error("Error fetching erotic content:", error);
+    console.error(`Error fetching ${lang} movies:`, error);
     return [];
   }
+}
+
+// Fetch all target languages in parallel
+async function fetchEroticContent(): Promise<Movie[]> {
+  const languages = ['hi', 'ta', 'te', 'ml']; // Hindi, Tamil, Telugu, Malayalam
+
+  // Fetch all languages simultaneously
+  const promises = languages.map(lang => fetchMoviesByLanguage(lang));
+  const results = await Promise.all(promises);
+
+  // Flatten the array of arrays into one big array
+  const allMovies: Movie[] = results.flat();
+
+  // Sort by Vote Average to get the "best" ones
+  const sortedMovies = allMovies.sort((a, b) => b.vote_average - a.vote_average);
+
+  // Return top 20
+  return sortedMovies.slice(0, 20);
 }
 
 export default async function EroticPage() {
   const movies = await fetchEroticContent();
 
-  // Helper to get language name
   const getLangName = (code: string) => {
-    const langKey = code.toLowerCase();
-    return LANGUAGE_MAP[langKey] || code.toUpperCase();
+    const langs: Record<string, string> = {
+      hi: 'Hindi',
+      ta: 'Tamil',
+      te: 'Telugu',
+      ml: 'Malayalam',
+      bn: 'Bengali',
+      kn: 'Kannada',
+      en: 'English'
+    };
+    return langs[code] || code.toUpperCase();
   };
 
   return (
@@ -115,14 +85,10 @@ export default async function EroticPage() {
         {movies.length === 0 ? (
           <div className="text-center text-gray-400 py-20">
             <p className="text-xl font-semibold text-pink-400">No movies found.</p>
-            <p className="text-sm mt-2">
-              If your API key is loaded, try refreshing the page or checking the browser console.
-            </p>
+            <p className="text-sm mt-2">Check your TMDB API Key and Internet Connection.</p>
             <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
-              <p><strong>Debug Info:</strong></p>
+              <p><strong>Debug:</strong></p>
               <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
-              <p>Target Languages: {TARGET_LANGUAGES.join(', ')}</p>
-              <p>Genre: Romance (10749)</p>
             </div>
           </div>
         ) : (
@@ -133,7 +99,7 @@ export default async function EroticPage() {
                   <Image
                     src={movie.poster_path 
                       ? `${IMAGE_BASE_URL}${movie.poster_path}` 
-                      : `${IMAGE_BASE_URL}/placeholder.jpg`}
+                      : `${IMAGE_BASE_URL}/7WsyChQlftoju694BhMqR8yV7j.jpg`} // Fallback poster
                     alt={movie.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
