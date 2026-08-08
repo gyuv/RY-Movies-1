@@ -335,7 +335,7 @@ export default async function MediaPage({
       {/* Player & Details */}
       <div className="max-w-[1600px] mx-auto py-8 px-4">
         {/* Streaming Player for TMDB Content */}
-        <StreamingPlayer mediaId={media.id} type={type as 'movie' | 'tv'} />
+        <StreamingPlayer id={media.id} type={type as 'movie' | 'tv'} />
 
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
