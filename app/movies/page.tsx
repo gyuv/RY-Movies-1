@@ -60,8 +60,12 @@ export default async function MoviesPage({
           </p>
         </div>
 
-        {/* Filter bar wrapped in Suspense for Next.js client-side search params */}
-        <Suspense fallback={<div className="h-10 mb-8 px-4 text-paper-dim text-xs">Loading filters...</div>}>
+        {/* Visible Suspense Fallback to ensure it renders immediately */}
+        <Suspense fallback={
+          <div className="flex items-center gap-4 mb-8 px-4 sm:px-6 lg:px-8">
+            <div className="h-9 w-48 bg-ink-raised border border-ink-line rounded-md animate-pulse" />
+          </div>
+        }>
           <SectionFilters sortOptions={sortOptions} />
         </Suspense>
 
