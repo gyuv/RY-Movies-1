@@ -1,7 +1,7 @@
 // app/anime/page.tsx
 import HeroSlider from '../components/HeroSlider';
 import AnimeRow from '../components/AnimeRow';
-import { getAnimeList, getTrendingAnime, getTopAnime } from '../../lib/jikan';
+import { getAnimeList, getTrendingAnime, getTopAnime, AnimeItem } from '../../lib/jikan'; // Import AnimeItem
 import Link from 'next/link';
 
 export default async function AnimePage() {
@@ -36,15 +36,14 @@ export default async function AnimePage() {
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
-            {mainList.results.map((item) => {
-              // Transform to match AnimeCard interface if needed
-              return <AnimeCard key={item.mal_id} {...item} />;
-            })}
+            {mainList.results.map((item: AnimeItem) => ( // Add type annotation here
+              <AnimeCard key={item.mal_id} {...item} />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 5. Mobile Bottom Navigation (Mimicking Anime Salt's Mobile UI) */}
+      {/* 5. Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#020209] border-t border-white/10 md:hidden z-50 pb-safe">
         <div className="flex justify-around items-center h-16">
           <Link href="/anime" className="flex flex-col items-center justify-center w-full h-full text-yellow-500">
