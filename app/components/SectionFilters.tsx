@@ -9,12 +9,13 @@ interface FilterOption {
 }
 
 interface SectionFiltersProps {
+  interface SectionFiltersProps {
   sortOptions: FilterOption[];
   extraOptions?: {
     name: string;
     label: string;
     options: FilterOption[];
-  }[>];
+  }[];
 }
 
 export default function SectionFilters({ sortOptions, extraOptions = [] }: SectionFiltersProps) {
