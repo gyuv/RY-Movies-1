@@ -1,4 +1,4 @@
-// File: /workspaces/cinereel/app/api/search/route.ts
+// File: /workspaces/RY-Movies-1/app/api/search/route.ts
 import * as entry from '../../../../../app/api/search/route.js'
 import type { NextRequest } from 'next/server.js'
 

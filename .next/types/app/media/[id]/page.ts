@@ -1,4 +1,4 @@
-// File: /workspaces/cinereel/app/media/[id]/page.tsx
+// File: /workspaces/RY-Movies-1/app/media/[id]/page.tsx
 import * as entry from '../../../../../app/media/[id]/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
