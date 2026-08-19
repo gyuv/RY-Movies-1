@@ -20,38 +20,35 @@ export default function MovieCarousel({ title, movies, languageCode }: MovieCaro
   if (!movies || movies.length === 0) return null;
 
   return (
-    <div className="mb-12">
-      <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
-        <h2 className="text-xl md:text-2xl font-display font-bold text-paper section-heading">{title}</h2>
-        <Link
-          href={`/?language=${languageCode || 'all'}&sort=popularity.desc`}
-          className="text-sm text-paper-dim hover:text-marquee transition-colors"
-        >
-          View All →
-        </Link>
-      </div>
+    <div className="group/row relative">
+      {title && (
+        <div className="flex items-center justify-between mb-2 px-4 sm:px-10 lg:px-14">
+          <h2 className="text-lg md:text-xl font-bold text-[#e5e5e5] hover:text-white transition-colors cursor-pointer">
+            {title}
+          </h2>
+          <Link
+            href={`/?language=${languageCode || 'all'}&sort=popularity.desc`}
+            className="text-sm font-semibold text-blue-400 hover:text-white transition-colors opacity-0 group-hover/row:opacity-100"
+          >
+            Explore All {'>'}
+          </Link>
+        </div>
+      )}
 
-      <div className="relative group">
-        <div className="flex overflow-x-auto space-x-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto pb-4 scrollbar-hide snap-x">
+      <div className="relative">
+        <div className="flex overflow-x-auto gap-2 px-4 sm:px-10 lg:px-14 pb-4 scrollbar-hide snap-x">
           {movies.map((movie) => (
             <Link
               key={movie.id}
               href={`/media/${movie.id}`}
-              className="flex-none w-[140px] sm:w-[160px] md:w-[180px] snap-start"
+              className="flex-none w-[130px] sm:w-[160px] md:w-[200px] snap-start"
             >
-              <div className="poster-frame relative aspect-[2/3] bg-ink-raised border border-ink-line transition-transform hover:-translate-y-1">
+              <div className="flix-card">
                 <img
                   src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                   alt={movie.title}
-                  className="w-full h-full object-cover"
                   loading="lazy"
                 />
-                <div className="absolute bottom-0 left-0 right-0 p-2 z-[2]">
-                  <p className="text-paper text-xs font-medium truncate">{movie.title}</p>
-                  <p className="text-paper-dim text-[10px]">
-                    {movie.release_date?.split('-')[0]} • <span className="badge-rating">{movie.vote_average.toFixed(1)}</span>
-                  </p>
-                </div>
               </div>
             </Link>
           ))}
