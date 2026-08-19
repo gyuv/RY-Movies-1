@@ -1,49 +1,43 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-// Assuming you have or will create standard SVG icons for these
-import { Home, Search, Tv, Film, User, MonitorPlay } from 'lucide-react'; 
+import SiteHeader from "@/components/SiteHeader";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
+const display = Fraunces({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+});
+
+const body = Inter({ subsets: ["latin"], variable: "--font-body" });
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
-  title: "Pantyflix Clone",
-  description: "Exact layout replication",
+  title: "Cinereel — find where to actually watch it",
+  description:
+    "Search any film or series by title, actor, or director and see every legal place to watch it — subscription, free-with-ads, rent, or buy.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="bg-[#09090b] text-white font-body flex min-h-screen overflow-x-hidden">
-        
-        {/* The Fixed Left Sidebar */}
-        <aside className="fixed left-0 top-0 h-screen w-16 bg-[#09090b] border-r border-white/5 flex flex-col items-center py-6 gap-8 z-50">
-          {/* Logo Placeholder */}
-          <div className="w-8 h-8 bg-blue-500 rounded text-black font-bold flex items-center justify-center text-xl mb-4">
-            P
+    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+      <body>
+        <SiteHeader />
+        {children}
+        <footer className="border-t border-ink-line mt-24">
+          <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="stub-label">Cinereel · Reel No. 001</p>
+            <p className="text-xs text-paper-dim">
+              Availability data licensed via TMDb / JustWatch. No unauthorized streams indexed.
+            </p>
           </div>
-          
-          {/* Nav Icons */}
-          <nav className="flex flex-col gap-8 text-gray-400">
-            <Home className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
-            <Search className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
-            <div className="w-5 h-5 opacity-50">🍿</div> {/* Popcorn icon */}
-            <Tv className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
-            <Film className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
-          </nav>
-          
-          {/* Bottom Icons */}
-          <div className="mt-auto flex flex-col gap-8 text-gray-400">
-            <User className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
-            <MonitorPlay className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
-          </div>
-        </aside>
-
-        {/* Main Content Area (pushed right to avoid sidebar) */}
-        <div className="ml-16 flex-1 flex flex-col">
-          {children}
-        </div>
-        
+        </footer>
       </body>
     </html>
   );

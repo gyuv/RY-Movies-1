@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { getImageUrl } from '../utils/imageHelper';
 
 interface MovieCardProps {
   id: number;
@@ -10,42 +11,42 @@ interface MovieCardProps {
   languageCode: string;
 }
 
-export default function MovieCard({ id, title, poster_path, vote_average, release_date }: MovieCardProps) {
-  const imageUrl = poster_path ? `https://image.tmdb.org/t/p/w500${poster_path}` : '/placeholder.jpg';
-  const year = release_date?.split('-')[0] || "N/A";
+export default function MovieCard({ id, title, poster_path, vote_average, release_date, languageCode }: MovieCardProps) {
+  const imageUrl = getImageUrl(poster_path, "w500");
+  const year = release_date?.split('-')[0] || "TBA";
 
   return (
+    // Wrap the entire card in a Link
     <Link 
       href={`/media/${id}`}
-      className="group flex flex-col gap-3 w-[160px] md:w-[200px] cursor-pointer"
+      className="group relative flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] cursor-pointer"
     >
-      {/* Poster Image */}
-      <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a1a] shadow-xl transition-transform duration-300 group-hover:scale-105 group-hover:ring-2 group-hover:ring-white/20">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-[#14151a] shadow-lg transition-transform duration-300 group-hover:scale-105">
         <Image
           src={imageUrl}
           alt={title}
           fill
-          className="object-cover"
-          sizes="(max-width: 768px) 160px, 200px"
+          className="object-cover transition-opacity duration-300 group-hover:opacity-90"
+          sizes="(max-width: 640px) 140px, (max-width: 768px) 160px, 180px"
           loading="lazy"
         />
         
-        {/* Play Button overlay on hover (Like on the 'Reacher' card) */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full bg-black/60 border border-white/20 flex items-center justify-center pl-1 backdrop-blur-sm">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-white"><path d="M8 5v14l11-7z"/></svg>
-          </div>
+        {/* Rating Badge */}
+        <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-yellow-400 text-xs font-bold px-1.5 py-0.5 rounded">
+          ★ {vote_average.toFixed(1)}
+        </div>
+        
+        {/* Language Badge */}
+        <div className="absolute top-2 left-2 bg-blue-600/80 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
+          {languageCode}
         </div>
       </div>
 
-      {/* Metadata Text (Below the image) */}
-      <div className="flex flex-col gap-1 px-1">
-        <h3 className="text-sm md:text-base font-bold text-white truncate">
+      <div className="mt-2 px-1">
+        <h3 className="text-sm font-medium text-white truncate group-hover:text-blue-400 transition-colors">
           {title}
         </h3>
-        <p className="text-[11px] md:text-xs text-gray-400 font-medium">
-          {year} • Movie • <span className="text-yellow-500">★ {vote_average.toFixed(1)}</span>
-        </p>
+        <p className="text-xs text-white/50">{year}</p>
       </div>
     </Link>
   );

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import MovieCard from './MovieCard';
 
 interface Movie {
   id: number;
@@ -15,56 +14,46 @@ interface MovieCarouselProps {
   title: string;
   movies: Movie[];
   languageCode?: string;
-  showNumbers?: boolean; // Toggle for the "Trending" section
 }
 
-export default function MovieCarousel({ title, movies, languageCode = 'en', showNumbers = true }: MovieCarouselProps) {
+export default function MovieCarousel({ title, movies, languageCode }: MovieCarouselProps) {
   if (!movies || movies.length === 0) return null;
 
   return (
-    <div className="mb-14 group/row relative w-full overflow-hidden">
-      
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-6 px-4 sm:px-8 lg:px-12">
-        <h2 className="text-xl md:text-2xl font-bold text-white tracking-wide">
-          {title}
-        </h2>
-        <div className="flex gap-2">
-          {/* Navigation Arrows (Visual only for now, would need a ref to scroll) */}
-          <button className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-            {'<'}
-          </button>
-          <button className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
-            {'>'}
-          </button>
-        </div>
+    <div className="mb-12">
+      <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+        <h2 className="text-xl md:text-2xl font-display font-bold text-paper section-heading">{title}</h2>
+        <Link
+          href={`/?language=${languageCode || 'all'}&sort=popularity.desc`}
+          className="text-sm text-paper-dim hover:text-marquee transition-colors"
+        >
+          View All →
+        </Link>
       </div>
 
-      {/* Carousel Container */}
-      <div className="relative">
-        <div className="flex overflow-x-auto gap-6 px-4 sm:px-8 lg:px-12 pb-8 scrollbar-hide snap-x">
-          {movies.map((movie, index) => (
-            <div key={movie.id} className="relative flex-none snap-start">
-              
-              {/* Giant Background Number */}
-              {showNumbers && (
-                <span className="absolute -left-8 top-12 text-[180px] font-black text-white leading-none tracking-tighter select-none z-0 drop-shadow-2xl">
-                  {index + 1}
-                </span>
-              )}
-
-              {/* The actual card (z-10 puts it above the number) */}
-              <div className={`relative z-10 ${showNumbers ? 'ml-12' : ''}`}>
-                <MovieCard
-                  id={movie.id}
-                  title={movie.title}
-                  poster_path={movie.poster_path}
-                  vote_average={movie.vote_average}
-                  release_date={movie.release_date}
-                  languageCode={languageCode}
+      <div className="relative group">
+        <div className="flex overflow-x-auto space-x-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto pb-4 scrollbar-hide snap-x">
+          {movies.map((movie) => (
+            <Link
+              key={movie.id}
+              href={`/media/${movie.id}`}
+              className="flex-none w-[140px] sm:w-[160px] md:w-[180px] snap-start"
+            >
+              <div className="poster-frame relative aspect-[2/3] bg-ink-raised border border-ink-line transition-transform hover:-translate-y-1">
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
                 />
+                <div className="absolute bottom-0 left-0 right-0 p-2 z-[2]">
+                  <p className="text-paper text-xs font-medium truncate">{movie.title}</p>
+                  <p className="text-paper-dim text-[10px]">
+                    {movie.release_date?.split('-')[0]} • <span className="badge-rating">{movie.vote_average.toFixed(1)}</span>
+                  </p>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

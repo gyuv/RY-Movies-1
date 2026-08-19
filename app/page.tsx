@@ -1,11 +1,12 @@
 import Filters from './components/Filters';
 import MoviesSection from './components/MoviesSection';
 import Hero from './components/Hero';
+import Footer from './components/Footer';
 import MovieCarousel from './components/MovieCarousel';
 import Pagination from './components/Pagination';
 import { Suspense } from 'react';
 
-// Mock data for build stability
+// Mock data for build stability if API fails or key is missing
 const MOCK_MOVIE = { 
   id: 99, 
   title: "Mock Movie", 
@@ -17,6 +18,7 @@ const MOCK_MOVIE = {
 
 const MOCK_LIST = Array(20).fill(MOCK_MOVIE).map((m, i) => ({ ...m, id: i + 1 }));
 
+// Helper to safely fetch from TMDB
 async function fetchTMDB(url: string, apiKey: string | undefined) {
   if (!apiKey) {
     console.log("TMDB_API_KEY is missing, using mock data");
@@ -24,13 +26,18 @@ async function fetchTMDB(url: string, apiKey: string | undefined) {
   }
   try {
     const res = await fetch(url, { next: { revalidate: 3600 } });
-    if (!res.ok) return { results: MOCK_LIST, total_pages: 1, total_results: 20 };
+    if (!res.ok) {
+      console.error(`TMDB Fetch Error: ${res.status} for ${url}`);
+      return { results: MOCK_LIST, total_pages: 1, total_results: 20 };
+    }
     return await res.json();
   } catch (e) {
+    console.error("TMDB Fetch Exception:", e);
     return { results: MOCK_LIST, total_pages: 1, total_results: 20 };
   }
 }
 
+// Fetch actor details
 async function getActorDetails(actorId: string, apiKey: string | undefined) {
   if (!apiKey) return null;
   try {
@@ -42,6 +49,7 @@ async function getActorDetails(actorId: string, apiKey: string | undefined) {
   }
 }
 
+// Fetch movies for a specific language with optional sorting
 async function getLanguageMovies(language: string, sort: string = 'popularity.desc', limit: number = 20) {
   const apiKey = process.env.TMDB_API_KEY;
   const params = new URLSearchParams();
@@ -58,6 +66,7 @@ async function getLanguageMovies(language: string, sort: string = 'popularity.de
   return data.results?.slice(0, limit) || [];
 }
 
+// Fetch trending movies globally
 async function getTrendingMovies() {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) return MOCK_LIST;
@@ -87,8 +96,9 @@ export default async function Home({
   const language = getParam("language", "en");
   const sort = getParam("sort", "popularity.desc");
   const year = getParam("year", "");
-  const actorId = getParam("with_people", "");
+  const actorId = getParam("with_people", ""); // Code 1/Code 2 alignment for actor filter
 
+  // Check if any filters are active
   const hasFilters = genre || language !== 'en' || sort !== 'popularity.desc' || year || actorId;
 
   let filteredData = null;
@@ -147,26 +157,23 @@ export default async function Home({
   }
 
   return (
-    <main className="min-h-screen bg-[#141414] text-white pb-20">
+    <main className="min-h-screen bg-[#0a0b10] text-white">
+      {/* Hero Banner - Only show on homepage (no filters) */}
+      {!hasFilters && trendingData && <Hero movies={trendingData} />}
       
-      {!hasFilters && trendingData && (
-        <div className="relative w-full h-[70vh] md:h-[85vh]">
-          <Hero movies={trendingData} />
-          <div className="absolute inset-0 hero-vignette pointer-events-none" />
-        </div>
-      )}
-      
-      <div className="sticky top-0 z-50 bg-[#141414]/90 backdrop-blur-sm">
-        <Suspense fallback={<div className="h-16" />}>
+      {/* Sticky Filters */}
+      <div className="sticky top-0 z-40">
+        <Suspense fallback={<div className="h-16 bg-[#0a0b10]" />}>
           <Filters />
         </Suspense>
       </div>
 
-      <div className={`w-full ${!hasFilters ? 'px-0 sm:px-10 lg:px-14 pb-8 -mt-24 relative z-40' : 'py-8'}`}>
+      <div className="max-w-[1600px] mx-auto py-8">
         
+        {/* If Filters are Applied, Show Filtered Results with Pagination */}
         {hasFilters && filteredData && (
-          <div className="mt-8 px-4 sm:px-10 lg:px-14">
-            <h2 className="text-xl md:text-2xl font-bold text-white mb-6">
+          <div className="mt-12">
+            <h2 className="text-xl md:text-2xl font-bold text-white mb-6 px-4 sm:px-6 lg:px-8">
               {actorDetails 
                 ? `Movies starring ${actorDetails.name}` 
                 : year 
@@ -177,25 +184,86 @@ export default async function Home({
             </h2>
             <MoviesSection movies={filteredData.results || []} />
             
+            {/* Pagination Controls */}
             {filteredData.total_pages > 1 && (
               <div className="mt-8 mb-8">
-                <Pagination currentPage={page} totalPages={filteredData.total_pages} />
+                <Pagination 
+                  currentPage={page} 
+                  totalPages={filteredData.total_pages} 
+                />
               </div>
             )}
           </div>
         )}
 
+        {/* If No Filters, Show All Sections */}
         {!hasFilters && (
-          <div className="flex flex-col gap-10">
-            {englishMovies && <MovieCarousel title="Trending in English" movies={englishMovies} languageCode="en" />}
-            {tamilMovies && <MovieCarousel title="Latest Tamil Movies" movies={tamilMovies} languageCode="ta" />}
-            {teluguMovies && <MovieCarousel title="Latest Telugu Movies" movies={teluguMovies} languageCode="te" />}
-            {hindiMovies && <MovieCarousel title="Popular Hindi Movies" movies={hindiMovies} languageCode="hi" />}
-            {koreanMovies && <MovieCarousel title="Popular Korean Movies" movies={koreanMovies} languageCode="ko" />}
-            {japaneseMovies && <MovieCarousel title="Popular Japanese Movies" movies={japaneseMovies} languageCode="ja" />}
-          </div>
+          <>
+            {englishMovies && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold text-white">Trending in English</h2>
+                  <a href="?language=en&sort=popularity.desc" className="text-blue-400 hover:underline text-sm">View All</a>
+                </div>
+                <MovieCarousel title="" movies={englishMovies} languageCode="en" />
+              </div>
+            )}
+
+            {tamilMovies && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold text-white">Latest Tamil Movies</h2>
+                  <a href="?language=ta&sort=primary_release_date.desc" className="text-blue-400 hover:underline text-sm">View All</a>
+                </div>
+                <MovieCarousel title="" movies={tamilMovies} languageCode="ta" />
+              </div>
+            )}
+
+            {teluguMovies && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold text-white">Latest Telugu Movies</h2>
+                  <a href="?language=te&sort=popularity.desc" className="text-blue-400 hover:underline text-sm">View All</a>
+                </div>
+                <MovieCarousel title="" movies={teluguMovies} languageCode="te" />
+              </div>
+            )}
+
+            {hindiMovies && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold text-white">Popular Hindi Movies</h2>
+                  <a href="?language=hi&sort=popularity.desc" className="text-blue-400 hover:underline text-sm">View All</a>
+                </div>
+                <MovieCarousel title="" movies={hindiMovies} languageCode="hi" />
+              </div>
+            )}
+
+            {koreanMovies && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold text-white">Popular Korean Movies</h2>
+                  <a href="?language=ko&sort=popularity.desc" className="text-blue-400 hover:underline text-sm">View All</a>
+                </div>
+                <MovieCarousel title="" movies={koreanMovies} languageCode="ko" />
+              </div>
+            )}
+
+            {japaneseMovies && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold text-white">Popular Japanese Movies</h2>
+                  <a href="?language=ja&sort=popularity.desc" className="text-blue-400 hover:underline text-sm">View All</a>
+                </div>
+                <MovieCarousel title="" movies={japaneseMovies} languageCode="ja" />
+              </div>
+            )}
+          </>
         )}
+
       </div>
+
+      <Footer />
     </main>
   );
 }
