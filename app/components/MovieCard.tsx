@@ -16,37 +16,35 @@ export default function MovieCard({ id, title, poster_path, vote_average, releas
   const year = release_date?.split('-')[0] || "TBA";
 
   return (
-    // Wrap the entire card in a Link
     <Link 
       href={`/media/${id}`}
-      className="group relative flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] cursor-pointer"
+      className="group flex flex-col gap-2 cursor-pointer w-full"
     >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-[#14151a] shadow-lg transition-transform duration-300 group-hover:scale-105">
+      {/* 
+        Replaced the custom aspect-ratio, scale, and background classes 
+        with the standard .flix-card utility defined in globals.css 
+      */}
+      <div className="flix-card">
         <Image
           src={imageUrl}
           alt={title}
           fill
-          className="object-cover transition-opacity duration-300 group-hover:opacity-90"
-          sizes="(max-width: 640px) 140px, (max-width: 768px) 160px, 180px"
+          className="object-cover"
+          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
           loading="lazy"
         />
         
-        {/* Rating Badge */}
-        <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-yellow-400 text-xs font-bold px-1.5 py-0.5 rounded">
-          ★ {vote_average.toFixed(1)}
-        </div>
-        
-        {/* Language Badge */}
-        <div className="absolute top-2 left-2 bg-blue-600/80 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
-          {languageCode}
+        {/* Streaming-style Rating Badge (matching the Hero % match format) */}
+        <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm text-green-400 text-xs font-bold px-1.5 py-0.5 rounded">
+          {Math.round(vote_average * 10)}% Match
         </div>
       </div>
 
-      <div className="mt-2 px-1">
-        <h3 className="text-sm font-medium text-white truncate group-hover:text-blue-400 transition-colors">
+      <div className="px-1">
+        <h3 className="text-sm md:text-base font-semibold text-[#e5e5e5] truncate group-hover:text-white transition-colors">
           {title}
         </h3>
-        <p className="text-xs text-white/50">{year}</p>
+        <p className="text-xs text-gray-400">{year} • {languageCode.toUpperCase()}</p>
       </div>
     </Link>
   );
