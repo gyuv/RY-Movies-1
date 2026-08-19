@@ -8,14 +8,14 @@ interface MoviesSectionProps {
 export default function MoviesSection({ movies, languageCode = 'en' }: MoviesSectionProps) {
   if (!movies || movies.length === 0) {
     return (
-      <div className="flex justify-center items-center py-12 text-paper-dim stub-label">
+      <div className="flex justify-center items-center py-12 text-gray-500">
         No movies found.
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 px-4 sm:px-6 lg:px-8">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 px-0">
       {movies.map((movie) => (
         <MovieCard
           key={movie.id}
