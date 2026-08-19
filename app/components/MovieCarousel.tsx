@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import { useRef } from "react";
+import MediaCard from "./MediaCard";
 
 interface Movie {
   id: number;
@@ -11,52 +12,68 @@ interface Movie {
 }
 
 interface MovieCarouselProps {
-  title: string;
+  title?: string;
   movies: Movie[];
   languageCode?: string;
 }
 
 export default function MovieCarousel({ title, movies, languageCode }: MovieCarouselProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      const scrollTo = direction === "left" 
+        ? scrollLeft - clientWidth * 0.75 
+        : scrollLeft + clientWidth * 0.75;
+      
+      scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+    }
+  };
+
   if (!movies || movies.length === 0) return null;
 
   return (
-    <div className="mb-12">
-      <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
-        <h2 className="text-xl md:text-2xl font-display font-bold text-paper section-heading">{title}</h2>
-        <Link
-          href={`/?language=${languageCode || 'all'}&sort=popularity.desc`}
-          className="text-sm text-paper-dim hover:text-marquee transition-colors"
-        >
-          View All →
-        </Link>
+    <div className="relative group/carousel mb-8">
+      {/* Scroll Left Button */}
+      <button
+        onClick={() => scroll("left")}
+        className="absolute left-0 top-[45%] -translate-y-1/2 z-20 h-full w-12 bg-gradient-to-r from-ink via-ink/80 to-transparent opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-start pl-2"
+        aria-label="Scroll left"
+      >
+        <div className="bg-ink-raised/80 backdrop-blur rounded-full p-2 text-paper hover:text-marquee hover:scale-110 border border-ink-line transition-all">
+          ←
+        </div>
+      </button>
+
+      {/* Horizontally Scrolling Container */}
+      <div 
+        ref={scrollRef}
+        className="flex gap-4 sm:gap-5 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 sm:px-6 lg:px-8 pb-6 pt-2"
+      >
+        {movies.map((movie) => (
+          <div key={movie.id} className="min-w-[140px] sm:min-w-[180px] lg:min-w-[220px] snap-start shrink-0">
+            <MediaCard
+              id={movie.id}
+              title={movie.title}
+              poster_path={movie.poster_path}
+              vote_average={movie.vote_average}
+              release_date={movie.release_date}
+            />
+          </div>
+        ))}
       </div>
 
-      <div className="relative group">
-        <div className="flex overflow-x-auto space-x-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto pb-4 scrollbar-hide snap-x">
-          {movies.map((movie) => (
-            <Link
-              key={movie.id}
-              href={`/media/${movie.id}`}
-              className="flex-none w-[140px] sm:w-[160px] md:w-[180px] snap-start"
-            >
-              <div className="poster-frame relative aspect-[2/3] bg-ink-raised border border-ink-line transition-transform hover:-translate-y-1">
-                <img
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={movie.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute bottom-0 left-0 right-0 p-2 z-[2]">
-                  <p className="text-paper text-xs font-medium truncate">{movie.title}</p>
-                  <p className="text-paper-dim text-[10px]">
-                    {movie.release_date?.split('-')[0]} • <span className="badge-rating">{movie.vote_average.toFixed(1)}</span>
-                  </p>
-                </div>
-              </div>
-            </Link>
-          ))}
+      {/* Scroll Right Button */}
+      <button
+        onClick={() => scroll("right")}
+        className="absolute right-0 top-[45%] -translate-y-1/2 z-20 h-full w-12 bg-gradient-to-l from-ink via-ink/80 to-transparent opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-end pr-2"
+        aria-label="Scroll right"
+      >
+        <div className="bg-ink-raised/80 backdrop-blur rounded-full p-2 text-paper hover:text-marquee hover:scale-110 border border-ink-line transition-all">
+          →
         </div>
-      </div>
+      </button>
     </div>
   );
 }
