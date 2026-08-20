@@ -21,34 +21,44 @@ export default function HeroSlider({ animeList }: { animeList: AnimeItem[] }) {
   if (!slides.length) return null;
   const current = slides[active];
 
+  // Helper values mapped to AniList shape
+  const currentTitle = current.title?.romaji || current.title?.english || 'Untitled';
+  const currentImage = current.coverImage?.extraLarge || current.coverImage?.large || '';
+  const cleanDescription = current.description ? current.description.replace(/<[^>]*>?/gm, '') : 'No description available.';
+
   return (
     <section className="relative h-[520px] md:h-[600px] w-full overflow-hidden bg-black">
       {/* Background image */}
-      {slides.map((item, idx) => (
-  <div
-    key={item.id}
-    className={`absolute inset-0 transition-opacity duration-700 ${
-      idx === active ? 'opacity-100' : 'opacity-0'
-    }`}
-  >
-          <Image
-            src={item.image}
-            alt={item.title}
-            fill
-            priority={idx === 0}
-            className="object-cover object-top"
-          />
-          {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/20 to-transparent" />
-        </div>
-      ))}
+      {slides.map((item, idx) => {
+        const itemImage = item.coverImage?.extraLarge || item.coverImage?.large || '';
+        const itemTitle = item.title?.romaji || item.title?.english || 'Untitled';
+
+        return (
+          <div
+            key={item.id}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              idx === active ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <Image
+              src={itemImage}
+              alt={itemTitle}
+              fill
+              priority={idx === 0}
+              className="object-cover object-top"
+            />
+            {/* Gradient overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/20 to-transparent" />
+          </div>
+        );
+      })}
 
       {/* Content */}
       <div className="relative z-10 h-full max-w-[1600px] mx-auto px-4 md:px-8 flex flex-col justify-end pb-10">
         <div className="max-w-xl">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight line-clamp-2">
-            {current.title}
+            {currentTitle}
           </h1>
 
           {/* Badges row */}
@@ -61,9 +71,9 @@ export default function HeroSlider({ animeList }: { animeList: AnimeItem[] }) {
                 {current.episodes} episodes
               </span>
             )}
-            {current.type && (
+            {current.format && (
               <span className="bg-white/10 border border-white/10 text-white text-xs font-medium px-3 py-1 rounded-full">
-                {current.type}
+                {current.format}
               </span>
             )}
             <span className="bg-white/10 border border-white/10 text-white text-xs font-medium px-3 py-1 rounded-full">
@@ -72,13 +82,13 @@ export default function HeroSlider({ animeList }: { animeList: AnimeItem[] }) {
           </div>
 
           <p className="text-gray-300 text-sm md:text-base mb-6 line-clamp-2">
-            {current.synopsis || 'No description available.'}
+            {cleanDescription}
           </p>
 
           {/* Action buttons */}
           <div className="flex items-center gap-3">
             <Link
-              href={`/anime/${current.mal_id}`}
+              href={`/anime/${current.id}`}
               className="w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center transition-colors"
             >
               <svg className="w-5 h-5 ml-0.5" fill="white" viewBox="0 0 20 20">
@@ -86,7 +96,7 @@ export default function HeroSlider({ animeList }: { animeList: AnimeItem[] }) {
               </svg>
             </Link>
             <Link
-              href={`/anime/${current.mal_id}`}
+              href={`/anime/${current.id}`}
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-5 py-2.5 rounded-full border border-white/10 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,19 +110,24 @@ export default function HeroSlider({ animeList }: { animeList: AnimeItem[] }) {
 
       {/* Thumbnail strip - bottom right */}
       <div className="absolute bottom-10 right-4 md:right-8 z-10 hidden sm:flex gap-2">
-        {slides.map((item, idx) => (
-          <button
-            key={item.mal_id}
-            onClick={() => setActive(idx)}
-            className={`relative w-16 h-10 md:w-20 md:h-12 rounded-md overflow-hidden border-2 transition-all ${
-              idx === active
-                ? 'border-blue-500 opacity-100 scale-105'
-                : 'border-transparent opacity-50 hover:opacity-80'
-            }`}
-          >
-            <Image src={item.image} alt={item.title} fill className="object-cover" />
-          </button>
-        ))}
+        {slides.map((item, idx) => {
+          const thumbImage = item.coverImage?.large || '';
+          const thumbTitle = item.title?.romaji || item.title?.english || 'Untitled';
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActive(idx)}
+              className={`relative w-16 h-10 md:w-20 md:h-12 rounded-md overflow-hidden border-2 transition-all ${
+                idx === active
+                  ? 'border-blue-500 opacity-100 scale-105'
+                  : 'border-transparent opacity-50 hover:opacity-80'
+              }`}
+            >
+              <Image src={thumbImage} alt={thumbTitle} fill className="object-cover" />
+            </button>
+          );
+        })}
       </div>
     </section>
   );
