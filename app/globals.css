@@ -92,3 +92,5 @@ a { transition: color 0.2s ease; }
 .carousel-container:focus-within {
   scroll-behavior: smooth;
 }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
