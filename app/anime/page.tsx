@@ -6,14 +6,17 @@ import TopTenSection from '../components/TopTenSection';
 import FilterTabs from '../components/FilterTabs';
 import { getAnimeList, getTrendingAnime, getTopAnime, AnimeItem } from '../../lib/jikan'; // Import AnimeItem
 import Link from 'next/link';
+import { getGenreList } from '../../lib/jikan';
+import GenreFilter from '../components/GenreFilter';
 
 export default async function AnimePage() {
   // Fetch multiple data sets in parallel
-  const [trending, topAllTime, mainList] = await Promise.all([
-    getTrendingAnime(),
-    getTopAnime(),
-    getAnimeList(1, 'airing.desc') // Latest Airing
-  ]);
+  const [trending, topAllTime, mainList, genres] = await Promise.all([
+  getTrendingAnime(),
+  getTopAnime(),
+  getAnimeList(1, 'airing.desc'),
+  getGenreList(),
+]);
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-white font-sans">
@@ -31,7 +34,17 @@ export default async function AnimePage() {
               See More
             </Link>
           </div>
-          
+          <div className="flex items-center justify-between mb-6">
+  <h2 className="text-xl md:text-2xl font-bold text-white border-l-4 border-yellow-500 pl-3">
+    Latest Updates
+  </h2>
+  <div className="flex items-center gap-3">
+    <GenreFilter genres={genres} />
+    <Link href="/anime?sort=airing.desc" className="text-sm text-yellow-500 hover:text-yellow-400 font-medium">
+      See More
+    </Link>
+  </div>
+</div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
             {mainList.results.map((item: AnimeItem) => ( // Add type annotation here
               <AnimeCard key={item.mal_id} {...item} />
