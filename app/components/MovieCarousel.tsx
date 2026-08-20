@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import MovieCard from './MovieCard'; // Import the newly styled card
+import MovieCard from './MovieCard';
 
 interface Movie {
   id: number;
@@ -21,8 +21,7 @@ export default function MovieCarousel({ title, movies, languageCode = 'en' }: Mo
   if (!movies || movies.length === 0) return null;
 
   return (
-    <div className="mb-8">
-      {/* Conditionally render header if a title is passed, else assume it's handled by the parent */}
+    <div className="mb-4">
       {title && (
         <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
           <h2 className="text-xl md:text-2xl font-display font-bold text-white section-heading">{title}</h2>
@@ -36,7 +35,8 @@ export default function MovieCarousel({ title, movies, languageCode = 'en' }: Mo
       )}
 
       <div className="relative group">
-        <div className="flex overflow-x-auto space-x-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto pb-8 pt-2 scrollbar-hide snap-x">
+        {/* Added items-start to prevent flex stretching, and pt-4/pb-12 to allow hover scaling without cropping */}
+        <div className="flex overflow-x-auto gap-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto pt-4 pb-12 scrollbar-hide snap-x items-start">
           {movies.map((movie) => (
             <div key={movie.id} className="snap-start flex-none">
               <MovieCard 
