@@ -2,7 +2,7 @@
 'use client';
 import { Suspense, useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Genre, fetchAnimeList } from '../../lib/anilist';
+import { Genre } from '../../lib/anilist';
 
 function GenreFilterInner({ genres }: { genres: Genre[] }) {
   const [open, setOpen] = useState(false);
@@ -78,20 +78,23 @@ function GenreFilterInner({ genres }: { genres: Genre[] }) {
       {open && (
         <div className="absolute top-full mt-2 left-0 z-50 w-72 max-h-96 overflow-y-auto bg-[#141414] border border-white/10 rounded-xl shadow-2xl p-3">
           <div className="grid grid-cols-2 gap-1 mb-3">
-            {genres.map((genre) => (
-              <label
-                key={genre.id}
-                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white/5 cursor-pointer text-sm text-gray-300"
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.includes(genre.id)}
-                  onChange={() => toggleGenre(genre.id)}
-                  className="accent-blue-600 w-4 h-4"
-                />
-                <span className="truncate">{genre.name}</span>
-              </label>
-            ))}
+            {genres.map((genre, index) => {
+              const genreId = genre.id ?? index;
+              return (
+                <label
+                  key={genreId}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white/5 cursor-pointer text-sm text-gray-300"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(genreId)}
+                    onChange={() => toggleGenre(genreId)}
+                    className="accent-blue-600 w-4 h-4"
+                  />
+                  <span className="truncate">{genre.name}</span>
+                </label>
+              );
+            })}
           </div>
 
           <div className="flex gap-2 pt-2 border-t border-white/10">
