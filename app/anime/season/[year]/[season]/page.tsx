@@ -39,7 +39,7 @@ export default async function SeasonPage({
           <h1 className="text-2xl md:text-3xl font-bold">
             {seasonLabel} {yearNum} Anime
           </h1>
-          <GenreFilter genres={genres} />
+          <GenreFilter genres={genres.genres || genres} />
         </div>
 
         {/* Season switcher */}
