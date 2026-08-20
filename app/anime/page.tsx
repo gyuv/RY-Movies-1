@@ -12,10 +12,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 // Inline GenreFilter
-function GenreFilter({ genres }: { genres: any[] }) {
+function GenreFilter({ genres }: { genres: { id: number; name: string }[] }) {
   return (
     <div className="flex flex-wrap gap-2">
-      {genres.slice(0, 10).map((genre: any) => (
+      {genres.slice(0, 10).map((genre) => (
         <Link
           key={genre.id}
           href={`/anime?genres=${genre.id}`}
@@ -28,7 +28,7 @@ function GenreFilter({ genres }: { genres: any[] }) {
   );
 }
 
-// Inline AnimeRow with CORRECT typing
+// Inline AnimeRow
 function AnimeRow({ title, animeList }: { title: string; animeList: AnimeData[] }) {
   return (
     <section className="py-6 px-4 md:px-8">
@@ -107,11 +107,14 @@ export default async function AnimePage({
     ? genresParam.split(',').map(Number).filter((n) => !isNaN(n))
     : [];
 
-  const [trending, topAllTime, genres] = await Promise.all([
+  const [trending, topAllTime, genresData] = await Promise.all([
     getTrendingAnime(),
     getTopAnime(),
     getGenreList(),
   ]);
+
+  // Extract the genres array from the response
+  const genres = genresData.genres || [];
 
   const mainList = genreIds.length
     ? await getAnimeByGenre(String(genreIds[0]), sortValue, currentPage, limit)
@@ -119,7 +122,7 @@ export default async function AnimePage({
 
   const gridTitle = genreIds.length
     ? `Filtered Results (${genreIds
-        .map((id) => genres.find((g: any) => g.id === id)?.name)
+        .map((id) => genres.find((g) => g.id === id)?.name)
         .filter(Boolean)
         .join(', ')})`
     : 'Latest Updates';
