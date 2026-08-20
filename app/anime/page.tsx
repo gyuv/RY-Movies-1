@@ -9,7 +9,6 @@ import {
   getTopAnime,
   getAnimeByGenre,
   getGenreList,
-  AnimeItem,
 } from '../../lib/anilist';
 import { fetchAnimeList } from '../../lib/anilist';
 import Link from 'next/link';
