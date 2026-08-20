@@ -60,24 +60,24 @@ export default async function SeasonPage({
         </div>
 
         {/* Grid */}
-{animeData.media && animeData.media.length ? (
-  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-    {animeData.media.map((item) => (
-      <AnimeCard
-        key={item.id}
-        mal_id={item.id || 0}
-        title={item.title?.romaji || item.title?.english || 'Untitled'}
-        image={item.coverImage?.large || ''}
-        episodes={item.episodes}
-        type={item.format}
-      />
-    ))}
-  </div>
-) : (
-  <div className="text-center py-20 text-gray-500">
-    No anime found for this season.
-  </div>
-)}
+        {animeData.media && animeData.media.length ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {animeData.media.map((item) => (
+              <AnimeCard
+                key={item.id}
+                mal_id={item.id || 0}
+                title={item.title?.romaji || item.title?.english || 'Untitled'}
+                image={item.coverImage?.large || ''}
+                episodes={item.episodes}
+                type={item.format}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-gray-500">
+            No anime found for this season.
+          </div>
+        )}
 
         {/* Pagination */}
         <div className="flex justify-center gap-3 mt-10">
@@ -89,7 +89,7 @@ export default async function SeasonPage({
               Previous
             </Link>
           )}
-          {animeData.pagination.has_next_page && (
+          {animeData.pageInfo?.hasNextPage && (
             <Link
               href={`/anime/season/${yearNum}/${season}?page=${currentPage + 1}`}
               className="px-5 py-2 rounded-full border border-white/20 text-sm hover:border-yellow-500"
