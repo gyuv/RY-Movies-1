@@ -7,7 +7,6 @@ import Pagination from './components/Pagination';
 import { Suspense } from 'react';
 import Link from 'next/link';
 
-// Mock data for build stability if API fails or key is missing
 const MOCK_MOVIE = { 
   id: 99, 
   title: "Mock Movie", 
@@ -19,7 +18,6 @@ const MOCK_MOVIE = {
 
 const MOCK_LIST = Array(20).fill(MOCK_MOVIE).map((m, i) => ({ ...m, id: i + 1 }));
 
-// Helper to safely fetch from TMDB
 async function fetchTMDB(url: string, apiKey: string | undefined) {
   if (!apiKey) return { results: MOCK_LIST, total_pages: 1, total_results: 20 };
   try {
@@ -42,31 +40,42 @@ async function getActorDetails(actorId: string, apiKey: string | undefined) {
   }
 }
 
-// Fetch language movies with dynamic sorting based on the active tab
-async function getLanguageMovies(language: string, sort: string = 'popularity.desc', limit: number = 20) {
+// UPDATED: Logic to fetch different data for Trending vs Popular
+async function getLanguageMovies(language: string, tab: string = 'trending', limit: number = 20) {
   const apiKey = process.env.TMDB_API_KEY;
   const params = new URLSearchParams();
   params.set("with_original_language", language);
-  params.set("sort_by", sort);
   params.set("page", "1");
-  const today = new Date().toISOString().split('T')[0];
-  params.set("primary_release_date.lte", today);
-  
-  // If fetching recently added, we don't want movies from 1900
-  if (sort === 'primary_release_date.desc') {
-    params.set("vote_count.gte", "5"); // Filter out obscure unreleased junk
-  } else {
-    params.set("primary_release_date.gte", "1900-01-01");
-  }
-  
   params.set("language", "en-US");
+  
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  if (tab === 'recent') {
+    // Recently Added: Strictly by release date, must have some votes to filter out unreleased junk
+    params.set("sort_by", "primary_release_date.desc");
+    params.set("primary_release_date.lte", todayStr);
+    params.set("vote_count.gte", "5");
+  } else if (tab === 'popular') {
+    // Popular: All-time highest popularity
+    params.set("sort_by", "popularity.desc");
+    params.set("primary_release_date.lte", todayStr);
+    params.set("vote_count.gte", "100"); // Ensures well-known movies
+  } else {
+    // Trending (Default): High popularity, but restricted to the last 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(today.getMonth() - 6);
+    
+    params.set("sort_by", "popularity.desc");
+    params.set("primary_release_date.gte", sixMonthsAgo.toISOString().split('T')[0]);
+    params.set("primary_release_date.lte", todayStr);
+  }
   
   const url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&${params.toString()}`;
   const data = await fetchTMDB(url, apiKey);
   return data.results?.slice(0, limit) || [];
 }
 
-// Fetch dynamic Hero data based on the selected tab
 async function getHeroMovies(tab: string) {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) return MOCK_LIST;
@@ -77,7 +86,6 @@ async function getHeroMovies(tab: string) {
       url = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US`;
     } else if (tab === 'recent') {
        const today = new Date().toISOString().split('T')[0];
-       // Fetching recent movies that actually have some votes to avoid empty posters
        url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&sort_by=primary_release_date.desc&primary_release_date.lte=${today}&vote_count.gte=20`;
     }
 
@@ -107,9 +115,7 @@ export default async function Home({
   const year = getParam("year", "");
   const actorId = getParam("with_people", ""); 
   
-  // Get active tab from URL, default is 'trending'
   const activeTab = getParam("tab", "trending");
-
   const hasFilters = genre || language !== 'en' || sort !== 'popularity.desc' || year || actorId;
 
   let filteredData = null;
@@ -148,10 +154,7 @@ export default async function Home({
     const url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&${params.toString()}`;
     filteredData = await fetchTMDB(url, apiKey);
   } else {
-    // Determine the sorting method based on the active tab
-    const tabSort = activeTab === 'recent' ? 'primary_release_date.desc' : 'popularity.desc';
-
-    // Fetch live data based on the active tab
+    // UPDATED: Passing activeTab directly to getLanguageMovies
     [
       heroData,
       englishMovies,
@@ -162,16 +165,15 @@ export default async function Home({
       japaneseMovies
     ] = await Promise.all([
       getHeroMovies(activeTab),
-      getLanguageMovies('en', tabSort),
-      getLanguageMovies('ta', tabSort),
-      getLanguageMovies('te', tabSort),
-      getLanguageMovies('hi', tabSort),
-      getLanguageMovies('ko', tabSort),
-      getLanguageMovies('ja', tabSort),
+      getLanguageMovies('en', activeTab),
+      getLanguageMovies('ta', activeTab),
+      getLanguageMovies('te', activeTab),
+      getLanguageMovies('hi', activeTab),
+      getLanguageMovies('ko', activeTab),
+      getLanguageMovies('ja', activeTab),
     ]);
   }
 
-  // Dynamic titles based on active tab
   const getRowTitle = (categoryName: string) => {
     if (activeTab === 'popular') return `🔥 Popular ${categoryName}`;
     if (activeTab === 'recent') return `➕ Recently Added ${categoryName}`;
@@ -180,10 +182,8 @@ export default async function Home({
 
   return (
     <main className="min-h-screen bg-[#141414] text-white">
-      {/* Hero Banner */}
       {!hasFilters && heroData && <Hero movies={heroData} />}
       
-      {/* Functional Sub-Navigation Tabs */}
       {!hasFilters && (
         <div className="bg-[#1a1a1a] border-b border-gray-800">
           <div className="max-w-[1600px] mx-auto px-6 flex justify-center gap-12 pt-4 overflow-x-auto scrollbar-hide">
@@ -209,7 +209,6 @@ export default async function Home({
         </div>
       )}
 
-      {/* Sticky Filters Component */}
       <div className="sticky top-0 z-40 bg-[#141414]/90 backdrop-blur-md">
         <Suspense fallback={<div className="h-16" />}>
           <Filters />
@@ -218,7 +217,6 @@ export default async function Home({
 
       <div className="max-w-[1600px] mx-auto py-8 px-4 sm:px-6">
         
-        {/* Filtered Results View */}
         {hasFilters && filteredData && (
           <div className="mt-6">
             <h2 className="text-xl md:text-2xl font-bold text-white mb-6">
@@ -240,7 +238,6 @@ export default async function Home({
           </div>
         )}
 
-        {/* Dynamic Categories based on Tabs */}
         {!hasFilters && (
           <>
             {englishMovies && (
