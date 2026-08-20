@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import MovieCard from './MovieCard';
+import { useRef } from 'react';
 
 interface Movie {
   id: number;
@@ -18,25 +19,62 @@ interface MovieCarouselProps {
 }
 
 export default function MovieCarousel({ title, movies, languageCode = 'en' }: MovieCarouselProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Smooth scroll function for desktop arrows
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const { current } = scrollRef;
+      // Scroll by roughly the width of the visible container minus a little overlap
+      const scrollAmount = direction === 'left' ? -(current.offsetWidth * 0.75) : (current.offsetWidth * 0.75);
+      current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   if (!movies || movies.length === 0) return null;
 
   return (
-    <div className="mb-4">
+    <div className="mb-6 md:mb-10 group/carousel relative">
+      
+      {/* Dynamic Header - Stacks on mobile, aligns on desktop */}
       {title && (
-        <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
-          <h2 className="text-xl md:text-2xl font-display font-bold text-white section-heading">{title}</h2>
+        <div className="flex flex-row items-center justify-between mb-3 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-wide truncate pr-4">
+            {title}
+          </h2>
           <Link
             href={`/?language=${languageCode}&sort=popularity.desc`}
-            className="text-sm text-gray-400 hover:text-red-500 transition-colors"
+            className="text-xs sm:text-sm font-semibold text-red-500 hover:text-red-400 whitespace-nowrap transition-colors"
           >
             View All →
           </Link>
         </div>
       )}
 
-      <div className="relative group">
-        {/* Added items-start to prevent flex stretching, and pt-4/pb-12 to allow hover scaling without cropping */}
-        <div className="flex overflow-x-auto gap-4 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto pt-4 pb-12 scrollbar-hide snap-x items-start">
+      <div className="relative max-w-[1600px] mx-auto">
+        
+        {/* Desktop Scroll Buttons - Appear on hover */}
+        <button 
+          onClick={() => scroll('left')}
+          className="hidden md:flex absolute left-4 top-[40%] -translate-y-1/2 z-30 bg-[#141414]/90 text-white w-10 h-10 items-center justify-center rounded-full opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 border border-gray-600 hover:border-red-600 hover:bg-red-600 hover:scale-110 shadow-lg shadow-black/50"
+          aria-label="Scroll left"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        
+        <button 
+          onClick={() => scroll('right')}
+          className="hidden md:flex absolute right-4 top-[40%] -translate-y-1/2 z-30 bg-[#141414]/90 text-white w-10 h-10 items-center justify-center rounded-full opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 border border-gray-600 hover:border-red-600 hover:bg-red-600 hover:scale-110 shadow-lg shadow-black/50"
+          aria-label="Scroll right"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+        </button>
+
+        {/* Scrollable Container */}
+        <div 
+          ref={scrollRef}
+          className="flex overflow-x-auto gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 pt-4 pb-12 scrollbar-hide snap-x snap-mandatory items-start scroll-smooth"
+        >
           {movies.map((movie) => (
             <div key={movie.id} className="snap-start flex-none">
               <MovieCard 
