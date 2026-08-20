@@ -1,154 +1,208 @@
 // lib/jikan.ts
 
+const BASE_URL = 'https://api.jikan.moe/v4';
+
 export interface AnimeItem {
   mal_id: number;
   title: string;
-  image_url: string;
-  score: number;
-  episodes: number;
-  status: string;
-  url: string;
+  image: string;
+  episodes: number | null;
+  type: string | null;
+  synopsis: string | null;
+  score: number | null;
+  status: string | null;
+  year: number | null;
 }
 
-export interface MangaItem {
+export interface AnimeListResponse {
+  results: AnimeItem[];
+  pagination: {
+    last_visible_page: number;
+    has_next_page: boolean;
+  };
+}
+
+// Raw shape returned by Jikan for a single anime entry (trimmed to fields we use)
+interface JikanRawAnime {
   mal_id: number;
   title: string;
-  image_url: string;
-  score: number;
-  chapters: number;
-  status: string;
-  url: string;
+  title_english?: string | null;
+  images: {
+    jpg: {
+      image_url: string;
+      large_image_url?: string;
+    };
+    webp?: {
+      image_url: string;
+      large_image_url?: string;
+    };
+  };
+  episodes: number | null;
+  type: string | null;
+  synopsis: string | null;
+  score: number | null;
+  status: string | null;
+  year: number | null;
+  aired?: {
+    prop?: {
+      from?: { year?: number | null };
+    };
+  };
 }
 
-// Helper with User-Agent header and automatic retry
-async function fetchJikan(endpoint: string) {
-  const url = `https://api.jikan.moe/v4${endpoint}`;
-  
-  for (let i = 0; i < 3; i++) {
-    try {
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'CineReel-App/1.0',
-        },
-        next: { revalidate: 3600 },
-      });
+/**
+ * Normalizes a raw Jikan anime object into the shape our components expect.
+ */
+function mapAnime(raw: JikanRawAnime): AnimeItem {
+  return {
+    mal_id: raw.mal_id,
+    title: raw.title_english || raw.title,
+    image:
+      raw.images?.webp?.large_image_url ||
+      raw.images?.jpg?.large_image_url ||
+      raw.images?.jpg?.image_url ||
+      '/placeholder.png',
+    episodes: raw.episodes ?? null,
+    type: raw.type ?? null,
+    synopsis: raw.synopsis ?? null,
+    score: raw.score ?? null,
+    status: raw.status ?? null,
+    year: raw.year ?? raw.aired?.prop?.from?.year ?? null,
+  };
+}
 
-      if (res.status === 429) {
-        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
-        continue;
-      }
+/**
+ * Basic fetch wrapper with Next.js caching + simple retry on 429
+ * (Jikan is rate-limited to ~3 req/sec, so a retry helps under load).
+ */
+async function jikanFetch<T>(
+  path: string,
+  revalidateSeconds = 3600
+): Promise<T> {
+  const url = `${BASE_URL}${path}`;
 
-      if (!res.ok) {
-        console.error(`Jikan API error status: ${res.status} for ${endpoint}`);
-        return null;
-      }
+  const attemptFetch = async (retries: number): Promise<Response> => {
+    const res = await fetch(url, {
+      next: { revalidate: revalidateSeconds },
+    });
 
-      return await res.json();
-    } catch (error) {
-      if (i === 2) console.error(`Jikan fetch failed for ${endpoint}:`, error);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (res.status === 429 && retries > 0) {
+      await new Promise((r) => setTimeout(r, 800));
+      return attemptFetch(retries - 1);
     }
+
+    return res;
+  };
+
+  const res = await attemptFetch(2);
+
+  if (!res.ok) {
+    throw new Error(`Jikan API error: ${res.status} ${res.statusText} for ${path}`);
   }
-  return null;
+
+  return res.json() as Promise<T>;
 }
 
-// --- ANIME FUNCTIONS ---
+/**
+ * General-purpose anime list fetcher with pagination + sorting.
+ * order_by options: 'popularity', 'score', 'title', 'start_date', 'airing' etc.
+ * sort format used elsewhere in the app: e.g. 'airing.desc' -> we split it below.
+ */
+export async function getAnimeList(
+  page = 1,
+  sort = 'popularity.desc',
+  limit = 24
+): Promise<AnimeListResponse> {
+  const [orderBy, direction] = sort.split('.'); // e.g. "airing.desc" -> ["airing", "desc"]
 
-export async function getAnimeList(page: number, sort: string = 'popularity.desc') {
-  const data = await fetchJikan(`/top/anime?page=${page}&limit=20`);
-  if (!data || !data.data) return { results: [], total_pages: 1 };
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    order_by: orderBy || 'popularity',
+    sort: direction || 'desc',
+    sfw: 'true',
+  });
+
+  const data = await jikanFetch<{
+    data: JikanRawAnime[];
+    pagination: { last_visible_page: number; has_next_page: boolean };
+  }>(`/anime?${params.toString()}`);
 
   return {
-    results: data.data.map((item: any) => ({
-      mal_id: item.mal_id,
-      title: item.title,
-      image_url: item.images?.jpg?.large_image_url || '',
-      score: item.score || 0,
-      episodes: item.episodes || 0,
-      status: item.status || 'Unknown',
-      url: item.url || '',
-    })),
-    total_pages: data.pagination?.last_visible_page || 1,
+    results: data.data.map(mapAnime),
+    pagination: data.pagination,
   };
 }
 
-export async function getTrendingAnime() {
-  const data = await fetchJikan('/seasons/now?limit=10');
-  if (!data || !data.data) return [];
+/**
+ * Trending / currently airing anime, ordered by popularity.
+ * Used for the hero slider and "Trending This Season" row.
+ */
+export async function getTrendingAnime(limit = 10): Promise<AnimeItem[]> {
+  const params = new URLSearchParams({
+    filter: 'airing',
+    order_by: 'popularity',
+    sort: 'asc',
+    limit: String(limit),
+    sfw: 'true',
+  });
 
-  return data.data.map((item: any) => ({
-    mal_id: item.mal_id,
-    title: item.title,
-    image_url: item.images?.jpg?.large_image_url || '',
-    score: item.score || 0,
-    episodes: item.episodes || 0,
-    status: item.status || 'Unknown',
-    url: item.url || '',
-  }));
+  const data = await jikanFetch<{ data: JikanRawAnime[] }>(
+    `/top/anime?${params.toString()}`
+  );
+
+  return data.data.map(mapAnime);
 }
 
-export async function getTopAnime() {
-  const data = await fetchJikan('/top/anime?limit=10&filter=bypopularity');
-  if (!data || !data.data) return [];
+/**
+ * All-time top rated anime by score.
+ * Used for the "Top Rated Anime" row and the TOP 10 section.
+ */
+export async function getTopAnime(limit = 10): Promise<AnimeItem[]> {
+  const params = new URLSearchParams({
+    order_by: 'score',
+    sort: 'desc',
+    limit: String(limit),
+    sfw: 'true',
+  });
 
-  return data.data.map((item: any) => ({
-    mal_id: item.mal_id,
-    title: item.title,
-    image_url: item.images?.jpg?.large_image_url || '',
-    score: item.score || 0,
-    episodes: item.episodes || 0,
-    status: item.status || 'Unknown',
-    url: item.url || '',
-  }));
+  const data = await jikanFetch<{ data: JikanRawAnime[] }>(
+    `/top/anime?${params.toString()}`
+  );
+
+  return data.data.map(mapAnime);
 }
 
-// --- MANGA FUNCTIONS ---
+/**
+ * Single anime detail fetch, useful for /anime/[id] pages.
+ */
+export async function getAnimeById(id: number): Promise<AnimeItem> {
+  const data = await jikanFetch<{ data: JikanRawAnime }>(`/anime/${id}`);
+  return mapAnime(data.data);
+}
 
-export async function getMangaList(page: number, sort: string = 'popularity.desc') {
-  const data = await fetchJikan(`/top/manga?page=${page}&limit=20`);
-  if (!data || !data.data) return { results: [], total_pages: 1 };
+/**
+ * Search anime by query string, used for the search page/bar.
+ */
+export async function searchAnime(
+  query: string,
+  page = 1,
+  limit = 24
+): Promise<AnimeListResponse> {
+  const params = new URLSearchParams({
+    q: query,
+    page: String(page),
+    limit: String(limit),
+    sfw: 'true',
+  });
+
+  const data = await jikanFetch<{
+    data: JikanRawAnime[];
+    pagination: { last_visible_page: number; has_next_page: boolean };
+  }>(`/anime?${params.toString()}`);
 
   return {
-    results: data.data.map((item: any) => ({
-      mal_id: item.mal_id,
-      title: item.title,
-      image_url: item.images?.jpg?.large_image_url || '',
-      score: item.score || 0,
-      chapters: item.chapters || 0,
-      status: item.status || 'Unknown',
-      url: item.url || '',
-    })),
-    total_pages: data.pagination?.last_visible_page || 1,
+    results: data.data.map(mapAnime),
+    pagination: data.pagination,
   };
-}
-
-export async function getTrendingManga() {
-  const data = await fetchJikan('/top/manga?limit=10&filter=bypopularity');
-  if (!data || !data.data) return [];
-
-  return data.data.map((item: any) => ({
-    mal_id: item.mal_id,
-    title: item.title,
-    image_url: item.images?.jpg?.large_image_url || '',
-    score: item.score || 0,
-    chapters: item.chapters || 0,
-    status: item.status || 'Unknown',
-    url: item.url || '',
-  }));
-}
-
-// --- SEARCH FUNCTION ---
-
-export async function searchMedia(query: string, type: 'anime' | 'manga' = 'anime') {
-  const data = await fetchJikan(`/${type}?q=${encodeURIComponent(query)}&limit=10`);
-  if (!data || !data.data) return [];
-
-  return data.data.map((item: any) => ({
-    mal_id: item.mal_id,
-    title: item.title,
-    image_url: item.images?.jpg?.large_image_url || '',
-    score: item.score || 0,
-    status: item.status || 'Unknown',
-    url: item.url || '',
-  }));
 }
