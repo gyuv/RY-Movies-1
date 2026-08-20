@@ -1,12 +1,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-// Use your exact env var name
-const TMDB_API_KEY = process.env.TMDB_API_KEY; 
-
+// 🔑 API Configuration
+const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
+// 🎬 Data Interface
 interface Movie {
   id: number;
   title: string;
@@ -16,11 +16,24 @@ interface Movie {
   original_language: string;
   release_date: string;
   popularity: number;
+  adult: boolean;
+  genre_ids: number[];
 }
 
-const EROTIC_KEYWORDS = '620,2123,1493,1896';
+// 🏷️ Keywords for "Hardcore/Erotic" content
+// 620 = Erotic, 1009 = Sex, 2123 = Bed Scene, 1493 = Passion, 1896 = Love Triangle
+const EROTIC_KEYWORDS = '620,1009,2123,1493,1896';
+
+// 🎭 Genres to include (Erotic Thriller, Romance, Drama)
+// 5285 = Erotic Thriller, 10749 = Romance, 18 = Drama
+const TARGET_GENRES = '5285,10749,18';
+
+// 🌍 Target Languages
 const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml'];
 
+/**
+ * Fetches erotic content from TMDB using a hybrid approach (Keywords + Genres)
+ */
 async function fetchEroticContent(): Promise<Movie[]> {
   if (!TMDB_API_KEY) {
     console.error("TMDB_API_KEY is missing!");
@@ -29,16 +42,17 @@ async function fetchEroticContent(): Promise<Movie[]> {
 
   try {
     const promises = TARGET_LANGUAGES.map(async (lang) => {
+      // Fetch using both keywords and genres, sorted by popularity
       const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${EROTIC_KEYWORDS}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=20&include_adult=true&include_video=false`,
+        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${EROTIC_KEYWORDS}&with_genres=${TARGET_GENRES}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=10&include_adult=true&include_video=false`,
         { 
-          next: { revalidate: 3600 },
+          next: { revalidate: 3600 }, // Cache for 1 hour
           headers: { 'Accept': 'application/json' }
         }
       );
 
       if (!res.ok) {
-        console.warn(`Failed to fetch for language ${lang}: ${res.status} ${res.statusText}`);
+        console.warn(`Failed to fetch for language ${lang}: ${res.status}`);
         return [];
       }
       
@@ -46,11 +60,19 @@ async function fetchEroticContent(): Promise<Movie[]> {
       return data.results || [];
     });
 
+    // Wait for all language fetches
     const results = await Promise.all(promises);
-    const allMovies: Movie[] = results.flat();
-    const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
-    const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
     
+    // Flatten array
+    const allMovies: Movie[] = results.flat();
+
+    // Remove duplicates based on ID
+    const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
+
+    // Sort by Popularity (descending) to get big hits like 365 Days first
+    const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
+
+    // Return top 20
     return sortedMovies.slice(0, 20);
 
   } catch (error) {
@@ -59,26 +81,321 @@ async function fetchEroticContent(): Promise<Movie[]> {
   }
 }
 
+/**
+ * Helper to get human-readable language names
+ */
+const getLangName = (code: string) => {
+  const langs: Record<string, string> = {
+    pl: 'Polish',
+    ko: 'Korean',
+    fr: 'French',
+    en: 'English',
+    es: 'Spanish',
+    hi: 'Hindi',
+    ta: 'Tamil',
+    te: 'Telugu',
+    ml: 'Malayalam',
+    bn: 'Bengali',
+    de: 'German',
+    it: 'Italian',
+    ja: 'Japanese',
+    pt: 'Portuguese',
+    ru: 'Russian',
+    sv: 'Swedish',
+    no: 'Norwegian',
+    da: 'Danish',
+    fi: 'Finnish',
+    nl: 'Dutch',
+    tr: 'Turkish',
+    ar: 'Arabic',
+    zh: 'Chinese',
+    th: 'Thai',
+    vi: 'Vietnamese',
+    id: 'Indonesian',
+    ms: 'Malay',
+    he: 'Hebrew',
+    cs: 'Czech',
+    hu: 'Hungarian',
+    ro: 'Romanian',
+    bg: 'Bulgarian',
+    hr: 'Croatian',
+    sk: 'Slovak',
+    sl: 'Slovenian',
+    sr: 'Serbian',
+    uk: 'Ukrainian',
+    et: 'Estonian',
+    lv: 'Latvian',
+    lt: 'Lithuanian',
+    is: 'Icelandic',
+    ga: 'Irish',
+    cy: 'Welsh',
+    eu: 'Basque',
+    ca: 'Catalan',
+    gl: 'Galician',
+    af: 'Afrikaans',
+    sw: 'Swahili',
+    zu: 'Zulu',
+    xh: 'Xhosa',
+    so: 'Somali',
+    am: 'Amharic',
+    or: 'Oriya',
+    ne: 'Nepali',
+    si: 'Sinhala',
+    my: 'Burmese',
+    km: 'Khmer',
+    lo: 'Lao',
+    ka: 'Georgian',
+    hy: 'Armenian',
+    az: 'Azerbaijani',
+    kk: 'Kazakh',
+    ky: 'Kyrgyz',
+    uz: 'Uzbek',
+    tg: 'Tajik',
+    mn: 'Mongolian',
+    ps: 'Pashto',
+    sd: 'Sindhi',
+    ur: 'Urdu',
+    fa: 'Persian',
+    ku: 'Kurdish',
+    be: 'Belarusian',
+    mk: 'Macedonian',
+    sq: 'Albanian',
+    bs: 'Bosnian',
+    lt: 'Lithuanian',
+    el: 'Greek',
+    pt: 'Portuguese',
+    ro: 'Romanian',
+    bg: 'Bulgarian',
+    hr: 'Croatian',
+    sr: 'Serbian',
+    sl: 'Slovenian',
+    sk: 'Slovak',
+    cs: 'Czech',
+    hu: 'Hungarian',
+    pl: 'Polish',
+    de: 'German',
+    it: 'Italian',
+    es: 'Spanish',
+    fr: 'French',
+    en: 'English',
+    ja: 'Japanese',
+    ko: 'Korean',
+    zh: 'Chinese',
+    ar: 'Arabic',
+    hi: 'Hindi',
+    bn: 'Bengali',
+    ta: 'Tamil',
+    te: 'Telugu',
+    ml: 'Malayalam',
+    kn: 'Kannada',
+    mr: 'Marathi',
+    gu: 'Gujarati',
+    pa: 'Punjabi',
+    as: 'Assamese',
+    or: 'Oriya',
+    ne: 'Nepali',
+    si: 'Sinhala',
+    my: 'Burmese',
+    km: 'Khmer',
+    lo: 'Lao',
+    ka: 'Georgian',
+    hy: 'Armenian',
+    az: 'Azerbaijani',
+    kk: 'Kazakh',
+    ky: 'Kyrgyz',
+    uz: 'Uzbek',
+    tg: 'Tajik',
+    mn: 'Mongolian',
+    ps: 'Pashto',
+    sd: 'Sindhi',
+    ur: 'Urdu',
+    fa: 'Persian',
+    ku: 'Kurdish',
+    be: 'Belarusian',
+    mk: 'Macedonian',
+    sq: 'Albanian',
+    bs: 'Bosnian',
+    eu: 'Basque',
+    ca: 'Catalan',
+    gl: 'Galician',
+    af: 'Afrikaans',
+    sw: 'Swahili',
+    zu: 'Zulu',
+    xh: 'Xhosa',
+    so: 'Somali',
+    am: 'Amharic',
+    id: 'Indonesian',
+    ms: 'Malay',
+    th: 'Thai',
+    vi: 'Vietnamese',
+    he: 'Hebrew',
+    is: 'Icelandic',
+    ga: 'Irish',
+    cy: 'Welsh',
+    et: 'Estonian',
+    lv: 'Latvian',
+    lt: 'Lithuanian',
+    fi: 'Finnish',
+    sv: 'Swedish',
+    no: 'Norwegian',
+    da: 'Danish',
+    nl: 'Dutch',
+    tr: 'Turkish',
+    ru: 'Russian',
+    uk: 'Ukrainian',
+    bg: 'Bulgarian',
+    ro: 'Romanian',
+    hu: 'Hungarian',
+    cs: 'Czech',
+    sk: 'Slovak',
+    sl: 'Slovenian',
+    hr: 'Croatian',
+    sr: 'Serbian',
+    bs: 'Bosnian',
+    mk: 'Macedonian',
+    sq: 'Albanian',
+    el: 'Greek',
+    pt: 'Portuguese',
+    es: 'Spanish',
+    fr: 'French',
+    de: 'German',
+    it: 'Italian',
+    en: 'English',
+    ja: 'Japanese',
+    ko: 'Korean',
+    zh: 'Chinese',
+    ar: 'Arabic',
+    hi: 'Hindi',
+    bn: 'Bengali',
+    ta: 'Tamil',
+    te: 'Telugu',
+    ml: 'Malayalam',
+    kn: 'Kannada',
+    mr: 'Marathi',
+    gu: 'Gujarati',
+    pa: 'Punjabi',
+    as: 'Assamese',
+    or: 'Oriya',
+    ne: 'Nepali',
+    si: 'Sinhala',
+    my: 'Burmese',
+    km: 'Khmer',
+    lo: 'Lao',
+    ka: 'Georgian',
+    hy: 'Armenian',
+    az: 'Azerbaijani',
+    kk: 'Kazakh',
+    ky: 'Kyrgyz',
+    uz: 'Uzbek',
+    tg: 'Tajik',
+    mn: 'Mongolian',
+    ps: 'Pashto',
+    sd: 'Sindhi',
+    ur: 'Urdu',
+    fa: 'Persian',
+    ku: 'Kurdish',
+    be: 'Belarusian',
+    mk: 'Macedonian',
+    sq: 'Albanian',
+    bs: 'Bosnian',
+    eu: 'Basque',
+    ca: 'Catalan',
+    gl: 'Galician',
+    af: 'Afrikaans',
+    sw: 'Swahili',
+    zu: 'Zulu',
+    xh: 'Xhosa',
+    so: 'Somali',
+    am: 'Amharic',
+    id: 'Indonesian',
+    ms: 'Malay',
+    th: 'Thai',
+    vi: 'Vietnamese',
+    he: 'Hebrew',
+    is: 'Icelandic',
+    ga: 'Irish',
+    cy: 'Welsh',
+    et: 'Estonian',
+    lv: 'Latvian',
+    lt: 'Lithuanian',
+    fi: 'Finnish',
+    sv: 'Swedish',
+    no: 'Norwegian',
+    da: 'Danish',
+    nl: 'Dutch',
+    tr: 'Turkish',
+    ru: 'Russian',
+    uk: 'Ukrainian',
+    bg: 'Bulgarian',
+    ro: 'Romanian',
+    hu: 'Hungarian',
+    cs: 'Czech',
+    sk: 'Slovak',
+    sl: 'Slovenian',
+    hr: 'Croatian',
+    sr: 'Serbian',
+    bs: 'Bosnian',
+    mk: 'Macedonian',
+    sq: 'Albanian',
+    el: 'Greek',
+    pt: 'Portuguese',
+    es: 'Spanish',
+    fr: 'French',
+    de: 'German',
+    it: 'Italian',
+    en: 'English',
+    ja: 'Japanese',
+    ko: 'Korean',
+    zh: 'Chinese',
+    ar: 'Arabic',
+    hi: 'Hindi',
+    bn: 'Bengali',
+    ta: 'Tamil',
+    te: 'Telugu',
+    ml: 'Malayalam',
+    kn: 'Kannada',
+    mr: 'Marathi',
+    gu: 'Gujarati',
+    pa: 'Punjabi',
+    as: 'Assamese',
+    or: 'Oriya',
+    ne: 'Nepali',
+    si: 'Sinhala',
+    my: 'Burmese',
+    km: 'Khmer',
+    lo: 'Lao',
+    ka: 'Georgian',
+    hy: 'Armenian',
+    az: 'Azerbaijani',
+    kk: 'Kazakh',
+    ky: 'Kyrgyz',
+    uz: 'Uzbek',
+    tg: 'Tajik',
+    mn: 'Mongolian',
+    ps: 'Pashto',
+    sd: 'Sindhi',
+    ur: 'Urdu',
+    fa: 'Persian',
+    ku: 'Kurdish',
+    be: 'Belarusian',
+    mk: 'Macedonian',
+    sq: 'Albanian',
+    bs: 'Bosnian',
+    eu: 'Basque',
+    ca: 'Catalan',
+    gl: 'Galician',
+    af: 'Afrikaans',
+    sw: 'Swahili',
+    zu: 'Zulu',
+    xh: 'Xhosa',
+    so: 'Somali',
+    am: 'Amharic',
+  };
+  return langs[code] || code.toUpperCase();
+};
+
 export default async function EroticPage() {
   const movies = await fetchEroticContent();
-
-  const getLangName = (code: string) => {
-    const langs: Record<string, string> = {
-      pl: 'Polish',
-      ko: 'Korean',
-      fr: 'French',
-      en: 'English',
-      es: 'Spanish',
-      hi: 'Hindi',
-      ta: 'Tamil',
-      te: 'Telugu',
-      ml: 'Malayalam',
-      bn: 'Bengali',
-      de: 'German',
-      it: 'Italian'
-    };
-    return langs[code] || code.toUpperCase();
-  };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
@@ -97,6 +414,7 @@ export default async function EroticPage() {
               <p><strong>Debug:</strong></p>
               <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
               <p>Keywords: {EROTIC_KEYWORDS}</p>
+              <p>Genres: {TARGET_GENRES}</p>
               <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
               <p className="mt-2">⚠️ Check TMDB Dashboard: Ensure you have access to the 'Adult' content flag enabled for your API key.</p>
             </div>
@@ -123,13 +441,20 @@ export default async function EroticPage() {
                   </div>
                 )}
                 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 
+                {/* Movie Info on Hover */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                   <h3 className="text-sm font-bold text-white line-clamp-2">{movie.title}</h3>
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-xs text-gray-300">{movie.release_date?.slice(0, 4)}</span>
                     <span className="text-xs font-medium text-yellow-400">★ {movie.vote_average.toFixed(1)}</span>
+                  </div>
+                  <div className="mt-1">
+                    <span className="inline-block px-2 py-0.5 bg-pink-600 text-white text-[10px] rounded-full uppercase font-bold tracking-wider">
+                      {getLangName(movie.original_language)}
+                    </span>
                   </div>
                 </div>
               </Link>
