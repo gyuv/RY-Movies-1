@@ -2,7 +2,7 @@
 'use client';
 import { Suspense, useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Genre } from '../../lib/jikan';
+import { Genre } from '../../lib/anilist.js';
 
 function GenreFilterInner({ genres }: { genres: Genre[] }) {
   const [open, setOpen] = useState(false);
