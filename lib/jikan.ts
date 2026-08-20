@@ -206,3 +206,120 @@ export async function searchAnime(
     pagination: data.pagination,
   };
 }
+// --- Add these to lib/jikan.ts ---
+
+export interface Genre {
+  mal_id: number;
+  name: string;
+  count: number;
+}
+
+interface JikanGenreRaw {
+  mal_id: number;
+  name: string;
+  count: number;
+}
+
+/**
+ * Fetch anime for a specific season/year, e.g. getAnimeBySeason(2026, 'summer').
+ * Useful for a "Seasonal" tab or browse-by-season page.
+ * Valid seasons: 'winter' | 'spring' | 'summer' | 'fall'
+ */
+export async function getAnimeBySeason(
+  year: number,
+  season: 'winter' | 'spring' | 'summer' | 'fall',
+  page = 1,
+  limit = 24
+): Promise<AnimeListResponse> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    sfw: 'true',
+  });
+
+  const data = await jikanFetch<{
+    data: JikanRawAnime[];
+    pagination: { last_visible_page: number; has_next_page: boolean };
+  }>(`/seasons/${year}/${season}?${params.toString()}`);
+
+  return {
+    results: data.data.map(mapAnime),
+    pagination: data.pagination,
+  };
+}
+
+/**
+ * Convenience wrapper for "what's airing this season right now."
+ */
+export async function getCurrentSeason(
+  page = 1,
+  limit = 24
+): Promise<AnimeListResponse> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    sfw: 'true',
+  });
+
+  const data = await jikanFetch<{
+    data: JikanRawAnime[];
+    pagination: { last_visible_page: number; has_next_page: boolean };
+  }>(`/seasons/now?${params.toString()}`);
+
+  return {
+    results: data.data.map(mapAnime),
+    pagination: data.pagination,
+  };
+}
+
+/**
+ * Fetch the full list of anime genres (for building a filter dropdown/menu).
+ * e.g. Action (mal_id 1), Adventure (2), Comedy (4), Drama (8), Fantasy (10), etc.
+ */
+export async function getGenreList(): Promise<Genre[]> {
+  const data = await jikanFetch<{ data: JikanGenreRaw[] }>(
+    `/genres/anime`,
+    86400 // genres barely change, cache for a day
+  );
+
+  return data.data
+    .map((g) => ({ mal_id: g.mal_id, name: g.name, count: g.count }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Fetch anime filtered by one or more genre IDs.
+ * genreIds: array of Jikan genre mal_ids, e.g. [1, 10] for Action + Fantasy
+ * matchAll: if true, requires ALL genres present; if false (default), ANY match
+ */
+export async function getAnimeByGenre(
+  genreIds: number[],
+  page = 1,
+  limit = 24,
+  sort = 'popularity.desc'
+): Promise<AnimeListResponse> {
+  if (!genreIds.length) {
+    return getAnimeList(page, sort, limit);
+  }
+
+  const [orderBy, direction] = sort.split('.');
+
+  const params = new URLSearchParams({
+    genres: genreIds.join(','),
+    page: String(page),
+    limit: String(limit),
+    order_by: orderBy || 'popularity',
+    sort: direction || 'desc',
+    sfw: 'true',
+  });
+
+  const data = await jikanFetch<{
+    data: JikanRawAnime[];
+    pagination: { last_visible_page: number; has_next_page: boolean };
+  }>(`/anime?${params.toString()}`);
+
+  return {
+    results: data.data.map(mapAnime),
+    pagination: data.pagination,
+  };
+}
