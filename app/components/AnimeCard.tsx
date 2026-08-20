@@ -1,57 +1,26 @@
-// components/AnimeCard.tsx
-import Link from 'next/link';
+// app/components/AnimeCard.tsx
 import Image from 'next/image';
+import Link from 'next/link';
 
-interface AnimeCardProps {
-  mal_id: number;
-  title: string;
-  image_url: string;
-  score?: number;
-  episodes?: number;
-  url: string;
-}
-
-export default function AnimeCard({ mal_id, title, image_url, score, episodes, url }: AnimeCardProps) {
+export default function AnimeCard({ mal_id, title, image, episodes, type }: {
+  mal_id: number; title: string; image: string; episodes?: number; type?: string;
+}) {
   return (
-    <Link 
-      href={`/anime/${mal_id}`} 
-      className="group relative block aspect-[2/3] rounded-lg overflow-hidden bg-[#181834] transition-transform duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white/5"
-    >
-      <Image
-        src={image_url}
-        alt={title}
-        fill
-        className="object-cover"
-        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16.66vw"
-      />
-      
-      {/* Overlay Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
-
-      {/* Top Badge (Episodes/Quality) */}
-      <div className="absolute top-2 left-2">
+    <Link href={`/anime/${mal_id}`} className="group block">
+      <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#1a1a1a]">
+        <Image src={image} alt={title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
         {episodes && (
-          <span className="bg-[#1e232d]/80 backdrop-blur-sm text-[10px] text-gray-300 px-1.5 py-0.5 rounded shadow-sm border border-white/10">
-            {episodes} Eps
+          <span className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm text-green-400 text-xs font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 1116 0 8 8 0 01-16 0z"/></svg>
+            {episodes}
           </span>
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
-
-      {/* Bottom Info */}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
-        <h3 className="text-sm font-medium text-white truncate mb-1" title={title}>
-          {title}
-        </h3>
-        <div className="flex items-center justify-between">
-          {score && (
-            <span className="text-xs text-yellow-400 font-bold flex items-center gap-1">
-              <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              {score}
-            </span>
-          )}
-          <span className="text-[10px] text-gray-400 uppercase tracking-wider">Stream</span>
-        </div>
-      </div>
+      <h3 className="mt-2 text-sm font-medium text-white line-clamp-2 group-hover:text-yellow-500 transition-colors">
+        {title}
+      </h3>
+      {type && <p className="text-xs text-gray-500">{type}</p>}
     </Link>
   );
 }
