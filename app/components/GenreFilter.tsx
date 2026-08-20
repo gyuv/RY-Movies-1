@@ -85,8 +85,8 @@ function GenreFilterInner({ genres }: { genres: Genre[] }) {
               >
                 <input
                   type="checkbox"
-                  checked={selected.includes(genre.mal_id)}
-                  onChange={() => toggleGenre(genre.mal_id)}
+                  checked={selected.includes(genre.id)}
+                  onChange={() => toggleGenre(genre.id)}
                   className="accent-blue-600 w-4 h-4"
                 />
                 <span className="truncate">{genre.name}</span>
