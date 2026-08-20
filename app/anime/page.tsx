@@ -10,6 +10,21 @@ import {
   getAnimeByGenre,
   getGenreList,
 } from '../../lib/anilist';
+import { AnimeData } from "@/lib/anilist";
+// or if AnimeItem is defined locally, define it:
+interface AnimeItem {
+  id: number;
+  mal_id: number;
+  title: string;
+  romaji?: string;
+  english?: string;
+  image: string;
+  episodes?: number | null;
+  type: string;
+  synopsis: string;
+  score?: number;
+  genres: string[];
+}
 import { fetchAnimeList } from '../../lib/anilist';
 import Link from 'next/link';
 import { AnimeData } from '../../lib/anilist';
