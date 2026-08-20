@@ -70,10 +70,10 @@ export default function MovieCarousel({ title, movies, languageCode = 'en' }: Mo
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
         </button>
 
-        {/* Scrollable Container */}
+        {/* Scrollable Container with Smart TV support (carousel-container) */}
         <div 
           ref={scrollRef}
-          className="flex overflow-x-auto gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 pt-4 pb-12 scrollbar-hide snap-x snap-mandatory items-start scroll-smooth"
+          className="carousel-container flex overflow-x-auto gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 pt-4 pb-12 scrollbar-hide snap-x snap-mandatory items-start scroll-smooth"
         >
           {movies.map((movie) => (
             <div key={movie.id} className="snap-start flex-none">
