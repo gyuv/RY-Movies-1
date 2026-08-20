@@ -60,11 +60,17 @@ export default async function SeasonPage({
         </div>
 
         {/* Grid */}
-        {/* Grid */}
 {animeData.media && animeData.media.length ? (
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
     {animeData.media.map((item) => (
-      <AnimeCard key={item.id} {...item} />
+      <AnimeCard
+        key={item.id}
+        mal_id={item.id || 0}
+        title={item.title?.romaji || item.title?.english || 'Untitled'}
+        image={item.coverImage?.large || ''}
+        episodes={item.episodes}
+        type={item.format}
+      />
     ))}
   </div>
 ) : (
