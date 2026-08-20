@@ -1314,3 +1314,4 @@ export async function fetchAnimeList(page: number = 1, perPage: number = 24): Pr
   });
   return data;
 }
+export type AnimeData = Media;
