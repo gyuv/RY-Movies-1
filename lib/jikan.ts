@@ -323,3 +323,83 @@ export async function getAnimeByGenre(
     pagination: data.pagination,
   };
 }
+
+export interface MangaItem {
+  mal_id: number;
+  title: string;
+  image: string;
+  chapters: number | null;
+  volumes: number | null;
+  type: string | null;
+  synopsis: string | null;
+  score: number | null;
+  status: string | null;
+}
+
+interface JikanRawManga {
+  mal_id: number;
+  title: string;
+  title_english?: string | null;
+  images: {
+    jpg: { image_url: string; large_image_url?: string };
+    webp?: { image_url: string; large_image_url?: string };
+  };
+  chapters: number | null;
+  volumes: number | null;
+  type: string | null;
+  synopsis: string | null;
+  score: number | null;
+  status: string | null;
+}
+
+function mapManga(raw: JikanRawManga): MangaItem {
+  return {
+    mal_id: raw.mal_id,
+    title: raw.title_english || raw.title,
+    image:
+      raw.images?.webp?.large_image_url ||
+      raw.images?.jpg?.large_image_url ||
+      raw.images?.jpg?.image_url ||
+      '/placeholder.png',
+    chapters: raw.chapters ?? null,
+    volumes: raw.volumes ?? null,
+    type: raw.type ?? null,
+    synopsis: raw.synopsis ?? null,
+    score: raw.score ?? null,
+    status: raw.status ?? null,
+  };
+}
+
+export interface MangaListResponse {
+  results: MangaItem[];
+  pagination: {
+    last_visible_page: number;
+    has_next_page: boolean;
+  };
+}
+
+export async function getMangaList(
+  page = 1,
+  sort = 'popularity.desc',
+  limit = 24
+): Promise<MangaListResponse> {
+  const [orderBy, direction] = sort.split('.');
+
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+    order_by: orderBy || 'popularity',
+    sort: direction || 'desc',
+    sfw: 'true',
+  });
+
+  const data = await jikanFetch<{
+    data: JikanRawManga[];
+    pagination: { last_visible_page: number; has_next_page: boolean };
+  }>(`/manga?${params.toString()}`);
+
+  return {
+    results: data.data.map(mapManga),
+    pagination: data.pagination,
+  };
+}
