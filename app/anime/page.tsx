@@ -167,50 +167,49 @@ export default async function AnimePage({
             </div>
           </div>
 
-          {mainList.items.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
-              {mainList.items.map((item: AnimeData) => (
-                <div
-                  key={item.id}
-                  className="group relative bg-[#1a1a1a] rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 hover:z-10"
-                >
-                  <div className="relative aspect-[0.75] w-full">
-                    <Image
-  src={item.coverImage?.large || ''}
-  alt={item.title?.romaji || item.title?.english || 'Anime'}
-  fill
-  className="object-cover"
-  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16.66vw"
-/>
-                    {item.episodes && (
-                      <div className="absolute top-2 right-2 bg-black/70 text-xs font-bold px-2 py-1 rounded text-yellow-500">
-                        {item.episodes} EP
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
-                      <Link
-                        href={`/anime/${item.id}`}
-                        className="bg-yellow-500 text-black text-xs font-bold py-2 rounded hover:bg-yellow-400 transition-colors text-center"
-                      >
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="p-2">
-                    <h3 className="text-sm font-semibold truncate text-white group-hover:text-yellow-500 transition-colors">
-                      {item.title?.romaji || item.title?.english || 'Untitled'}
-                    </h3>
-                    <p className="text-xs text-gray-500">{item.type}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20 text-gray-500">
-              No anime found for this filter.
+          {mainList.media && mainList.media.length > 0 ? (
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
+    {mainList.media.map((item: AnimeData) => (
+      <div
+        key={item.id}
+        className="group relative bg-[#1a1a1a] rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 hover:z-10"
+      >
+        <div className="relative aspect-[0.75] w-full">
+          <Image
+            src={item.coverImage?.large || ''}
+            alt={item.title?.romaji || item.title?.english || 'Anime'}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16.66vw"
+          />
+          {item.episodes && (
+            <div className="absolute top-2 right-2 bg-black/70 text-xs font-bold px-2 py-1 rounded text-yellow-500">
+              {item.episodes} EP
             </div>
           )}
-
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+            <Link
+              href={`/anime/${item.id}`}
+              className="bg-yellow-500 text-black text-xs font-bold py-2 rounded hover:bg-yellow-400 transition-colors text-center"
+            >
+              View Details
+            </Link>
+          </div>
+        </div>
+        <div className="p-2">
+          <h3 className="text-sm font-semibold truncate text-white group-hover:text-yellow-500 transition-colors">
+            {item.title?.romaji || item.title?.english || 'Untitled'}
+          </h3>
+          <p className="text-xs text-gray-500">{item.format || item.status}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+) : (
+  <div className="text-center py-20 text-gray-500">
+    No anime found for this filter.
+  </div>
+)}
           {/* Pagination */}
           <div className="flex justify-center gap-3 mt-10 mb-8">
             {currentPage > 1 && (
