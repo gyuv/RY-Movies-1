@@ -16,24 +16,31 @@ interface MovieDetails {
   release_date: string;
   runtime: number;
   genres: { name: string }[];
-  cast: any[]; // Simplified for this example
+  // ✅ FIX: Add the correct TMDB type for cast
+  credits: {
+    cast: Array<{
+      id: number;
+      name: string;
+      profile_path: string | null;
+      character: string;
+    }>;
+  };
 }
 
 export default async function MoviePage({ params }: { params: { id: string } }) {
   const id = params.id;
   
-  // Fetch Movie Details
   const res = await fetch(`${BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}&append_to_response=credits`, {
     next: { revalidate: 86400 }
   });
 
   if (!res.ok) {
-    return notFound(); // This triggers the 404 page if the movie doesn't exist
+    return notFound();
   }
 
   const movie: MovieDetails = await res.json();
 
-  // Get top 5 cast members
+  // This now works because 'credits' is in the interface
   const topCast = movie.credits?.cast?.slice(0, 5) || [];
 
   return (
@@ -53,7 +60,6 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
         
-        {/* Title Overlay */}
         <div className="absolute bottom-0 left-0 p-8 max-w-4xl">
           <h1 className="text-4xl md:text-6xl font-bold mb-2">{movie.title}</h1>
           <div className="flex items-center space-x-4 text-sm text-gray-300">
@@ -63,7 +69,6 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
           </div>
         </div>
         
-        {/* Back Button */}
         <Link 
           href="/genres/erotic" 
           className="absolute top-4 left-4 bg-black/50 hover:bg-black/80 text-white px-4 py-2 rounded-full text-sm font-bold transition"
@@ -72,9 +77,7 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
         </Link>
       </div>
 
-      {/* Content */}
       <div className="max-w-5xl mx-auto p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Poster */}
         <div className="md:col-span-1">
           {movie.poster_path ? (
             <Image
@@ -87,7 +90,6 @@ export default async function MoviePage({ params }: { params: { id: string } }) 
           ) : null}
         </div>
 
-        {/* Details */}
         <div className="md:col-span-2">
           <h2 className="text-2xl font-bold mb-4">Overview</h2>
           <p className="text-gray-300 leading-relaxed mb-8">{movie.overview}</p>
