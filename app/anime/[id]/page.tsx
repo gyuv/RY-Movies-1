@@ -10,7 +10,7 @@ interface AnimeDetail {
   image_url: string;
   synopsis: string;
   score: number;
-  episodes: number;x
+  episodes: number;
   status: string;
   genres: { name: string }[];
   trailer: { youtube_id: string } | null;
