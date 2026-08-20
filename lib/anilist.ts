@@ -128,12 +128,23 @@ export async function getGenreList() {
   }
 }
 
-export async function getAnimeByGenre(genre: string) {
-  return fetchAnimeList('ANIME', 'TRENDING_DESC', 1, 20, undefined, undefined, undefined, genre);
+// UPDATED: Accepts sort, page, and perPage
+export async function getAnimeByGenre(
+  genre: string,
+  sort: string = 'TRENDING_DESC',
+  page: number = 1,
+  perPage: number = 20
+) {
+  return fetchAnimeList('ANIME', sort, page, perPage, undefined, undefined, undefined, genre);
 }
 
-export async function getAnimeList() {
-  return fetchAnimeList('ANIME', 'POPULARITY_DESC');
+// UPDATED: Accepts page, sort, and perPage
+export async function getAnimeList(
+  page: number = 1,
+  sort: string = 'POPULARITY_DESC',
+  perPage: number = 20
+) {
+  return fetchAnimeList('ANIME', sort, page, perPage);
 }
 
 export async function getAnimeBySeason(year: number, season: string) {
