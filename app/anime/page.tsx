@@ -221,14 +221,14 @@ export default async function AnimePage({
               </Link>
             )}
             
-            {mainList.items.length >= limit && (
-              <Link
-                href={buildHref(currentPage + 1)}
-                className="px-5 py-2 rounded-full border border-white/20 text-sm hover:border-yellow-500 hover:text-yellow-500 transition-colors"
-              >
-                Next
-              </Link>
-            )}
+            {mainList.media && mainList.media.length >= limit && (
+  <Link
+    href={buildHref(currentPage + 1)}
+    className="px-5 py-2 rounded-full border border-white/20 text-sm hover:border-yellow-500 hover:text-yellow-500 transition-colors"
+  >
+    Next
+  </Link>
+)}
           </div>
         </div>
       </section>
