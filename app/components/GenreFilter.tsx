@@ -4,7 +4,7 @@ import { Suspense, useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Genre } from '../../lib/jikan';
 
-export default function GenreFilter({ genres }: { genres: Genre[] }) {
+function GenreFilterInner({ genres }: { genres: Genre[] }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<number[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -112,10 +112,6 @@ export default function GenreFilter({ genres }: { genres: Genre[] }) {
       )}
     </div>
   );
-}
-function GenreFilterInner({ genres }: { genres: Genre[] }) {
-  // ...exact same body as before (useState, useRef, useEffect, toggleGenre,
-  // applyFilters, clearFilters, and the returned JSX) — unchanged
 }
 
 export default function GenreFilter({ genres }: { genres: Genre[] }) {
