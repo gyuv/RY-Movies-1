@@ -39,12 +39,12 @@ function AnimeRow({ title, animeList }: { title: string; animeList: AnimeData[] 
             <Link href={`/anime/${item.id}`} className="block">
               <div className="relative aspect-[0.75] w-full rounded-lg overflow-hidden">
                 <Image
-                  src={item.image}
-                  alt={item.title?.romaji || ''}
-                  fill
-                  className="object-cover"
-                  sizes="150px"
-                />
+  src={item.coverImage?.large || ''}
+  alt={item.title?.romaji || ''}
+  fill
+  className="object-cover"
+  sizes="150px"
+/>
               </div>
               <p className="text-xs mt-2 truncate text-gray-300">
                 {item.title?.romaji || item.title?.english || 'Untitled'}
@@ -66,12 +66,12 @@ function HeroSlider({ animeList }: { animeList: AnimeData[] }) {
     <div className="relative h-[500px] w-full overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src={featured.image}
-          alt={featured.title?.romaji || ''}
-          fill
-          className="object-cover"
-          priority
-        />
+  src={featured.coverImage?.extraLarge || featured.coverImage?.large || ''}
+  alt={featured.title?.romaji || ''}
+  fill
+  className="object-cover"
+  priority
+/>
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
       </div>
       <div className="absolute bottom-0 left-0 p-8 md:p-16 max-w-2xl">
@@ -176,12 +176,12 @@ export default async function AnimePage({
                 >
                   <div className="relative aspect-[0.75] w-full">
                     <Image
-                      src={item.image}
-                      alt={item.title?.romaji || item.title?.english || 'Anime'}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16.66vw"
-                    />
+  src={item.coverImage?.large || ''}
+  alt={item.title?.romaji || item.title?.english || 'Anime'}
+  fill
+  className="object-cover"
+  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16.66vw"
+/>
                     {item.episodes && (
                       <div className="absolute top-2 right-2 bg-black/70 text-xs font-bold px-2 py-1 rounded text-yellow-500">
                         {item.episodes} EP
