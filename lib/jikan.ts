@@ -72,8 +72,8 @@ function mapAnime(raw: JikanRawAnime): AnimeItem {
 }
 
 /**
- * Basic fetch wrapper with Next.js caching + simple retry on 429
- * (Jikan is rate-limited to ~3 req/sec, so a retry helps under load).
+ * Basic fetch wrapper with Next.js caching + simple retry on 429/504
+ * (Jikan is rate-limited to ~3 req/sec, so a retry/fallback helps under load).
  */
 async function jikanFetch<T>(
   path: string,
@@ -87,15 +87,15 @@ async function jikanFetch<T>(
         next: { revalidate: revalidateSeconds },
       });
 
-      if (res.status === 429 && retries > 0) {
-        await new Promise((r) => setTimeout(r, 1000));
+      if ((res.status === 429 || res.status === 504) && retries > 0) {
+        await new Promise((r) => setTimeout(r, 1200));
         return attemptFetch(retries - 1);
       }
 
       return res;
     } catch (error) {
       if (retries > 0) {
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1200));
         return attemptFetch(retries - 1);
       }
       throw error;
@@ -111,11 +111,47 @@ async function jikanFetch<T>(
 
     return res.json() as Promise<T>;
   } catch (error) {
-    console.error(`Failed to fetch from Jikan API (${path}):`, error);
-    // Return a safe empty structure so the page doesn't crash 504
-    return { data: [], pagination: { last_visible_page: 1, has_next_page: false } } as unknown as T;
+    console.warn(`Jikan API fallback triggered for (${path}):`, error);
+    
+    const fallbackAnime: JikanRawAnime = {
+      mal_id: 1,
+      title: 'Fallback Anime (API Busy)',
+      images: { jpg: { image_url: '/placeholder.png' } },
+      episodes: 12,
+      type: 'TV',
+      synopsis: 'The external Jikan API is temporarily busy or rate-limited. Data will reload shortly.',
+      score: 8.5,
+      status: 'Airing',
+      year: 2026,
+    };
+
+    const fallbackManga: JikanRawManga = {
+      mal_id: 1,
+      title: 'Fallback Manga (API Busy)',
+      url: '#',
+      images: { jpg: { image_url: '/placeholder.png' } },
+      chapters: null,
+      volumes: null,
+      type: 'Manga',
+      synopsis: 'API temporarily unavailable.',
+      score: 8.0,
+      status: 'Publishing',
+    };
+
+    if (path.includes('/manga')) {
+      return {
+        data: [fallbackManga],
+        pagination: { last_visible_page: 1, has_next_page: false },
+      } as unknown as T;
+    }
+
+    return {
+      data: [fallbackAnime],
+      pagination: { last_visible_page: 1, has_next_page: false },
+    } as unknown as T;
   }
 }
+
 /**
  * General-purpose anime list fetcher with pagination + sorting.
  */
@@ -306,9 +342,9 @@ export async function getAnimeByGenre(
 export interface MangaItem {
   mal_id: number;
   title: string;
-  url: string; // Added url property
+  url: string; 
   image: string;
-  image_url?: string; // Keeping for compatibility if components use image_url
+  image_url?: string; 
   chapters: number | null;
   volumes: number | null;
   type: string | null;
@@ -321,7 +357,7 @@ interface JikanRawManga {
   mal_id: number;
   title: string;
   title_english?: string | null;
-  url: string; // Added raw URL from API response
+  url: string; 
   images: {
     jpg: { image_url: string; large_image_url?: string };
     webp?: { image_url: string; large_image_url?: string };
@@ -344,9 +380,9 @@ function mapManga(raw: JikanRawManga): MangaItem {
   return {
     mal_id: raw.mal_id,
     title: raw.title_english || raw.title,
-    url: raw.url, // Map raw url
+    url: raw.url, 
     image: imgUrl,
-    image_url: imgUrl, // Fallback support for components checking item.image_url
+    image_url: imgUrl, 
     chapters: raw.chapters ?? null,
     volumes: raw.volumes ?? null,
     type: raw.type ?? null,
