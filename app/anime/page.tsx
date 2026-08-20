@@ -2,6 +2,8 @@
 import HeroSlider from '../components/HeroSlider';
 import AnimeRow from '../components/AnimeRow';
 import AnimeCard from '../components/AnimeCard';
+import TopTenSection from '../components/TopTenSection';
+import FilterTabs from '../components/FilterTabs';
 import { getAnimeList, getTrendingAnime, getTopAnime, AnimeItem } from '../../lib/jikan'; // Import AnimeItem
 import Link from 'next/link';
 
@@ -15,16 +17,10 @@ export default async function AnimePage() {
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-white font-sans">
-      {/* 1. Hero Slider */}
       <HeroSlider animeList={trending.slice(0, 5)} />
-
-      {/* 2. Trending Row */}
-      <AnimeRow title="Trending This Season" animeList={trending} />
-
-      {/* 3. Top Rated Row */}
-      <AnimeRow title="Top Rated Anime" animeList={topAllTime} />
-
-      {/* 4. Latest Airing Grid */}
+<TopTenSection animeList={topAllTime} />
+<FilterTabs />
+<AnimeRow title="Trending This Season" animeList={trending} />
       <section className="py-8 px-4 md:px-8 bg-[#0a0a0a]">
         <div className="max-w-[1600px] mx-auto">
           <div className="flex items-center justify-between mb-6">
