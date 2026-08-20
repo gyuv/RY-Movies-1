@@ -18,7 +18,7 @@ function GenreFilter({ genres }: { genres: { id: number; name: string }[] }) {
       {genres.slice(0, 10).map((genre) => (
         <Link
           key={genre.id}
-          href={`/anime?genres=${genre.id}`}
+          href={`/anime?genres=${encodeURIComponent(genre.name)}`}
           className="px-3 py-1 bg-white/10 rounded-full text-xs hover:bg-yellow-500 hover:text-black transition-colors"
         >
           {genre.name}
@@ -39,12 +39,12 @@ function AnimeRow({ title, animeList }: { title: string; animeList: AnimeData[] 
             <Link href={`/anime/${item.id}`} className="block">
               <div className="relative aspect-[0.75] w-full rounded-lg overflow-hidden">
                 <Image
-  src={item.coverImage?.large || ''}
-  alt={item.title?.romaji || ''}
-  fill
-  className="object-cover"
-  sizes="150px"
-/>
+                  src={item.coverImage?.large || ''}
+                  alt={item.title?.romaji || ''}
+                  fill
+                  className="object-cover"
+                  sizes="150px"
+                />
               </div>
               <p className="text-xs mt-2 truncate text-gray-300">
                 {item.title?.romaji || item.title?.english || 'Untitled'}
@@ -66,12 +66,12 @@ function HeroSlider({ animeList }: { animeList: AnimeData[] }) {
     <div className="relative h-[500px] w-full overflow-hidden">
       <div className="absolute inset-0">
         <Image
-  src={featured.coverImage?.extraLarge || featured.coverImage?.large || ''}
-  alt={featured.title?.romaji || ''}
-  fill
-  className="object-cover"
-  priority
-/>
+          src={featured.coverImage?.extraLarge || featured.coverImage?.large || ''}
+          alt={featured.title?.romaji || ''}
+          fill
+          className="object-cover"
+          priority
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
       </div>
       <div className="absolute bottom-0 left-0 p-8 md:p-16 max-w-2xl">
@@ -104,7 +104,7 @@ export default async function AnimePage({
   const limit = 24;
 
   const genreIds = genresParam
-    ? genresParam.split(',').map(Number).filter((n) => !isNaN(n))
+    ? genresParam.split(',').map((g) => g.trim()).filter(Boolean)
     : [];
 
   const [trending, topAllTime, genresData] = await Promise.all([
@@ -113,18 +113,20 @@ export default async function AnimePage({
     getGenreList(),
   ]);
 
-  // Extract the genres array from the response
-  const genres = genresData.genres || [];
+  // Map raw string array into object array format { id, name } expected by GenreFilter
+  const genres = (genresData.genres || []).map((genreName, index) => ({
+    id: index + 1,
+    name: genreName,
+  }));
 
   const mainList = genreIds.length
-    ? await getAnimeByGenre(String(genreIds[0]), sortValue, currentPage, limit)
+    ? await getAnimeByGenre(genreIds[0], sortValue, currentPage, limit)
     : await getAnimeList(currentPage, sortValue, limit);
 
   const gridTitle = genreIds.length
-  ? `Filtered Results (${genreIds.join(', ')})`
-  : 'Latest Updates';
+    ? `Filtered Results (${genreIds.join(', ')})`
+    : 'Latest Updates';
 
-  
   const buildHref = (newPage: number) => {
     const params = new URLSearchParams({
       ...(genresParam ? { genres: genresParam } : {}),
@@ -138,13 +140,13 @@ export default async function AnimePage({
     <main className="min-h-screen bg-[#0f0f0f] text-white font-sans">
       {trending.media && trending.media.length > 0 && <HeroSlider animeList={trending.media.slice(0, 5)} />}
 
-{trending.media && trending.media.length > 0 && (
-  <AnimeRow title="Trending This Season" animeList={trending.media} />
-)}
+      {trending.media && trending.media.length > 0 && (
+        <AnimeRow title="Trending This Season" animeList={trending.media} />
+      )}
 
-{topAllTime.media && topAllTime.media.length > 0 && (
-  <AnimeRow title="Top Rated Anime" animeList={topAllTime.media} />
-)}
+      {topAllTime.media && topAllTime.media.length > 0 && (
+        <AnimeRow title="Top Rated Anime" animeList={topAllTime.media} />
+      )}
 
       <section className="py-8 px-4 md:px-8 bg-[#0a0a0a]">
         <div className="max-w-[1600px] mx-auto">
@@ -166,48 +168,49 @@ export default async function AnimePage({
           </div>
 
           {mainList.media && mainList.media.length > 0 ? (
-  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
-    {mainList.media.map((item: AnimeData) => (
-      <div
-        key={item.id}
-        className="group relative bg-[#1a1a1a] rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 hover:z-10"
-      >
-        <div className="relative aspect-[0.75] w-full">
-          <Image
-            src={item.coverImage?.large || ''}
-            alt={item.title?.romaji || item.title?.english || 'Anime'}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16.66vw"
-          />
-          {item.episodes && (
-            <div className="absolute top-2 right-2 bg-black/70 text-xs font-bold px-2 py-1 rounded text-yellow-500">
-              {item.episodes} EP
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
+              {mainList.media.map((item: AnimeData) => (
+                <div
+                  key={item.id}
+                  className="group relative bg-[#1a1a1a] rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 hover:z-10"
+                >
+                  <div className="relative aspect-[0.75] w-full">
+                    <Image
+                      src={item.coverImage?.large || ''}
+                      alt={item.title?.romaji || item.title?.english || 'Anime'}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16.66vw"
+                    />
+                    {item.episodes && (
+                      <div className="absolute top-2 right-2 bg-black/70 text-xs font-bold px-2 py-1 rounded text-yellow-500">
+                        {item.episodes} EP
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+                      <Link
+                        href={`/anime/${item.id}`}
+                        className="bg-yellow-500 text-black text-xs font-bold py-2 rounded hover:bg-yellow-400 transition-colors text-center"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="p-2">
+                    <h3 className="text-sm font-semibold truncate text-white group-hover:text-yellow-500 transition-colors">
+                      {item.title?.romaji || item.title?.english || 'Untitled'}
+                    </h3>
+                    <p className="text-xs text-gray-500">{item.format || item.status}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 text-gray-500">
+              No anime found for this filter.
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
-            <Link
-              href={`/anime/${item.id}`}
-              className="bg-yellow-500 text-black text-xs font-bold py-2 rounded hover:bg-yellow-400 transition-colors text-center"
-            >
-              View Details
-            </Link>
-          </div>
-        </div>
-        <div className="p-2">
-          <h3 className="text-sm font-semibold truncate text-white group-hover:text-yellow-500 transition-colors">
-            {item.title?.romaji || item.title?.english || 'Untitled'}
-          </h3>
-          <p className="text-xs text-gray-500">{item.format || item.status}</p>
-        </div>
-      </div>
-    ))}
-  </div>
-) : (
-  <div className="text-center py-20 text-gray-500">
-    No anime found for this filter.
-  </div>
-)}
+
           {/* Pagination */}
           <div className="flex justify-center gap-3 mt-10 mb-8">
             {currentPage > 1 && (
@@ -218,15 +221,15 @@ export default async function AnimePage({
                 Previous
               </Link>
             )}
-            
+
             {mainList.media && mainList.media.length >= limit && (
-  <Link
-    href={buildHref(currentPage + 1)}
-    className="px-5 py-2 rounded-full border border-white/20 text-sm hover:border-yellow-500 hover:text-yellow-500 transition-colors"
-  >
-    Next
-  </Link>
-)}
+              <Link
+                href={buildHref(currentPage + 1)}
+                className="px-5 py-2 rounded-full border border-white/20 text-sm hover:border-yellow-500 hover:text-yellow-500 transition-colors"
+              >
+                Next
+              </Link>
+            )}
           </div>
         </div>
       </section>
