@@ -1,144 +1,202 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
-// Keep your existing interface and constants
+// --- CONFIG ---
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
-const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
+
+// Known Adult Keyword IDs (Verify these are still active in TMDB)
+const KEYWORDS = '620,2123,1493'; // Erotic, Bed Scene, Passion
+const TARGET_LANGS = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ja', 'de', 'it', 'pt'];
 
 interface Movie {
   id: number;
   title: string;
-  overview: string;
   poster_path: string;
   vote_average: number;
-  original_language: string;
   release_date: string;
+  original_language: string;
   popularity: number;
+  adult: boolean;
+  overview: string;
 }
 
-// Fixed typo: was ERROTIC_KEYWORDS
-const EROTIC_KEYWORDS = '620,2123,1493,1896';
+// --- LOGIC ---
 
-const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml'];
-
-async function fetchEroticContent(): Promise<Movie[]> {
+async function fetchEroticContent(debug: boolean = false): Promise<Movie[]> {
   if (!TMDB_API_KEY) {
-    console.error("TMDB_API_KEY is missing!");
+    if (debug) console.log("DEBUG: API Key Missing");
     return [];
   }
 
+  // 1. Sanity Check: Does the API key actually allow Adult content?
+  // We test against ID 530969 (365 Days)
   try {
-    const promises = TARGET_LANGUAGES.map(async (lang) => {
-      // ✅ FIXED: Fetch from /discover/movie, not just /3
-      const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${EROTIC_KEYWORDS}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=20&include_adult=true&include_video=false`,
-        { 
-          next: { revalidate: 3600 },
-          headers: { 'Accept': 'application/json' }
-        }
-      );
+    const testRes = await fetch(`${BASE_URL}/movie/530969?api_key=${TMDB_API_KEY}&include_adult=true`);
+    if (!testRes.ok) {
+      if (debug) console.warn("DEBUG: API Key Error for Adult Check:", testRes.status);
+      // If it fails, we can still try other methods, but it's a bad sign.
+    }
+  } catch (e) {
+    if (debug) console.error("DEBUG: Could not verify Adult Access", e);
+  }
 
-      if (!res.ok) {
-        console.warn(`Failed to fetch for language ${lang}: ${res.status} ${res.statusText}`);
-        return [];
-      }
-      
+  // Strategy 1: Keywords + Languages
+  let movies: Movie[] = [];
+  
+  // We only fetch keywords if we haven't found enough movies via fallback later, 
+  // but to respect the prompt, we try keywords first.
+  
+  const keywordPromises = TARGET_LANGS.map(async (lang) => {
+    const url = `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${KEYWORDS}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=10&include_adult=true&include_video=false`;
+    
+    try {
+      const res = await fetch(url, { next: { revalidate: 3600 } });
+      if (!res.ok) return [];
       const data = await res.json();
       return data.results || [];
-    });
+    } catch (e) {
+      if (debug) console.warn(`DEBUG: Keyword fetch failed for ${lang}`);
+      return [];
+    }
+  });
 
-    const results = await Promise.all(promises);
-    const allMovies: Movie[] = results.flat();
-    const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
-    const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
+  const keywordResults = await Promise.all(keywordPromises);
+  movies = keywordResults.flat();
+
+  // Deduplicate
+  movies = Array.from(new Map(movies.map(item => [item.id, item])).values());
+  
+  // If keywords returned very few results (e.g., < 10), fallback to Top Rated Adult
+  if (movies.length < 15) {
+    if (debug) console.log(`DEBUG: Only ${movies.length} keyword results. Falling back to Top Rated Adult.`);
     
-    return sortedMovies.slice(0, 20);
-
-  } catch (error) {
-    console.error("Error fetching erotic content:", error);
-    return [];
+    // Strategy 2: Top Rated Adult Movies (Global)
+    // This is often more reliable for "Hardcore" hits than specific keywords
+    try {
+      const topRes = await fetch(`${BASE_URL}/movie/top_rated?api_key=${TMDB_API_KEY}&include_adult=true&language=en-US`, { next: { revalidate: 3600 } });
+      if (topRes.ok) {
+        const topData = await topRes.json();
+        // Filter for adult movies and sort by popularity
+        const adultMovies = topData.results
+          .filter((m: Movie) => m.adult === true || m.genre_ids?.includes(17)) // 17 is Romance
+          .sort((a: Movie, b: Movie) => b.popularity - a.popularity)
+          .slice(0, 20);
+        
+        // Merge with existing keywords (avoiding duplicates)
+        const existingIds = new Set(movies.map(m => m.id));
+        adultMovies.forEach(m => {
+          if (!existingIds.has(m.id)) {
+            movies.push(m);
+          }
+        });
+      }
+    } catch (e) {
+      if (debug) console.error("DEBUG: Fallback fetch failed", e);
+    }
   }
+
+  // Final Sort by Popularity
+  movies.sort((a, b) => b.popularity - a.popularity);
+
+  // Limit to 20
+  return movies.slice(0, 20);
 }
 
-export default async function EroticPage() {
-  const movies = await fetchEroticContent();
+// --- COMPONENT ---
 
-  const getLangName = (code: string) => {
-    const langs: Record<string, string> = {
-      pl: 'Polish',
-      ko: 'Korean',
-      fr: 'French',
-      en: 'English',
-      es: 'Spanish',
-      hi: 'Hindi',
-      ta: 'Tamil',
-      te: 'Telugu',
-      ml: 'Malayalam',
-      bn: 'Bengali',
-      de: 'German',
-      it: 'Italian'
-    };
-    return langs[code] || code.toUpperCase();
-  };
+export default async function EroticPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
+  const debug = searchParams?.debug === '1';
+  const movies = await fetchEroticContent(debug === true);
+
+  if (movies.length === 0 && debug) {
+    return (
+      <div className="min-h-screen bg-black text-white p-8 font-mono">
+        <h1 className="text-2xl text-red-500 mb-4">Debug Mode: No Content</h1>
+        <div className="space-y-2 text-sm text-gray-400">
+          <p>API Key: {TMDB_API_KEY ? 'Present' : 'Missing'}</p>
+          <p>Keywords: {KEYWORDS}</p>
+          <p>Languages: {TARGET_LANGS.join(', ')}</p>
+          <p className="mt-4 text-yellow-500">
+            1. Go to <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer" className="underline">TMDB API Settings</a> and ensure "Adult" is enabled.
+          </p>
+          <p className="text-yellow-500">2. Wait 24 hours for changes to propagate.</p>
+          <p className="text-yellow-500">3. Verify your API Key has the "Read" access token.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (movies.length === 0) {
+    return notFound(); // Or show a generic "No movies found" UI
+  }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-2 text-pink-500">
-          Hardcore Erotic Collection
-        </h1>
-        <p className="text-center text-gray-400 mb-8">
-          Global Hits: 365 Days, The Handmaiden, Nymphomaniac & More
-        </p>
-        
-        {movies.length === 0 ? (
-          <div className="text-center text-gray-400 py-20">
-            <p className="text-xl font-semibold text-pink-400">No movies found.</p>
-            <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
-              <p><strong>Debug:</strong></p>
-              <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
-              <p>Keywords: {EROTIC_KEYWORDS}</p>
-              <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
-              <p className="mt-2">⚠️ Check TMDB Dashboard: Ensure you have access to the 'Adult' content flag enabled for your API key.</p>
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <header className="py-8 px-4 md:px-8 border-b border-zinc-800">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-2">
+            Hardcore Erotic Collection
+          </h1>
+          <p className="text-zinc-400 text-sm md:text-base">
+            Global Hits: 365 Days, The Handmaiden, Nymphomaniac & More
+          </p>
+          {debug && (
+            <div className="mt-4 inline-block px-3 py-1 bg-zinc-900 rounded text-xs text-green-400 border border-zinc-700">
+              DEBUG MODE ON
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {movies.map((movie) => (
-              <Link 
-                key={movie.id} 
-                href={`/movie/${movie.id}`} 
-                className="group relative block aspect-[2/3] overflow-hidden rounded-lg bg-gray-900"
-              >
-                {movie.poster_path ? (
-                  <Image
-                    src={`${IMAGE_BASE_URL}${movie.poster_path}`}
-                    alt={movie.title}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 20vw, 15vw"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-gray-800 text-gray-500">
-                    No Poster
-                  </div>
-                )}
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <h3 className="text-sm font-bold text-white line-clamp-2">{movie.title}</h3>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-gray-300">{movie.release_date?.slice(0, 4)}</span>
-                    <span className="text-xs font-medium text-yellow-400">★ {movie.vote_average.toFixed(1)}</span>
-                  </div>
+          )}
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          {movies.map((movie) => (
+            <Link
+              key={movie.id}
+              href={`/movies/${movie.id}`}
+              className="group relative block aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900 shadow-lg hover:shadow-pink-500/20 transition-all duration-300"
+            >
+              <Image
+                src={movie.poster_path ? `${IMG_BASE}${movie.poster_path}` : '/placeholder-poster.jpg'}
+                alt={movie.title}
+                width={300}
+                height={450}
+                className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                unoptimized // Optional: if you have domain issues with Next.js image optimization
+              />
+              
+              {/* Overlay on Hover */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                <p className="text-xs text-zinc-300 line-clamp-2 mb-1">{movie.overview}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] text-zinc-500 uppercase">{movie.release_date?.slice(0, 4)}</span>
+                  <span className="text-xs font-bold text-yellow-400">★ {movie.vote_average.toFixed(1)}</span>
                 </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+              </div>
+
+              {/* Badge for Adult */}
+              <div className="absolute top-2 right-2">
+                <span className="px-1.5 py-0.5 bg-pink-600/90 text-[10px] font-bold rounded text-white uppercase tracking-wider">
+                  18+
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Debug Toggle */}
+        <div className="mt-12 text-center">
+          <Link 
+            href="?debug=1" 
+            className="text-xs text-zinc-600 hover:text-zinc-400 underline"
+          >
+            {debug ? 'Hide Debug' : 'Show Debug Info'}
+          </Link>
+        </div>
+      </main>
     </div>
   );
 }
