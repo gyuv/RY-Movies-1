@@ -121,11 +121,11 @@ export default async function AnimePage({
     : await getAnimeList(currentPage, sortValue, limit);
 
   const gridTitle = genreIds.length
-    ? `Filtered Results (${genreIds
-        .map((id) => genres.find((g) => g.id === id)?.name)
-        .filter(Boolean)
-        .join(', ')})`
-    : 'Latest Updates';
+  ? `Filtered Results (${genreIds
+      .map((id) => genres.find((g) => g === id)) // or if genreIds contains strings/names directly
+      .filter(Boolean)
+      .join(', ')})`
+  : 'Latest Updates';
 
   const buildHref = (newPage: number) => {
     const params = new URLSearchParams({
