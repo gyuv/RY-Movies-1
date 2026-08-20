@@ -80,7 +80,7 @@ function GenreFilterInner({ genres }: { genres: Genre[] }) {
           <div className="grid grid-cols-2 gap-1 mb-3">
             {genres.map((genre) => (
               <label
-                key={genre.mal_id}
+                key={genre.id}
                 className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white/5 cursor-pointer text-sm text-gray-300"
               >
                 <input
