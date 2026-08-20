@@ -18,38 +18,46 @@ export default function MovieCard({ id, title, poster_path, vote_average, releas
   return (
     <Link 
       href={`/media/${id}`}
-      className="group relative flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] cursor-pointer"
+      className="group block w-[140px] sm:w-[160px] md:w-[190px] flex-shrink-0 relative transition-transform duration-300 hover:scale-105 hover:z-20 cursor-pointer"
     >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-t-lg bg-[#1e1e1e] shadow-lg transition-all duration-300 group-hover:border-t-4 group-hover:border-red-600 group-hover:shadow-2xl z-10">
+      {/* 1. Image Container - Strictly locked aspect ratio (2:3) */}
+      <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-[#1a1a1a] shadow-lg border border-transparent group-hover:border-red-600 group-hover:shadow-[0_8px_30px_rgb(220,38,38,0.2)] transition-all duration-300">
         <Image
           src={imageUrl}
           alt={title}
           fill
-          className="object-cover transition-opacity duration-300 group-hover:opacity-100"
-          sizes="(max-width: 640px) 140px, (max-width: 768px) 160px, 180px"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+          sizes="(max-width: 640px) 140px, (max-width: 768px) 160px, 190px"
           loading="lazy"
         />
         
-        {/* Rating Badge */}
-        <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm text-yellow-500 text-xs font-bold px-2 py-1 rounded-md">
-          ★ {vote_average.toFixed(1)}
+        {/* Subtle Dark Vignette on Hover for Depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Rating Badge - Moves inside the image on hover for a cleaner look */}
+        <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-yellow-500 text-xs font-bold px-2 py-1 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
+          <span>★</span> {vote_average.toFixed(1)}
         </div>
         
-        {/* Language Badge - Changed from Blue to Dark/Red matching theme */}
-        <div className="absolute top-2 left-2 bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase">
+        {/* Language Badge */}
+        <div className="absolute top-2 left-2 bg-red-600/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-md uppercase">
           {languageCode}
         </div>
       </div>
 
-      {/* Info Block - Changes to White background on hover to match the 'Red Sparrow' active state */}
-      <div className="bg-[#1a1a1a] p-2 rounded-b-lg transition-colors duration-300 group-hover:bg-gray-100 group-hover:text-black z-20 relative -mt-1 pt-3">
-        <h3 className="text-sm font-bold text-gray-200 truncate group-hover:text-gray-900 transition-colors">
+      {/* 2. Info Block - Fixed Height to prevent uneven carousels */}
+      <div className="pt-3 px-1 h-[60px] flex flex-col justify-start">
+        {/* line-clamp-1 forces long titles to truncate gracefully with ... */}
+        <h3 className="text-sm md:text-base font-semibold text-gray-200 line-clamp-1 group-hover:text-white transition-colors">
           {title}
         </h3>
-        <p className="text-xs text-gray-500 font-medium group-hover:text-gray-600 flex justify-between mt-1">
+        
+        <div className="flex items-center justify-between mt-1 text-xs text-gray-500 font-medium">
           <span>{year}</span>
-          <span className="group-hover:text-yellow-600">★ {vote_average.toFixed(1)}</span>
-        </p>
+          <span className="text-gray-400 group-hover:text-yellow-500 transition-colors">
+            ★ {vote_average.toFixed(1)}
+          </span>
+        </div>
       </div>
     </Link>
   );
