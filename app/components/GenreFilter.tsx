@@ -1,6 +1,6 @@
 // app/components/GenreFilter.tsx
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { Suspense, useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Genre } from '../../lib/jikan';
 
@@ -111,5 +111,21 @@ export default function GenreFilter({ genres }: { genres: Genre[] }) {
         </div>
       )}
     </div>
+  );
+}
+function GenreFilterInner({ genres }: { genres: Genre[] }) {
+  // ...exact same body as before (useState, useRef, useEffect, toggleGenre,
+  // applyFilters, clearFilters, and the returned JSX) — unchanged
+}
+
+export default function GenreFilter({ genres }: { genres: Genre[] }) {
+  return (
+    <Suspense fallback={
+      <div className="px-5 py-2 rounded-full text-sm font-medium border border-white/20 text-gray-500">
+        Genres
+      </div>
+    }>
+      <GenreFilterInner genres={genres} />
+    </Suspense>
   );
 }
