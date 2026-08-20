@@ -92,9 +92,9 @@ export default function Footer() {
                   Horror & Thriller
                 </Link>
               </li>
-              {/* Erotic 18+ Link */}
+              {/* UPDATED: Points to your dedicated page route now */}
               <li>
-                <Link href="/?include_adult=true" className="text-gray-400 hover:text-red-500 transition-colors flex items-center gap-2">
+                <Link href="/genres/erotic" className="text-gray-400 hover:text-red-500 transition-colors flex items-center gap-2">
                   Erotic 
                   <span className="px-1.5 py-0.5 rounded bg-red-600/20 border border-red-600/50 text-red-500 text-[9px] font-bold tracking-wider">
                     18+
