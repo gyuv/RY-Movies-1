@@ -82,27 +82,40 @@ async function jikanFetch<T>(
   const url = `${BASE_URL}${path}`;
 
   const attemptFetch = async (retries: number): Promise<Response> => {
-    const res = await fetch(url, {
-      next: { revalidate: revalidateSeconds },
-    });
+    try {
+      const res = await fetch(url, {
+        next: { revalidate: revalidateSeconds },
+      });
 
-    if (res.status === 429 && retries > 0) {
-      await new Promise((r) => setTimeout(r, 800));
-      return attemptFetch(retries - 1);
+      if (res.status === 429 && retries > 0) {
+        await new Promise((r) => setTimeout(r, 1000));
+        return attemptFetch(retries - 1);
+      }
+
+      return res;
+    } catch (error) {
+      if (retries > 0) {
+        await new Promise((r) => setTimeout(r, 1000));
+        return attemptFetch(retries - 1);
+      }
+      throw error;
     }
-
-    return res;
   };
 
-  const res = await attemptFetch(2);
+  try {
+    const res = await attemptFetch(2);
 
-  if (!res.ok) {
-    throw new Error(`Jikan API error: ${res.status} ${res.statusText} for ${path}`);
+    if (!res.ok) {
+      throw new Error(`Jikan API error: ${res.status} ${res.statusText} for ${path}`);
+    }
+
+    return res.json() as Promise<T>;
+  } catch (error) {
+    console.error(`Failed to fetch from Jikan API (${path}):`, error);
+    // Return a safe empty structure so the page doesn't crash 504
+    return { data: [], pagination: { last_visible_page: 1, has_next_page: false } } as unknown as T;
   }
-
-  return res.json() as Promise<T>;
 }
-
 /**
  * General-purpose anime list fetcher with pagination + sorting.
  */
