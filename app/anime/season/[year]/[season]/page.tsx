@@ -60,17 +60,18 @@ export default async function SeasonPage({
         </div>
 
         {/* Grid */}
-        {animeData.results.length ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {animeData.results.map((item) => (
-              <AnimeCard key={item.mal_id} {...item} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center py-20">
-            No anime found for this season yet.
-          </p>
-        )}
+        {/* Grid */}
+{animeData.media && animeData.media.length ? (
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+    {animeData.media.map((item) => (
+      <AnimeCard key={item.id} {...item} />
+    ))}
+  </div>
+) : (
+  <div className="text-center py-20 text-gray-500">
+    No anime found for this season.
+  </div>
+)}
 
         {/* Pagination */}
         <div className="flex justify-center gap-3 mt-10">
