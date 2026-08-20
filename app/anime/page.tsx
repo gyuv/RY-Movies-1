@@ -40,7 +40,7 @@ export default async function AnimePage({
 
   const gridTitle = genreIds.length
     ? `Filtered Results (${genreIds
-        .map((id) => genres.find((g) => g.mal_id === id)?.name)
+        .map((id) => genres.find((g: any) => g.mal_id === id)?.name)
         .filter(Boolean)
         .join(', ')})`
     : 'Latest Updates';
