@@ -10,9 +10,9 @@ import {
   getAnimeByGenre,
   getGenreList,
   AnimeItem,
-} from '../../lib/jikan';
+} from '../../lib/anilist';
 import Link from 'next/link';
-
+import { AnimeData } from '../../lib/anilist';
 export default async function AnimePage({
   searchParams,
 }: {
