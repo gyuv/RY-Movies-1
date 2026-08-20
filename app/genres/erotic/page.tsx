@@ -19,18 +19,17 @@ interface Movie {
   adult: boolean;
 }
 
-// 🏷️ FreudX-Style Keywords
-// This list targets the "Hardcore" and "Exotic" niche specifically
-const FREUDX_KEYWORDS = '1009,1493,1896,2123,11836,12295,17165,17664,20594,23038,25463,27047,2924,2926,3213,3603,4365,4607,5451,5991,6622,7236,7755,8093,9303,1009,1493,1896,2123';
+// 🏷️ FreudX-Style Keywords (More inclusive)
+const FREUDX_KEYWORDS = '1009,1493,1896,2123,11836,12295,17165,17664,20594,23038,25463,27047,2924,2926,3213,3603,4365,4607,5451,5991,6622,7236,7755,8093,9303';
 
 // 🎭 Genres to pair with keywords for better coverage
 const TARGET_GENRES = '10749,18,53,9648'; // Romance, Drama, Thriller, Mystery
 
-// 🌍 Target Languages (FreudX has a strong international focus)
+// 🌍 Target Languages
 const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml', 'pt', 'ru', 'ja', 'zh'];
 
 /**
- * Fetches content using FreudX-style keywords
+ * Fetches content using a dual strategy: Keywords + Genres
  */
 async function fetchEroticContent(): Promise<Movie[]> {
   if (!TMDB_API_KEY) {
@@ -39,10 +38,10 @@ async function fetchEroticContent(): Promise<Movie[]> {
   }
 
   try {
+    // Strategy 1: Fetch with Keywords + Genres
     const promises = TARGET_LANGUAGES.map(async (lang) => {
-      // Use both keywords and genres to ensure we get "Hardcore" content
       const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${FREUDX_KEYWORDS}&with_genres=${TARGET_GENRES}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=15&include_adult=true&include_video=false`,
+        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${FREUDX_KEYWORDS}&with_genres=${TARGET_GENRES}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false`,
         { 
           next: { revalidate: 3600 },
           headers: { 'Accept': 'application/json' }
@@ -59,7 +58,21 @@ async function fetchEroticContent(): Promise<Movie[]> {
     });
 
     const results = await Promise.all(promises);
-    const allMovies: Movie[] = results.flat();
+    let allMovies: Movie[] = results.flat();
+    
+    // Strategy 2: Fallback if keywords return too few results
+    // Fetch popular Adult movies directly if we have less than 10 movies
+    if (allMovies.length < 10) {
+      console.warn("Keyword search yielded few results. Falling back to popular adult movies.");
+      const fallbackRes = await fetch(
+        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false&with_genres=${TARGET_GENRES}`,
+        { next: { revalidate: 3600 } }
+      );
+      if (fallbackRes.ok) {
+        const fallbackData = await fallbackRes.json();
+        allMovies = [...allMovies, ...(fallbackData.results || [])];
+      }
+    }
     
     // Remove duplicates
     const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
@@ -67,7 +80,7 @@ async function fetchEroticContent(): Promise<Movie[]> {
     // Sort by Popularity
     const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
     
-    // Return top 24 (FreudX often shows more items)
+    // Return top 24
     return sortedMovies.slice(0, 24);
 
   } catch (error) {
@@ -113,6 +126,12 @@ export default async function FreudXPage() {
           <div className="text-center py-20 text-gray-500">
             <p>No content found matching the FreudX criteria.</p>
             <p className="text-xs mt-2">Check TMDB API Key & Adult Content settings.</p>
+            <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
+              <p><strong>Debug:</strong></p>
+              <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
+              <p>Keywords: {FREUDX_KEYWORDS}</p>
+              <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
