@@ -35,7 +35,7 @@ export default async function AnimePage({
   ]);
 
   const mainList = genreIds.length
-    ? await getAnimeByGenre(genreIds, currentPage, 24, sortValue)
+    ? await getAnimeByGenre(String(genreIds[0]), sortValue, currentPage, 24)
     : await getAnimeList(currentPage, sortValue, 24);
 
   const gridTitle = genreIds.length
