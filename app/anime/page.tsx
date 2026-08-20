@@ -52,7 +52,7 @@ export default async function AnimePage({
 <AnimeRow title="Trending This Season" animeList={trending.items} />
 
       {/* 3. Top Rated Row */}
-      <AnimeRow title="Top Rated Anime" animeList={topAllTime} />
+      <AnimeRow title="Top Rated Anime" animeList={topAllTime.items} />
 
       {/* 4. Filterable Grid */}
       <section className="py-8 px-4 md:px-8 bg-[#0a0a0a]">
