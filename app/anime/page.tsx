@@ -10,7 +10,7 @@ import {
   getAnimeByGenre,
   getGenreList,
   AnimeItem,
-} from '../../lib/anilist';
+} from '../../lib/anilist.js';
 import Link from 'next/link';
 import { AnimeData } from '../../lib/anilist';
 export default async function AnimePage({
