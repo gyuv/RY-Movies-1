@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
-import { AnimeItem } from '../../lib/anilist';
+import { Media as AnimeItem } from '../../lib/anilist';
 
 export default function HeroSlider({ animeList }: { animeList: AnimeItem[] }) {
   const [active, setActive] = useState(0);
