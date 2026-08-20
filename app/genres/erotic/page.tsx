@@ -17,22 +17,20 @@ interface Movie {
   release_date: string;
   popularity: number;
   adult: boolean;
-  genre_ids: number[];
 }
 
-// 🏷️ Keywords for "Hardcore/Erotic" content
-// 620 = Erotic, 1009 = Sex, 2123 = Bed Scene, 1493 = Passion, 1896 = Love Triangle
-const EROTIC_KEYWORDS = '620,1009,2123,1493,1896';
+// 🏷️ FreudX-Style Keywords
+// This list targets the "Hardcore" and "Exotic" niche specifically
+const FREUDX_KEYWORDS = '1009,1493,1896,2123,11836,12295,17165,17664,20594,23038,25463,27047,2924,2926,3213,3603,4365,4607,5451,5991,6622,7236,7755,8093,9303,1009,1493,1896,2123';
 
-// 🎭 Genres to include (Erotic Thriller, Romance, Drama)
-// 5285 = Erotic Thriller, 10749 = Romance, 18 = Drama
-const TARGET_GENRES = '5285,10749,18';
+// 🎭 Genres to pair with keywords for better coverage
+const TARGET_GENRES = '10749,18,53,9648'; // Romance, Drama, Thriller, Mystery
 
-// 🌍 Target Languages
-const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml'];
+// 🌍 Target Languages (FreudX has a strong international focus)
+const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml', 'pt', 'ru', 'ja', 'zh'];
 
 /**
- * Fetches erotic content from TMDB using a hybrid approach (Keywords + Genres)
+ * Fetches content using FreudX-style keywords
  */
 async function fetchEroticContent(): Promise<Movie[]> {
   if (!TMDB_API_KEY) {
@@ -42,11 +40,11 @@ async function fetchEroticContent(): Promise<Movie[]> {
 
   try {
     const promises = TARGET_LANGUAGES.map(async (lang) => {
-      // Fetch using both keywords and genres, sorted by popularity
+      // Use both keywords and genres to ensure we get "Hardcore" content
       const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${EROTIC_KEYWORDS}&with_genres=${TARGET_GENRES}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=10&include_adult=true&include_video=false`,
+        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${FREUDX_KEYWORDS}&with_genres=${TARGET_GENRES}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=15&include_adult=true&include_video=false`,
         { 
-          next: { revalidate: 3600 }, // Cache for 1 hour
+          next: { revalidate: 3600 },
           headers: { 'Accept': 'application/json' }
         }
       );
@@ -60,20 +58,17 @@ async function fetchEroticContent(): Promise<Movie[]> {
       return data.results || [];
     });
 
-    // Wait for all language fetches
     const results = await Promise.all(promises);
-    
-    // Flatten array
     const allMovies: Movie[] = results.flat();
-
-    // Remove duplicates based on ID
+    
+    // Remove duplicates
     const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
-
-    // Sort by Popularity (descending) to get big hits like 365 Days first
+    
+    // Sort by Popularity
     const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
-
-    // Return top 20
-    return sortedMovies.slice(0, 20);
+    
+    // Return top 24 (FreudX often shows more items)
+    return sortedMovies.slice(0, 24);
 
   } catch (error) {
     console.error("Error fetching erotic content:", error);
@@ -86,373 +81,73 @@ async function fetchEroticContent(): Promise<Movie[]> {
  */
 const getLangName = (code: string) => {
   const langs: Record<string, string> = {
-    pl: 'Polish',
-    ko: 'Korean',
-    fr: 'French',
-    en: 'English',
-    es: 'Spanish',
-    hi: 'Hindi',
-    ta: 'Tamil',
-    te: 'Telugu',
-    ml: 'Malayalam',
-    bn: 'Bengali',
-    de: 'German',
-    it: 'Italian',
-    ja: 'Japanese',
-    pt: 'Portuguese',
-    ru: 'Russian',
-    sv: 'Swedish',
-    no: 'Norwegian',
-    da: 'Danish',
-    fi: 'Finnish',
-    nl: 'Dutch',
-    tr: 'Turkish',
-    ar: 'Arabic',
-    zh: 'Chinese',
-    th: 'Thai',
-    vi: 'Vietnamese',
-    id: 'Indonesian',
-    ms: 'Malay',
-    he: 'Hebrew',
-    cs: 'Czech',
-    hu: 'Hungarian',
-    ro: 'Romanian',
-    bg: 'Bulgarian',
-    hr: 'Croatian',
-    sk: 'Slovak',
-    sl: 'Slovenian',
-    sr: 'Serbian',
-    uk: 'Ukrainian',
-    et: 'Estonian',
-    lv: 'Latvian',
-    lt: 'Lithuanian',
-    is: 'Icelandic',
-    ga: 'Irish',
-    cy: 'Welsh',
-    eu: 'Basque',
-    ca: 'Catalan',
-    gl: 'Galician',
-    af: 'Afrikaans',
-    sw: 'Swahili',
-    zu: 'Zulu',
-    xh: 'Xhosa',
-    so: 'Somali',
-    am: 'Amharic',
-    or: 'Oriya',
-    ne: 'Nepali',
-    si: 'Sinhala',
-    my: 'Burmese',
-    km: 'Khmer',
-    lo: 'Lao',
-    ka: 'Georgian',
-    hy: 'Armenian',
-    az: 'Azerbaijani',
-    kk: 'Kazakh',
-    ky: 'Kyrgyz',
-    uz: 'Uzbek',
-    tg: 'Tajik',
-    mn: 'Mongolian',
-    ps: 'Pashto',
-    sd: 'Sindhi',
-    ur: 'Urdu',
-    fa: 'Persian',
-    ku: 'Kurdish',
-    be: 'Belarusian',
-    mk: 'Macedonian',
-    sq: 'Albanian',
-    bs: 'Bosnian',
-    lt: 'Lithuanian',
-    el: 'Greek',
-    pt: 'Portuguese',
-    ro: 'Romanian',
-    bg: 'Bulgarian',
-    hr: 'Croatian',
-    sr: 'Serbian',
-    sl: 'Slovenian',
-    sk: 'Slovak',
-    cs: 'Czech',
-    hu: 'Hungarian',
-    pl: 'Polish',
-    de: 'German',
-    it: 'Italian',
-    es: 'Spanish',
-    fr: 'French',
-    en: 'English',
-    ja: 'Japanese',
-    ko: 'Korean',
-    zh: 'Chinese',
-    ar: 'Arabic',
-    hi: 'Hindi',
-    bn: 'Bengali',
-    ta: 'Tamil',
-    te: 'Telugu',
-    ml: 'Malayalam',
-    kn: 'Kannada',
-    mr: 'Marathi',
-    gu: 'Gujarati',
-    pa: 'Punjabi',
-    as: 'Assamese',
-    or: 'Oriya',
-    ne: 'Nepali',
-    si: 'Sinhala',
-    my: 'Burmese',
-    km: 'Khmer',
-    lo: 'Lao',
-    ka: 'Georgian',
-    hy: 'Armenian',
-    az: 'Azerbaijani',
-    kk: 'Kazakh',
-    ky: 'Kyrgyz',
-    uz: 'Uzbek',
-    tg: 'Tajik',
-    mn: 'Mongolian',
-    ps: 'Pashto',
-    sd: 'Sindhi',
-    ur: 'Urdu',
-    fa: 'Persian',
-    ku: 'Kurdish',
-    be: 'Belarusian',
-    mk: 'Macedonian',
-    sq: 'Albanian',
-    bs: 'Bosnian',
-    eu: 'Basque',
-    ca: 'Catalan',
-    gl: 'Galician',
-    af: 'Afrikaans',
-    sw: 'Swahili',
-    zu: 'Zulu',
-    xh: 'Xhosa',
-    so: 'Somali',
-    am: 'Amharic',
-    id: 'Indonesian',
-    ms: 'Malay',
-    th: 'Thai',
-    vi: 'Vietnamese',
-    he: 'Hebrew',
-    is: 'Icelandic',
-    ga: 'Irish',
-    cy: 'Welsh',
-    et: 'Estonian',
-    lv: 'Latvian',
-    lt: 'Lithuanian',
-    fi: 'Finnish',
-    sv: 'Swedish',
-    no: 'Norwegian',
-    da: 'Danish',
-    nl: 'Dutch',
-    tr: 'Turkish',
-    ru: 'Russian',
-    uk: 'Ukrainian',
-    bg: 'Bulgarian',
-    ro: 'Romanian',
-    hu: 'Hungarian',
-    cs: 'Czech',
-    sk: 'Slovak',
-    sl: 'Slovenian',
-    hr: 'Croatian',
-    sr: 'Serbian',
-    bs: 'Bosnian',
-    mk: 'Macedonian',
-    sq: 'Albanian',
-    el: 'Greek',
-    pt: 'Portuguese',
-    es: 'Spanish',
-    fr: 'French',
-    de: 'German',
-    it: 'Italian',
-    en: 'English',
-    ja: 'Japanese',
-    ko: 'Korean',
-    zh: 'Chinese',
-    ar: 'Arabic',
-    hi: 'Hindi',
-    bn: 'Bengali',
-    ta: 'Tamil',
-    te: 'Telugu',
-    ml: 'Malayalam',
-    kn: 'Kannada',
-    mr: 'Marathi',
-    gu: 'Gujarati',
-    pa: 'Punjabi',
-    as: 'Assamese',
-    or: 'Oriya',
-    ne: 'Nepali',
-    si: 'Sinhala',
-    my: 'Burmese',
-    km: 'Khmer',
-    lo: 'Lao',
-    ka: 'Georgian',
-    hy: 'Armenian',
-    az: 'Azerbaijani',
-    kk: 'Kazakh',
-    ky: 'Kyrgyz',
-    uz: 'Uzbek',
-    tg: 'Tajik',
-    mn: 'Mongolian',
-    ps: 'Pashto',
-    sd: 'Sindhi',
-    ur: 'Urdu',
-    fa: 'Persian',
-    ku: 'Kurdish',
-    be: 'Belarusian',
-    mk: 'Macedonian',
-    sq: 'Albanian',
-    bs: 'Bosnian',
-    eu: 'Basque',
-    ca: 'Catalan',
-    gl: 'Galician',
-    af: 'Afrikaans',
-    sw: 'Swahili',
-    zu: 'Zulu',
-    xh: 'Xhosa',
-    so: 'Somali',
-    am: 'Amharic',
-    id: 'Indonesian',
-    ms: 'Malay',
-    th: 'Thai',
-    vi: 'Vietnamese',
-    he: 'Hebrew',
-    is: 'Icelandic',
-    ga: 'Irish',
-    cy: 'Welsh',
-    et: 'Estonian',
-    lv: 'Latvian',
-    lt: 'Lithuanian',
-    fi: 'Finnish',
-    sv: 'Swedish',
-    no: 'Norwegian',
-    da: 'Danish',
-    nl: 'Dutch',
-    tr: 'Turkish',
-    ru: 'Russian',
-    uk: 'Ukrainian',
-    bg: 'Bulgarian',
-    ro: 'Romanian',
-    hu: 'Hungarian',
-    cs: 'Czech',
-    sk: 'Slovak',
-    sl: 'Slovenian',
-    hr: 'Croatian',
-    sr: 'Serbian',
-    bs: 'Bosnian',
-    mk: 'Macedonian',
-    sq: 'Albanian',
-    el: 'Greek',
-    pt: 'Portuguese',
-    es: 'Spanish',
-    fr: 'French',
-    de: 'German',
-    it: 'Italian',
-    en: 'English',
-    ja: 'Japanese',
-    ko: 'Korean',
-    zh: 'Chinese',
-    ar: 'Arabic',
-    hi: 'Hindi',
-    bn: 'Bengali',
-    ta: 'Tamil',
-    te: 'Telugu',
-    ml: 'Malayalam',
-    kn: 'Kannada',
-    mr: 'Marathi',
-    gu: 'Gujarati',
-    pa: 'Punjabi',
-    as: 'Assamese',
-    or: 'Oriya',
-    ne: 'Nepali',
-    si: 'Sinhala',
-    my: 'Burmese',
-    km: 'Khmer',
-    lo: 'Lao',
-    ka: 'Georgian',
-    hy: 'Armenian',
-    az: 'Azerbaijani',
-    kk: 'Kazakh',
-    ky: 'Kyrgyz',
-    uz: 'Uzbek',
-    tg: 'Tajik',
-    mn: 'Mongolian',
-    ps: 'Pashto',
-    sd: 'Sindhi',
-    ur: 'Urdu',
-    fa: 'Persian',
-    ku: 'Kurdish',
-    be: 'Belarusian',
-    mk: 'Macedonian',
-    sq: 'Albanian',
-    bs: 'Bosnian',
-    eu: 'Basque',
-    ca: 'Catalan',
-    gl: 'Galician',
-    af: 'Afrikaans',
-    sw: 'Swahili',
-    zu: 'Zulu',
-    xh: 'Xhosa',
-    so: 'Somali',
-    am: 'Amharic',
+    pl: 'PL', ko: 'KR', fr: 'FR', en: 'EN', es: 'ES', hi: 'HI', ta: 'TA', te: 'TE', ml: 'ML',
+    pt: 'PT', ru: 'RU', ja: 'JP', zh: 'CN', de: 'DE', it: 'IT', ar: 'AR', tr: 'TR', sv: 'SE',
+    no: 'NO', da: 'DK', fi: 'FI', nl: 'NL', id: 'ID', ms: 'MS', th: 'TH', vi: 'VN', he: 'IL'
   };
   return langs[code] || code.toUpperCase();
 };
 
-export default async function EroticPage() {
+export default async function FreudXPage() {
   const movies = await fetchEroticContent();
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-2 text-pink-500">
-          Hardcore Erotic Collection
-        </h1>
-        <p className="text-center text-gray-400 mb-8">
-          Global Hits: 365 Days, The Handmaiden, Nymphomaniac & More
-        </p>
-        
+    <div className="min-h-screen bg-black text-gray-100 font-sans">
+      {/* Header */}
+      <div className="relative w-full h-48 bg-gradient-to-b from-gray-900 to-black">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534528741775-53994a695755?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+        <div className="relative z-10 max-w-7xl mx-auto p-6">
+          <h1 className="text-5xl font-black tracking-tighter text-white uppercase">
+            Freud<span className="text-red-600">X</span>
+          </h1>
+          <p className="text-gray-400 text-sm mt-2 uppercase tracking-widest">
+            Global Hardcore & Erotic Collection
+          </p>
+        </div>
+      </div>
+
+      {/* Content Grid */}
+      <div className="max-w-7xl mx-auto p-6">
         {movies.length === 0 ? (
-          <div className="text-center text-gray-400 py-20">
-            <p className="text-xl font-semibold text-pink-400">No movies found.</p>
-            <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
-              <p><strong>Debug:</strong></p>
-              <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
-              <p>Keywords: {EROTIC_KEYWORDS}</p>
-              <p>Genres: {TARGET_GENRES}</p>
-              <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
-              <p className="mt-2">⚠️ Check TMDB Dashboard: Ensure you have access to the 'Adult' content flag enabled for your API key.</p>
-            </div>
+          <div className="text-center py-20 text-gray-500">
+            <p>No content found matching the FreudX criteria.</p>
+            <p className="text-xs mt-2">Check TMDB API Key & Adult Content settings.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {movies.map((movie) => (
               <Link 
                 key={movie.id} 
                 href={`/movie/${movie.id}`} 
-                className="group relative block aspect-[2/3] overflow-hidden rounded-lg bg-gray-900"
+                className="group relative block aspect-[2/3] overflow-hidden bg-gray-900"
               >
                 {movie.poster_path ? (
                   <Image
                     src={`${IMAGE_BASE_URL}${movie.poster_path}`}
                     alt={movie.title}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110 group-hover:grayscale-0 grayscale"
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 20vw, 15vw"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center bg-gray-800 text-gray-500">
-                    No Poster
+                  <div className="flex h-full items-center justify-center bg-gray-800 text-gray-600 text-xs">
+                    No Image
                   </div>
                 )}
                 
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Hover Overlay - FreudX style is subtle and sleek */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
                 
-                {/* Movie Info on Hover */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <h3 className="text-sm font-bold text-white line-clamp-2">{movie.title}</h3>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-gray-300">{movie.release_date?.slice(0, 4)}</span>
-                    <span className="text-xs font-medium text-yellow-400">★ {movie.vote_average.toFixed(1)}</span>
+                {/* Info Bar on Hover */}
+                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-white truncate w-32">{movie.title}</span>
+                    <span className="text-[10px] text-gray-400">{movie.release_date?.slice(0, 4)}</span>
                   </div>
-                  <div className="mt-1">
-                    <span className="inline-block px-2 py-0.5 bg-pink-600 text-white text-[10px] rounded-full uppercase font-bold tracking-wider">
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs font-bold text-red-500">{movie.vote_average.toFixed(1)}</span>
+                    <span className="text-[10px] text-gray-500 uppercase border border-gray-700 px-1 rounded">
                       {getLangName(movie.original_language)}
                     </span>
                   </div>
@@ -461,6 +156,11 @@ export default async function EroticPage() {
             ))}
           </div>
         )}
+      </div>
+      
+      {/* Footer */}
+      <div className="text-center py-8 text-gray-600 text-xs uppercase tracking-widest">
+        FreudX • Curated by TMDB
       </div>
     </div>
   );
