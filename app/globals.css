@@ -83,3 +83,12 @@ a { transition: color 0.2s ease; }
 ::-webkit-scrollbar-thumb:hover { @apply bg-gray-500; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+/* Smart TV / Keyboard Navigation Focus State */
+:focus-visible { 
+  @apply outline-none ring-4 ring-red-600 ring-offset-4 ring-offset-[#141414] rounded-lg z-50 relative transition-all duration-300;
+}
+
+/* Ensure the carousel doesn't hide focused elements */
+.carousel-container:focus-within {
+  scroll-behavior: smooth;
+}
