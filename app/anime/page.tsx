@@ -6,7 +6,7 @@ import {
   getTopAnime,
   getAnimeByGenre,
   getGenreList,
-  AnimeData,
+  Media as AnimeData,
 } from '../../lib/anilist';
 import Link from 'next/link';
 import Image from 'next/image';
