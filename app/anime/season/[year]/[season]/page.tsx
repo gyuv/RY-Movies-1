@@ -1,5 +1,5 @@
 // app/anime/season/[year]/[season]/page.tsx
-import { getAnimeBySeason, getGenreList } from '../../lib/anilist';
+import { getAnimeBySeason, getGenreList } from '../../lib/anilist.js';
 import AnimeCard from '../../../../components/AnimeCard';
 import GenreFilter from '../../../../components/GenreFilter';
 import Link from 'next/link';
