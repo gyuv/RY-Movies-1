@@ -32,63 +32,41 @@ const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml', 
  * Fetches content using a dual strategy: Keywords + Genres
  */
 async function fetchEroticContent(): Promise<Movie[]> {
-  if (!TMDB_API_KEY) {
-    console.error("TMDB_API_KEY is missing!");
-    return [];
-  }
+  if (!TMDB_API_KEY) return [];
 
   try {
-    // Strategy 1: Fetch with Keywords + Genres
-    const promises = TARGET_LANGUAGES.map(async (lang) => {
-      const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=${FREUDX_KEYWORDS}&with_genres=${TARGET_GENRES}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false`,
-        { 
-          next: { revalidate: 3600 },
-          headers: { 'Accept': 'application/json' }
-        }
-      );
+    // 1. Fetch by Genres (Romance, Drama, Thriller) + Adult Flag
+    // This covers 90% of "Hardcore" films that lack specific keywords
+    const genreRes = await fetch(
+      `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=10749,18,53&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false&with_original_language=en`,
+      { next: { revalidate: 3600 } }
+    );
+    const enData = await genreRes.json();
 
-      if (!res.ok) {
-        console.warn(`Failed to fetch for language ${lang}: ${res.status}`);
-        return [];
-      }
-      
+    // 2. Fetch specific "Erotic" keywords for non-English languages
+    const keywordPromises = ['pl', 'ko', 'fr', 'es'].map(async (lang) => {
+      const res = await fetch(
+        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=620,2123,1493&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false`,
+        { next: { revalidate: 3600 } }
+      );
       const data = await res.json();
       return data.results || [];
     });
 
-    const results = await Promise.all(promises);
-    let allMovies: Movie[] = results.flat();
-    
-    // Strategy 2: Fallback if keywords return too few results
-    // Fetch popular Adult movies directly if we have less than 10 movies
-    if (allMovies.length < 10) {
-      console.warn("Keyword search yielded few results. Falling back to popular adult movies.");
-      const fallbackRes = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false&with_genres=${TARGET_GENRES}`,
-        { next: { revalidate: 3600 } }
-      );
-      if (fallbackRes.ok) {
-        const fallbackData = await fallbackRes.json();
-        allMovies = [...allMovies, ...(fallbackData.results || [])];
-      }
-    }
-    
-    // Remove duplicates
+    const keywordResults = await Promise.all(keywordPromises);
+    const allMovies = [...(enData.results || []), ...keywordResults.flat()];
+
+    // Deduplicate and Sort
     const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
-    
-    // Sort by Popularity
     const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
-    
-    // Return top 24
-    return sortedMovies.slice(0, 24);
+
+    return sortedMovies.slice(0, 24); // Return top 24
 
   } catch (error) {
-    console.error("Error fetching erotic content:", error);
+    console.error(error);
     return [];
   }
 }
-
 /**
  * Helper to get human-readable language names
  */
