@@ -2,117 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tokens themselves now live in tailwind.config.ts (ink / paper / marquee / reel).
-   This file only holds what Tailwind utilities can't express: keyframes,
-   pseudo-element flourishes, and a couple of composite classes reused
-   across components. */
-
 html { scroll-behavior: smooth; }
 
 body {
-  @apply bg-ink text-paper font-body;
+  /* Dark gray/black background matching the design */
+  @apply bg-[#141414] text-gray-200 font-body;
 }
 
 h1, h2, h3, h4 {
-  @apply font-display text-paper;
+  @apply font-display text-white;
   letter-spacing: -0.01em;
 }
 
 a { transition: color 0.2s ease; }
 
-/* Section headline underline — small, deliberate */
-.section-heading { position: relative; display: inline-block; padding-bottom: 0.35rem; }
-.section-heading::after {
-  content: "";
-  position: absolute; left: 0; bottom: 0;
-  width: 46px; height: 3px;
-  @apply bg-marquee;
-  border-radius: 2px;
+/* Section headline with an icon placeholder, matching "Movies" and "Series" */
+.section-heading { 
+  @apply flex items-center gap-2 text-xl font-bold text-white mb-4;
 }
 
-/* Mono metadata caption ("Reel No. 001" etc.) */
-.stub-label {
-  @apply font-mono text-[0.7rem] uppercase text-paper-dim tracking-stub;
-}
-
-/* Elevated card with a perforated ticket edge — the signature flourish,
-   used on movie tiles / any .glass-card consumer */
+/* Base card styling */
 .glass-card {
-  @apply bg-ink-raised border border-ink-line rounded-md relative overflow-hidden;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -14px rgba(0,0,0,0.7);
-  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1),
-              box-shadow 0.3s cubic-bezier(0.22,1,0.36,1),
-              border-color 0.3s ease;
+  @apply bg-[#1e1e1e] border border-transparent rounded-lg relative overflow-hidden transition-all duration-300;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
-.glass-card::before {
-  content: "";
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background-image: radial-gradient(circle, #0B0D10 1.5px, transparent 1.6px);
-  background-size: 10px 2px;
-  opacity: 0.8;
-  z-index: 1;
-}
+
 .glass-card:hover {
-  transform: translateY(-6px);
-  @apply border-marquee/40;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 24px 48px -18px rgba(0,0,0,0.8);
+  transform: translateY(-4px);
+  @apply border-gray-600;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.8);
   z-index: 10;
 }
 
-/* Poster hover — lift + warm vignette instead of a flat opacity wash */
-.poster-frame { position: relative; overflow: hidden; isolation: isolate; @apply rounded-md; }
-.poster-frame img { transition: transform 0.6s cubic-bezier(0.22,1,0.36,1); }
-.poster-frame::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(11,13,16,0.9) 0%, transparent 55%);
-  opacity: 0; transition: opacity 0.35s ease;
+/* Active card styling (like "Red Sparrow" in the image) */
+.glass-card.active {
+  @apply border-t-4 border-t-red-600 bg-white text-black scale-105 shadow-xl;
+  z-index: 20;
 }
-.poster-frame:hover img { transform: scale(1.06); }
-.poster-frame:hover::after { opacity: 1; }
 
-/* Primary CTA — amber marquee bulb, not a generic blue button */
-.btn-marquee {
-  @apply inline-flex items-center gap-2 px-6 py-2.5 rounded-md font-semibold bg-marquee text-ink transition-all;
+.glass-card.active .card-meta {
+  @apply text-gray-800;
 }
-.btn-marquee:hover { @apply bg-marquee-hot -translate-y-0.5; }
 
-/* Rating / badge chips using the reel semantic colors */
-.badge-rating { @apply text-marquee font-bold; }
-.badge-free { @apply text-reel-teal; }
-.badge-paid { @apply text-reel-rose; }
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Primary CTA — Red Watch Button */
+.btn-primary {
+  @apply inline-flex items-center gap-2 px-8 py-2.5 rounded-full font-bold bg-red-600 text-white transition-all shadow-md shadow-red-900/50;
 }
-.animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.22,1,0.36,1) forwards; }
+.btn-primary:hover { @apply bg-red-500 scale-105; }
 
-@keyframes marqueePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+/* Genre Pills */
+.genre-pill {
+  @apply px-5 py-1.5 rounded-full text-sm font-medium bg-[#2a2a2a] text-gray-300 transition-colors cursor-pointer border border-transparent;
 }
-.animate-marquee-pulse { animation: marqueePulse 1.8s ease-in-out infinite; }
+.genre-pill:hover {
+  @apply bg-[#3a3a3a] text-white;
+}
+.genre-pill.active {
+  @apply bg-red-600 text-white shadow-md shadow-red-900/40;
+}
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
+/* Sub-nav Tabs (Trends Now, Popular) */
+.sub-nav-tab {
+  @apply text-gray-400 font-medium pb-2 cursor-pointer transition-colors flex items-center gap-2;
+}
+.sub-nav-tab.active {
+  @apply text-white border-b-2 border-red-600;
+}
+
+/* Dropdown Sort Styling */
+.sort-dropdown {
+  @apply bg-[#2a2a2a] text-gray-200 text-sm rounded-md px-3 py-1 border border-gray-700 outline-none focus:border-red-500;
+}
+.sort-dropdown.active {
+  @apply bg-red-600 text-white border-red-600;
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { @apply bg-ink-line; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
-
+::-webkit-scrollbar-thumb { @apply bg-gray-700 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-gray-500; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-.text-gradient {
-  background-clip: text; -webkit-background-clip: text; color: transparent;
-  background-image: linear-gradient(90deg, #E8A33D 0%, #F2B65B 100%);
-}
-
-:focus-visible { @apply outline outline-2 outline-marquee outline-offset-2; }
