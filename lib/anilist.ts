@@ -1281,9 +1281,9 @@ export async function getSeasonAnime(season: string, year: number, page: number 
   return data;
 }
 
-export async function getGenreList(): Promise<{ genres: { id: number; name: string }[] }> {
-  const data = await anilistQuery<{ genres: { id: number; name: string }[] }>(GENRES_QUERY);
-  return { genres: data };
+export async function getGenreList(): Promise<{ genres: string[] }> {
+  const data = await anilistQuery<{ GenreList: string[] }>(GENRES_QUERY);
+  return { genres: data.GenreList || [] };
 }
 
 export async function getSeasonalAnime(season: string, year: number, page: number = 1, perPage: number = 24): Promise<PageMedia> {
