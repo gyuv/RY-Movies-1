@@ -24,12 +24,18 @@ export default async function SeasonPage({
 
   const currentPage = Number(page) || 1;
 
-  const [animeData, genres] = await Promise.all([
+  const [animeData, genresData] = await Promise.all([
     getAnimeBySeason(yearNum, season as 'winter' | 'spring' | 'summer' | 'fall', currentPage),
     getGenreList(),
   ]);
 
   const seasonLabel = season.charAt(0).toUpperCase() + season.slice(1);
+
+  // Map raw string array into object array format { id, name } expected by GenreFilter
+  const genres = (genresData.genres || []).map((genreName: string, index: number) => ({
+    id: index + 1,
+    name: genreName,
+  }));
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-white font-sans pb-20">
@@ -39,7 +45,7 @@ export default async function SeasonPage({
           <h1 className="text-2xl md:text-3xl font-bold">
             {seasonLabel} {yearNum} Anime
           </h1>
-          <GenreFilter genres={genres.genres || genres} />
+          <GenreFilter genres={genres} />
         </div>
 
         {/* Season switcher */}
