@@ -2,14 +2,24 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function AnimeCard({ mal_id, title, image, episodes, type }: {
-  mal_id: number; title: string; image: string; episodes?: number; type?: string;
+export default function AnimeCard({
+  mal_id,
+  title,
+  image,
+  episodes,
+  type,
+}: {
+  mal_id: number;
+  title: string;
+  image: string;
+  episodes?: number | null;
+  type?: string | null;
 }) {
   return (
     <Link href={`/anime/${mal_id}`} className="group block">
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#1a1a1a]">
         <Image src={image} alt={title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-        {episodes && (
+        {episodes != null && (
           <span className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm text-green-400 text-xs font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 1116 0 8 8 0 01-16 0z"/></svg>
             {episodes}
