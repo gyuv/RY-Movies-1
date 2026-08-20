@@ -30,7 +30,12 @@ const ANILIST_QUERY = `
     }
   }
 `;
-
+export async function getTrendingAnime() { ... }
+export async function getTopAnime() { ... }
+export async function getGenreList() { ... }
+export async function getAnimeByGenre(genre: string) { ... }
+export async function getAnimeList() { ... }
+export async function getAnimeBySeason(year: number, season: string) { ... }
 export interface AnimeData {
   id: number;
   mal_id: number;
