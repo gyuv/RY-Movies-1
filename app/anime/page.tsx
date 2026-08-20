@@ -11,7 +11,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Inline GenreFilter if it doesn't exist
+// Inline GenreFilter
 function GenreFilter({ genres }: { genres: any[] }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -28,7 +28,7 @@ function GenreFilter({ genres }: { genres: any[] }) {
   );
 }
 
-// Inline AnimeRow if it doesn't exist
+// Inline AnimeRow with CORRECT typing
 function AnimeRow({ title, animeList }: { title: string; animeList: AnimeData[] }) {
   return (
     <section className="py-6 px-4 md:px-8">
@@ -46,7 +46,9 @@ function AnimeRow({ title, animeList }: { title: string; animeList: AnimeData[] 
                   sizes="150px"
                 />
               </div>
-              <p className="text-xs mt-2 truncate text-gray-300">{item.title?.romaji}</p>
+              <p className="text-xs mt-2 truncate text-gray-300">
+                {item.title?.romaji || item.title?.english || 'Untitled'}
+              </p>
             </Link>
           </div>
         ))}
@@ -55,7 +57,7 @@ function AnimeRow({ title, animeList }: { title: string; animeList: AnimeData[] 
   );
 }
 
-// Inline HeroSlider if it doesn't exist
+// Inline HeroSlider
 function HeroSlider({ animeList }: { animeList: AnimeData[] }) {
   const featured = animeList[0];
   if (!featured) return null;
