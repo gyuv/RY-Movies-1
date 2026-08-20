@@ -48,10 +48,8 @@ export default async function AnimePage({
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-white font-sans">
       {/* 1. Hero Slider */}
-      <HeroSlider animeList={trending.slice(0, 5)} />
-
-      {/* 2. Trending Row */}
-      <AnimeRow title="Trending This Season" animeList={trending} />
+      <HeroSlider animeList={trending.items.slice(0, 5)} />
+<AnimeRow title="Trending This Season" animeList={trending.items} />
 
       {/* 3. Top Rated Row */}
       <AnimeRow title="Top Rated Anime" animeList={topAllTime} />
