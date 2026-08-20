@@ -2,53 +2,126 @@
 import HeroSlider from '../components/HeroSlider';
 import AnimeRow from '../components/AnimeRow';
 import AnimeCard from '../components/AnimeCard';
-import TopTenSection from '../components/TopTenSection';
-import FilterTabs from '../components/FilterTabs';
-import { getAnimeList, getTrendingAnime, getTopAnime, AnimeItem } from '../../lib/jikan'; // Import AnimeItem
-import Link from 'next/link';
-import { getGenreList } from '../../lib/jikan';
 import GenreFilter from '../components/GenreFilter';
+import {
+  getAnimeList,
+  getTrendingAnime,
+  getTopAnime,
+  getAnimeByGenre,
+  getGenreList,
+  AnimeItem,
+} from '../../lib/jikan';
+import Link from 'next/link';
 
-export default async function AnimePage() {
-  // Fetch multiple data sets in parallel
-  const [trending, topAllTime, mainList, genres] = await Promise.all([
-  getTrendingAnime(),
-  getTopAnime(),
-  getAnimeList(1, 'airing.desc'),
-  getGenreList(),
-]);
+export default async function AnimePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ genres?: string; sort?: string; page?: string }>;
+}) {
+  const { genres: genresParam, sort, page } = await searchParams;
+
+  const currentPage = Number(page) || 1;
+  const sortValue = sort || 'airing.desc';
+  const genreIds = genresParam
+    ? genresParam.split(',').map(Number).filter((n) => !isNaN(n))
+    : [];
+
+  // Fetch trending/top rows + genre list always; fetch the main grid
+  // conditionally depending on whether genre filters are active.
+  const [trending, topAllTime, genres] = await Promise.all([
+    getTrendingAnime(),
+    getTopAnime(),
+    getGenreList(),
+  ]);
+
+  const mainList = genreIds.length
+    ? await getAnimeByGenre(genreIds, currentPage, 24, sortValue)
+    : await getAnimeList(currentPage, sortValue, 24);
+
+  const gridTitle = genreIds.length
+    ? `Filtered Results (${genreIds
+        .map((id) => genres.find((g) => g.mal_id === id)?.name)
+        .filter(Boolean)
+        .join(', ')})`
+    : 'Latest Updates';
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-white font-sans">
+      {/* 1. Hero Slider */}
       <HeroSlider animeList={trending.slice(0, 5)} />
-<TopTenSection animeList={topAllTime} />
-<FilterTabs />
-<AnimeRow title="Trending This Season" animeList={trending} />
+
+      {/* 2. Trending Row */}
+      <AnimeRow title="Trending This Season" animeList={trending} />
+
+      {/* 3. Top Rated Row */}
+      <AnimeRow title="Top Rated Anime" animeList={topAllTime} />
+
+      {/* 4. Filterable Grid */}
       <section className="py-8 px-4 md:px-8 bg-[#0a0a0a]">
         <div className="max-w-[1600px] mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-white border-l-4 border-yellow-500 pl-3">
-              Latest Updates
+              {gridTitle}
             </h2>
-            <Link href="/anime?sort=airing.desc" className="text-sm text-yellow-500 hover:text-yellow-400 font-medium">
-              See More
-            </Link>
+            <div className="flex items-center gap-3">
+              <GenreFilter genres={genres} />
+              {genreIds.length > 0 && (
+                <Link
+                  href="/anime"
+                  className="text-sm text-gray-400 hover:text-white font-medium"
+                >
+                  Clear filters
+                </Link>
+              )}
+              {!genreIds.length && (
+                <Link
+                  href="/anime?sort=airing.desc"
+                  className="text-sm text-yellow-500 hover:text-yellow-400 font-medium"
+                >
+                  See More
+                </Link>
+              )}
+            </div>
           </div>
-          <div className="flex items-center justify-between mb-6">
-  <h2 className="text-xl md:text-2xl font-bold text-white border-l-4 border-yellow-500 pl-3">
-    Latest Updates
-  </h2>
-  <div className="flex items-center gap-3">
-    <GenreFilter genres={genres} />
-    <Link href="/anime?sort=airing.desc" className="text-sm text-yellow-500 hover:text-yellow-400 font-medium">
-      See More
-    </Link>
-  </div>
-</div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
-            {mainList.results.map((item: AnimeItem) => ( // Add type annotation here
-              <AnimeCard key={item.mal_id} {...item} />
-            ))}
+
+          {mainList.results.length ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
+              {mainList.results.map((item: AnimeItem) => (
+                <AnimeCard key={item.mal_id} {...item} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-20">
+              No results found for this filter.
+            </p>
+          )}
+
+          {/* Pagination */}
+          <div className="flex justify-center gap-3 mt-10">
+            {currentPage > 1 && (
+              <Link
+                href={`/anime?${new URLSearchParams({
+                  ...(genresParam ? { genres: genresParam } : {}),
+                  sort: sortValue,
+                  page: String(currentPage - 1),
+                }).toString()}`}
+                className="px-5 py-2 rounded-full border border-white/20 text-sm hover:border-yellow-500"
+              >
+                Previous
+              </Link>
+            )}
+            {mainList.pagination.has_next_page && (
+              <Link
+                href={`/anime?${new URLSearchParams({
+                  ...(genresParam ? { genres: genresParam } : {}),
+                  sort: sortValue,
+                  page: String(currentPage + 1),
+                }).toString()}`}
+                className="px-5 py-2 rounded-full border border-white/20 text-sm hover:border-yellow-500"
+              >
+                Next
+              </Link>
+            )}
           </div>
         </div>
       </section>
