@@ -25,12 +25,12 @@ export default function HeroSlider({ animeList }: { animeList: AnimeItem[] }) {
     <section className="relative h-[520px] md:h-[600px] w-full overflow-hidden bg-black">
       {/* Background image */}
       {slides.map((item, idx) => (
-        <div
-          key={item.mal_id}
-          className={`absolute inset-0 transition-opacity duration-700 ${
-            idx === active ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
+  <div
+    key={item.id}
+    className={`absolute inset-0 transition-opacity duration-700 ${
+      idx === active ? 'opacity-100' : 'opacity-0'
+    }`}
+  >
           <Image
             src={item.image}
             alt={item.title}
