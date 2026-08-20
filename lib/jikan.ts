@@ -105,15 +105,13 @@ async function jikanFetch<T>(
 
 /**
  * General-purpose anime list fetcher with pagination + sorting.
- * order_by options: 'popularity', 'score', 'title', 'start_date', 'airing' etc.
- * sort format used elsewhere in the app: e.g. 'airing.desc' -> we split it below.
  */
 export async function getAnimeList(
   page = 1,
   sort = 'popularity.desc',
   limit = 24
 ): Promise<AnimeListResponse> {
-  const [orderBy, direction] = sort.split('.'); // e.g. "airing.desc" -> ["airing", "desc"]
+  const [orderBy, direction] = sort.split('.');
 
   const params = new URLSearchParams({
     page: String(page),
@@ -134,10 +132,6 @@ export async function getAnimeList(
   };
 }
 
-/**
- * Trending / currently airing anime, ordered by popularity.
- * Used for the hero slider and "Trending This Season" row.
- */
 export async function getTrendingAnime(limit = 10): Promise<AnimeItem[]> {
   const params = new URLSearchParams({
     filter: 'airing',
@@ -154,10 +148,6 @@ export async function getTrendingAnime(limit = 10): Promise<AnimeItem[]> {
   return data.data.map(mapAnime);
 }
 
-/**
- * All-time top rated anime by score.
- * Used for the "Top Rated Anime" row and the TOP 10 section.
- */
 export async function getTopAnime(limit = 10): Promise<AnimeItem[]> {
   const params = new URLSearchParams({
     order_by: 'score',
@@ -173,17 +163,11 @@ export async function getTopAnime(limit = 10): Promise<AnimeItem[]> {
   return data.data.map(mapAnime);
 }
 
-/**
- * Single anime detail fetch, useful for /anime/[id] pages.
- */
 export async function getAnimeById(id: number): Promise<AnimeItem> {
   const data = await jikanFetch<{ data: JikanRawAnime }>(`/anime/${id}`);
   return mapAnime(data.data);
 }
 
-/**
- * Search anime by query string, used for the search page/bar.
- */
 export async function searchAnime(
   query: string,
   page = 1,
@@ -219,11 +203,6 @@ interface JikanGenreRaw {
   count: number;
 }
 
-/**
- * Fetch anime for a specific season/year, e.g. getAnimeBySeason(2026, 'summer').
- * Useful for a "Seasonal" tab or browse-by-season page.
- * Valid seasons: 'winter' | 'spring' | 'summer' | 'fall'
- */
 export async function getAnimeBySeason(
   year: number,
   season: 'winter' | 'spring' | 'summer' | 'fall',
@@ -247,9 +226,6 @@ export async function getAnimeBySeason(
   };
 }
 
-/**
- * Convenience wrapper for "what's airing this season right now."
- */
 export async function getCurrentSeason(
   page = 1,
   limit = 24
@@ -271,13 +247,10 @@ export async function getCurrentSeason(
   };
 }
 
-/**
- * Fetch the full list of anime genres (for building a filter dropdown/menu).
- */
 export async function getGenreList(): Promise<Genre[]> {
   const data = await jikanFetch<{ data: JikanGenreRaw[] }>(
     `/genres/anime`,
-    86400 // genres barely change, cache for a day
+    86400
   );
 
   return data.data
@@ -285,9 +258,6 @@ export async function getGenreList(): Promise<Genre[]> {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/**
- * Fetch anime filtered by one or more genre IDs.
- */
 export async function getAnimeByGenre(
   genreIds: number[],
   page = 1,
@@ -323,7 +293,9 @@ export async function getAnimeByGenre(
 export interface MangaItem {
   mal_id: number;
   title: string;
+  url: string; // Added url property
   image: string;
+  image_url?: string; // Keeping for compatibility if components use image_url
   chapters: number | null;
   volumes: number | null;
   type: string | null;
@@ -336,6 +308,7 @@ interface JikanRawManga {
   mal_id: number;
   title: string;
   title_english?: string | null;
+  url: string; // Added raw URL from API response
   images: {
     jpg: { image_url: string; large_image_url?: string };
     webp?: { image_url: string; large_image_url?: string };
@@ -349,14 +322,18 @@ interface JikanRawManga {
 }
 
 function mapManga(raw: JikanRawManga): MangaItem {
+  const imgUrl =
+    raw.images?.webp?.large_image_url ||
+    raw.images?.jpg?.large_image_url ||
+    raw.images?.jpg?.image_url ||
+    '/placeholder.png';
+
   return {
     mal_id: raw.mal_id,
     title: raw.title_english || raw.title,
-    image:
-      raw.images?.webp?.large_image_url ||
-      raw.images?.jpg?.large_image_url ||
-      raw.images?.jpg?.image_url ||
-      '/placeholder.png',
+    url: raw.url, // Map raw url
+    image: imgUrl,
+    image_url: imgUrl, // Fallback support for components checking item.image_url
     chapters: raw.chapters ?? null,
     volumes: raw.volumes ?? null,
     type: raw.type ?? null,
