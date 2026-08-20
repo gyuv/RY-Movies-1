@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         - md:pl-72 pushes the entire app to the right on desktop to make room for the sidebar.
         - pt-16 md:pt-0 pushes content down on mobile to make room for the top mobile menu.
       */}
-      <body className="bg-[#141414] text-white md:pl-72 pt-16 md:pt-0 flex flex-col min-h-screen">
+      <body className="bg-[#141414] text-white flex flex-col min-h-screen">
         
         <SiteHeader />
         
