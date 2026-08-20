@@ -138,15 +138,15 @@ export default async function AnimePage({
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-white font-sans">
-      {trending.items.length > 0 && <HeroSlider animeList={trending.items.slice(0, 5)} />}
-      
-      {trending.items.length > 0 && (
-        <AnimeRow title="Trending This Season" animeList={trending.items} />
-      )}
+      {trending.media && trending.media.length > 0 && <HeroSlider animeList={trending.media.slice(0, 5)} />}
 
-      {topAllTime.items.length > 0 && (
-        <AnimeRow title="Top Rated Anime" animeList={topAllTime.items} />
-      )}
+{trending.media && trending.media.length > 0 && (
+  <AnimeRow title="Trending This Season" animeList={trending.media} />
+)}
+
+{topAllTime.media && topAllTime.media.length > 0 && (
+  <AnimeRow title="Top Rated Anime" animeList={topAllTime.media} />
+)}
 
       <section className="py-8 px-4 md:px-8 bg-[#0a0a0a]">
         <div className="max-w-[1600px] mx-auto">
