@@ -206,7 +206,6 @@ export async function searchAnime(
     pagination: data.pagination,
   };
 }
-// --- Add these to lib/jikan.ts ---
 
 export interface Genre {
   mal_id: number;
@@ -274,7 +273,6 @@ export async function getCurrentSeason(
 
 /**
  * Fetch the full list of anime genres (for building a filter dropdown/menu).
- * e.g. Action (mal_id 1), Adventure (2), Comedy (4), Drama (8), Fantasy (10), etc.
  */
 export async function getGenreList(): Promise<Genre[]> {
   const data = await jikanFetch<{ data: JikanGenreRaw[] }>(
@@ -289,8 +287,6 @@ export async function getGenreList(): Promise<Genre[]> {
 
 /**
  * Fetch anime filtered by one or more genre IDs.
- * genreIds: array of Jikan genre mal_ids, e.g. [1, 10] for Action + Fantasy
- * matchAll: if true, requires ALL genres present; if false (default), ANY match
  */
 export async function getAnimeByGenre(
   genreIds: number[],
@@ -370,39 +366,6 @@ function mapManga(raw: JikanRawManga): MangaItem {
   };
 }
 
-export interface MangaListResponse {
-  results: MangaItem[];
-  pagination: {
-    last_visible_page: number;
-    has_next_page: boolean;
-  };
-}
-
-export async function getMangaList(
-  page = 1,
-  sort = 'popularity.desc',
-  limit = 24
-): Promise<MangaListResponse> {
-  const [orderBy, direction] = sort.split('.');
-
-  const params = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-    order_by: orderBy || 'popularity',
-    sort: direction || 'desc',
-    sfw: 'true',
-  });
-
-  const data = await jikanFetch<{
-    data: JikanRawManga[];
-    pagination: { last_visible_page: number; has_next_page: boolean };
-  }>(`/manga?${params.toString()}`);
-
-  return {
-    results: data.data.map(mapManga),
-    pagination: data.pagination,
-  };
-}
 export interface MangaListResponse {
   results: MangaItem[];
   total_pages: number;
