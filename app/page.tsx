@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import MovieCarousel from './components/MovieCarousel';
 import Pagination from './components/Pagination';
 import { Suspense } from 'react';
+import Link from 'next/link';
 
 // Mock data for build stability if API fails or key is missing
 const MOCK_MOVIE = { 
@@ -41,6 +42,7 @@ async function getActorDetails(actorId: string, apiKey: string | undefined) {
   }
 }
 
+// Fetch language movies with dynamic sorting based on the active tab
 async function getLanguageMovies(language: string, sort: string = 'popularity.desc', limit: number = 20) {
   const apiKey = process.env.TMDB_API_KEY;
   const params = new URLSearchParams();
@@ -48,8 +50,15 @@ async function getLanguageMovies(language: string, sort: string = 'popularity.de
   params.set("sort_by", sort);
   params.set("page", "1");
   const today = new Date().toISOString().split('T')[0];
-  params.set("primary_release_date.gte", "1900-01-01");
   params.set("primary_release_date.lte", today);
+  
+  // If fetching recently added, we don't want movies from 1900
+  if (sort === 'primary_release_date.desc') {
+    params.set("vote_count.gte", "5"); // Filter out obscure unreleased junk
+  } else {
+    params.set("primary_release_date.gte", "1900-01-01");
+  }
+  
   params.set("language", "en-US");
   
   const url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&${params.toString()}`;
@@ -57,11 +66,21 @@ async function getLanguageMovies(language: string, sort: string = 'popularity.de
   return data.results?.slice(0, limit) || [];
 }
 
-async function getTrendingMovies() {
+// Fetch dynamic Hero data based on the selected tab
+async function getHeroMovies(tab: string) {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) return MOCK_LIST;
   try {
-    const url = "https://api.themoviedb.org/3/trending/movie/week?api_key=" + apiKey + "&language=en-US";
+    let url = `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&language=en-US`;
+    
+    if (tab === 'popular') {
+      url = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US`;
+    } else if (tab === 'recent') {
+       const today = new Date().toISOString().split('T')[0];
+       // Fetching recent movies that actually have some votes to avoid empty posters
+       url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&sort_by=primary_release_date.desc&primary_release_date.lte=${today}&vote_count.gte=20`;
+    }
+
     const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) return MOCK_LIST;
     const data = await res.json();
@@ -87,12 +106,15 @@ export default async function Home({
   const sort = getParam("sort", "popularity.desc");
   const year = getParam("year", "");
   const actorId = getParam("with_people", ""); 
+  
+  // Get active tab from URL, default is 'trending'
+  const activeTab = getParam("tab", "trending");
 
   const hasFilters = genre || language !== 'en' || sort !== 'popularity.desc' || year || actorId;
 
   let filteredData = null;
   let actorDetails = null;
-  let trendingData = null;
+  let heroData = null;
   let englishMovies = null;
   let tamilMovies = null;
   let teluguMovies = null;
@@ -126,8 +148,12 @@ export default async function Home({
     const url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&${params.toString()}`;
     filteredData = await fetchTMDB(url, apiKey);
   } else {
+    // Determine the sorting method based on the active tab
+    const tabSort = activeTab === 'recent' ? 'primary_release_date.desc' : 'popularity.desc';
+
+    // Fetch live data based on the active tab
     [
-      trendingData,
+      heroData,
       englishMovies,
       tamilMovies,
       teluguMovies,
@@ -135,34 +161,50 @@ export default async function Home({
       koreanMovies,
       japaneseMovies
     ] = await Promise.all([
-      getTrendingMovies(),
-      getLanguageMovies('en'),
-      getLanguageMovies('ta', 'primary_release_date.desc'),
-      getLanguageMovies('te'),
-      getLanguageMovies('hi'),
-      getLanguageMovies('ko'),
-      getLanguageMovies('ja'),
+      getHeroMovies(activeTab),
+      getLanguageMovies('en', tabSort),
+      getLanguageMovies('ta', tabSort),
+      getLanguageMovies('te', tabSort),
+      getLanguageMovies('hi', tabSort),
+      getLanguageMovies('ko', tabSort),
+      getLanguageMovies('ja', tabSort),
     ]);
   }
+
+  // Dynamic titles based on active tab
+  const getRowTitle = (categoryName: string) => {
+    if (activeTab === 'popular') return `🔥 Popular ${categoryName}`;
+    if (activeTab === 'recent') return `➕ Recently Added ${categoryName}`;
+    return `⭐ Trending ${categoryName}`;
+  };
 
   return (
     <main className="min-h-screen bg-[#141414] text-white">
       {/* Hero Banner */}
-      {!hasFilters && trendingData && <Hero movies={trendingData} />}
+      {!hasFilters && heroData && <Hero movies={heroData} />}
       
-      {/* Sub-Navigation Tabs matching the new design */}
+      {/* Functional Sub-Navigation Tabs */}
       {!hasFilters && (
         <div className="bg-[#1a1a1a] border-b border-gray-800">
           <div className="max-w-[1600px] mx-auto px-6 flex justify-center gap-12 pt-4 overflow-x-auto scrollbar-hide">
-            <div className="sub-nav-tab active whitespace-nowrap">
+            <Link 
+              href="/?tab=trending" 
+              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'trending' ? 'active' : ''}`}
+            >
                <span>⭐</span> Trends Now
-            </div>
-            <div className="sub-nav-tab whitespace-nowrap">
+            </Link>
+            <Link 
+              href="/?tab=popular" 
+              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'popular' ? 'active' : ''}`}
+            >
                <span>🔥</span> Popular
-            </div>
-            <div className="sub-nav-tab whitespace-nowrap">
+            </Link>
+            <Link 
+              href="/?tab=recent" 
+              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'recent' ? 'active' : ''}`}
+            >
                <span>➕</span> Recently Added
-            </div>
+            </Link>
           </div>
         </div>
       )}
@@ -198,19 +240,14 @@ export default async function Home({
           </div>
         )}
 
-        {/* Original Categories with New Styling */}
+        {/* Dynamic Categories based on Tabs */}
         {!hasFilters && (
           <>
-            {/* English Movies */}
             {englishMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">🎥 Trending in English</h2>
+                  <h2 className="section-heading mb-0">{getRowTitle("English Movies")}</h2>
                   <div className="flex items-center gap-3 text-sm">
-                    <span className="text-gray-400 hidden sm:inline">Sort By:</span>
-                    <select className="sort-dropdown active"><option>Latest</option></select>
-                    <select className="sort-dropdown"><option>Popularity</option></select>
-                    <select className="sort-dropdown"><option>Rate</option></select>
                     <a href="?language=en&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
                   </div>
                 </div>
@@ -218,14 +255,11 @@ export default async function Home({
               </div>
             )}
 
-            {/* Tamil Movies */}
             {tamilMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">🎬 Latest Tamil Movies</h2>
+                  <h2 className="section-heading mb-0">{getRowTitle("Tamil Movies")}</h2>
                   <div className="flex items-center gap-3 text-sm">
-                    <select className="sort-dropdown active"><option>Latest</option></select>
-                    <select className="sort-dropdown"><option>Popularity</option></select>
                     <a href="?language=ta&sort=primary_release_date.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
                   </div>
                 </div>
@@ -233,14 +267,11 @@ export default async function Home({
               </div>
             )}
 
-            {/* Telugu Movies */}
             {teluguMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">🔥 Latest Telugu Movies</h2>
+                  <h2 className="section-heading mb-0">{getRowTitle("Telugu Movies")}</h2>
                   <div className="flex items-center gap-3 text-sm">
-                    <select className="sort-dropdown active"><option>Latest</option></select>
-                    <select className="sort-dropdown"><option>Popularity</option></select>
                     <a href="?language=te&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
                   </div>
                 </div>
@@ -248,14 +279,11 @@ export default async function Home({
               </div>
             )}
 
-            {/* Hindi Movies */}
             {hindiMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">⭐ Popular Hindi Movies</h2>
+                  <h2 className="section-heading mb-0">{getRowTitle("Hindi Movies")}</h2>
                   <div className="flex items-center gap-3 text-sm">
-                    <select className="sort-dropdown active"><option>Popularity</option></select>
-                    <select className="sort-dropdown"><option>Latest</option></select>
                     <a href="?language=hi&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
                   </div>
                 </div>
@@ -263,14 +291,11 @@ export default async function Home({
               </div>
             )}
 
-            {/* Korean Movies */}
             {koreanMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">🍿 Popular Korean Movies</h2>
+                  <h2 className="section-heading mb-0">{getRowTitle("Korean Movies")}</h2>
                   <div className="flex items-center gap-3 text-sm">
-                    <select className="sort-dropdown active"><option>Popularity</option></select>
-                    <select className="sort-dropdown"><option>Latest</option></select>
                     <a href="?language=ko&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
                   </div>
                 </div>
@@ -278,14 +303,11 @@ export default async function Home({
               </div>
             )}
 
-            {/* Japanese Movies */}
             {japaneseMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">🌸 Popular Japanese Movies</h2>
+                  <h2 className="section-heading mb-0">{getRowTitle("Japanese Movies")}</h2>
                   <div className="flex items-center gap-3 text-sm">
-                    <select className="sort-dropdown active"><option>Popularity</option></select>
-                    <select className="sort-dropdown"><option>Latest</option></select>
                     <a href="?language=ja&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
                   </div>
                 </div>
