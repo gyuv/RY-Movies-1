@@ -1,8 +1,5 @@
 // app/anime/page.tsx
 
-import HeroSlider from '../components/HeroSlider';
-import AnimeRow from '../components/AnimeRow';
-import GenreFilter from '../components/GenreFilter';
 import {
   getAnimeList,
   getTrendingAnime,
@@ -14,6 +11,85 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 
+// Inline GenreFilter if it doesn't exist
+function GenreFilter({ genres }: { genres: any[] }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {genres.slice(0, 10).map((genre: any) => (
+        <Link
+          key={genre.id}
+          href={`/anime?genres=${genre.id}`}
+          className="px-3 py-1 bg-white/10 rounded-full text-xs hover:bg-yellow-500 hover:text-black transition-colors"
+        >
+          {genre.name}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+// Inline AnimeRow if it doesn't exist
+function AnimeRow({ title, animeList }: { title: string; animeList: AnimeData[] }) {
+  return (
+    <section className="py-6 px-4 md:px-8">
+      <h2 className="text-lg font-bold mb-4 border-l-4 border-yellow-500 pl-3">{title}</h2>
+      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+        {animeList.slice(0, 10).map((item) => (
+          <div key={item.id} className="min-w-[150px] w-[150px]">
+            <Link href={`/anime/${item.id}`} className="block">
+              <div className="relative aspect-[0.75] w-full rounded-lg overflow-hidden">
+                <Image
+                  src={item.image}
+                  alt={item.title?.romaji || ''}
+                  fill
+                  className="object-cover"
+                  sizes="150px"
+                />
+              </div>
+              <p className="text-xs mt-2 truncate text-gray-300">{item.title?.romaji}</p>
+            </Link>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// Inline HeroSlider if it doesn't exist
+function HeroSlider({ animeList }: { animeList: AnimeData[] }) {
+  const featured = animeList[0];
+  if (!featured) return null;
+
+  return (
+    <div className="relative h-[500px] w-full overflow-hidden">
+      <div className="absolute inset-0">
+        <Image
+          src={featured.image}
+          alt={featured.title?.romaji || ''}
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
+      </div>
+      <div className="absolute bottom-0 left-0 p-8 md:p-16 max-w-2xl">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+          {featured.title?.romaji}
+        </h1>
+        <p className="text-gray-300 mb-4 line-clamp-2">
+          {featured.description?.replace(/<[^>]*>/g, '') || 'No description available.'}
+        </p>
+        <Link
+          href={`/anime/${featured.id}`}
+          className="px-6 py-2 bg-yellow-500 text-black font-bold rounded hover:bg-yellow-400 transition-colors"
+        >
+          Watch Now
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default async function AnimePage({
   searchParams,
 }: {
@@ -23,32 +99,29 @@ export default async function AnimePage({
 
   const currentPage = Number(page) || 1;
   const sortValue = sort || 'airing.desc';
-  const limit = 24; // Items per page
+  const limit = 24;
 
   const genreIds = genresParam
     ? genresParam.split(',').map(Number).filter((n) => !isNaN(n))
     : [];
 
-  // 1. Fetch static rows & genres (these don't change per page usually)
   const [trending, topAllTime, genres] = await Promise.all([
     getTrendingAnime(),
     getTopAnime(),
     getGenreList(),
   ]);
 
-  // 2. Fetch main grid based on filters
   const mainList = genreIds.length
     ? await getAnimeByGenre(String(genreIds[0]), sortValue, currentPage, limit)
     : await getAnimeList(currentPage, sortValue, limit);
 
   const gridTitle = genreIds.length
     ? `Filtered Results (${genreIds
-        .map((id) => genres.find((g: any) => g.mal_id === id)?.name)
+        .map((id) => genres.find((g: any) => g.id === id)?.name)
         .filter(Boolean)
         .join(', ')})`
     : 'Latest Updates';
 
-  // Helper to build query strings
   const buildHref = (newPage: number) => {
     const params = new URLSearchParams({
       ...(genresParam ? { genres: genresParam } : {}),
@@ -60,22 +133,16 @@ export default async function AnimePage({
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-white font-sans">
-      {/* 1. Hero Slider */}
-      {trending.items.length > 0 && (
-        <HeroSlider animeList={trending.items.slice(0, 5)} />
-      )}
-
-      {/* 2. Trending Row */}
+      {trending.items.length > 0 && <HeroSlider animeList={trending.items.slice(0, 5)} />}
+      
       {trending.items.length > 0 && (
         <AnimeRow title="Trending This Season" animeList={trending.items} />
       )}
 
-      {/* 3. Top Rated Row */}
       {topAllTime.items.length > 0 && (
         <AnimeRow title="Top Rated Anime" animeList={topAllTime.items} />
       )}
 
-      {/* 4. Filterable Grid */}
       <section className="py-8 px-4 md:px-8 bg-[#0a0a0a]">
         <div className="max-w-[1600px] mx-auto">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
@@ -150,11 +217,6 @@ export default async function AnimePage({
               </Link>
             )}
             
-            {/* 
-              Logic: If we received a full page (24 items), assume there might be more.
-              Since the API returns { items, total } and not { items, pagination: { has_next } },
-              we infer next page exists if items.length >= limit.
-            */}
             {mainList.items.length >= limit && (
               <Link
                 href={buildHref(currentPage + 1)}
@@ -167,7 +229,7 @@ export default async function AnimePage({
         </div>
       </section>
 
-      {/* 5. Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#020209] border-t border-white/10 md:hidden z-50 pb-safe">
         <div className="flex justify-around items-center h-16">
           <Link
