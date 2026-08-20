@@ -1,6 +1,6 @@
 // app/api/anime/top-airing/route.ts
 import { NextResponse } from 'next/server';
-import { fetchAnimeList } from '../../lib/anilist';
+import { fetchAnimeList } from '../../../lib/anilist';
 
 export async function GET() {
   try {
