@@ -1,12 +1,13 @@
 {
+  "id": "/",
   "name": "RaY-Movies",
   "short_name": "RaY-Movies",
   "description": "Find and watch your favorite movies and series.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#141414",
   "orientation": "landscape",
-  "theme_color": "#141414",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "/icon-192x192.png",
