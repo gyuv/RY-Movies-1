@@ -21,16 +21,12 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "RaY-Movies — Your Streaming Hub",
   description: "Find and watch your favorite movies and series.",
+  manifest: "/manifest.json", // <-- Added manifest pointer here
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
-      {/* 
-        CRITICAL UPDATE: 
-        - md:pl-72 pushes the entire app to the right on desktop to make room for the sidebar.
-        - pt-16 md:pt-0 pushes content down on mobile to make room for the top mobile menu.
-      */}
       <body className="bg-[#141414] text-white flex flex-col min-h-screen">
         
         <SiteHeader />
@@ -64,6 +60,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p>Phone: +98-93982-775-83</p>
           </div>
         </footer>
+
+        {/* Service Worker Registration Script */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(
+                    function(registration) {
+                      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    },
+                    function(err) {
+                      console.log('ServiceWorker registration failed: ', err);
+                    }
+                  );
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
