@@ -164,9 +164,10 @@ export default function ApexIntro() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.1, duration: 0.8 }}
-                className="mt-4 font-mono text-[11px] sm:text-xs uppercase tracking-[0.5em] text-apex-cyan/80"
+                className="mt-5 font-display italic text-base sm:text-xl md:text-2xl tracking-tight text-white/85"
               >
-                Project&nbsp;Apex
+                Chill beer with a good movie
+                <span className="text-apex-cyan">…What else?</span>
               </motion.p>
             </motion.div>
           </div>

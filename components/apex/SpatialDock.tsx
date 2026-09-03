@@ -51,30 +51,31 @@ const items: DockItem[] = [
       />
     ),
   },
-  {
-    href: "/anime",
-    label: "Anime",
-    icon: (
-      <path
-        d="M12 3c5 3 7 6 7 10a7 7 0 11-14 0c0-2 1-3 2-4"
-        strokeWidth={1.6}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    ),
-  },
-  {
-    href: "/manga",
-    label: "Manga",
-    icon: (
-      <path
-        d="M4 5l8 2 8-2v13l-8 2-8-2zM12 7v13"
-        strokeWidth={1.6}
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    ),
-  },
+  // Anime + Manga are temporarily disabled — reserved for a future release.
+  // {
+  //   href: "/anime",
+  //   label: "Anime",
+  //   icon: (
+  //     <path
+  //       d="M12 3c5 3 7 6 7 10a7 7 0 11-14 0c0-2 1-3 2-4"
+  //       strokeWidth={1.6}
+  //       strokeLinecap="round"
+  //       strokeLinejoin="round"
+  //     />
+  //   ),
+  // },
+  // {
+  //   href: "/manga",
+  //   label: "Manga",
+  //   icon: (
+  //     <path
+  //       d="M4 5l8 2 8-2v13l-8 2-8-2zM12 7v13"
+  //       strokeWidth={1.6}
+  //       strokeLinejoin="round"
+  //       strokeLinecap="round"
+  //     />
+  //   ),
+  // },
 ];
 
 export default function SpatialDock() {

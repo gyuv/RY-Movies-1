@@ -58,11 +58,6 @@ export default function Footer() {
                   Latest Releases
                 </Link>
               </li>
-              <li>
-                <Link href="/anime" className="text-gray-400 hover:text-red-500 transition-colors">
-                  Anime Directory
-                </Link>
-              </li>
             </ul>
           </div>
 
