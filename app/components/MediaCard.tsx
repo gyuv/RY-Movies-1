@@ -24,7 +24,7 @@ export default function MediaCard({
   const rating = vote_average ? vote_average.toFixed(1) : "NR";
 
   return (
-    <Link href={`/media/${id}?type=${media_type}`} className="block group">
+    <Link href={`/media/${id}?type=${media_type}`} data-apex-nav className="apex-focusable block group">
       {/* Wrapper using your custom glass-card token */}
       <div className="glass-card flex flex-col h-full">
         

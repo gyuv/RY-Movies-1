@@ -48,7 +48,10 @@ export default function VideoPlayer({ mediaId, mediaType = 'movie', customTitle,
           src={getEmbedUrl(activeServer)}
           className="absolute top-0 left-0 w-full h-full border-0"
           allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          /* Universal ad/redirect guard — blocks pop-ups + parent redirects. */
+          sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
+          referrerPolicy="no-referrer"
           title="Multi-Server Streaming Player"
         />
       </div>

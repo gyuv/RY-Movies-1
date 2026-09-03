@@ -30,7 +30,12 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
         title="Video Player"
         className="w-full h-full rounded-lg bg-black"
         allowFullScreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        /* Universal ad/redirect guard: permit the player to run but block the
+           pop-ups, pop-unders and parent-page redirects these embeds inject as
+           ads. Stream URLs + routing are unchanged. */
+        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
+        referrerPolicy="no-referrer"
         frameBorder="0"
         scrolling="no"
       ></iframe>

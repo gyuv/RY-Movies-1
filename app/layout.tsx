@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
-      <body className="bg-[#141414] text-white flex flex-col min-h-screen">
+      <body className="bg-apex-void text-white flex flex-col min-h-screen overflow-x-clip">
 
         {/* Project Apex — cinematic entry (self-dismisses; remembers via localStorage) */}
         <ApexIntro />

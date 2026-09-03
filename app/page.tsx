@@ -185,26 +185,30 @@ export default async function Home({
       {!hasFilters && heroData && <Hero movies={heroData} />}
       
       {!hasFilters && (
-        <div className="bg-[#1a1a1a] border-b border-gray-800">
-          <div className="max-w-[1600px] mx-auto px-6 flex justify-center gap-12 pt-4 overflow-x-auto scrollbar-hide">
-            <Link 
-              href="/?tab=trending" 
-              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'trending' ? 'active' : ''}`}
-            >
-               <span>⭐</span> Trends Now
-            </Link>
-            <Link 
-              href="/?tab=popular" 
-              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'popular' ? 'active' : ''}`}
-            >
-               <span>🔥</span> Popular
-            </Link>
-            <Link 
-              href="/?tab=recent" 
-              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'recent' ? 'active' : ''}`}
-            >
-               <span>➕</span> Recently Added
-            </Link>
+        <div className="relative flex justify-center px-4 pt-8 pb-2">
+          <div className="apex-glass inline-flex items-center gap-1 rounded-full p-1.5 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.9)] overflow-x-auto scrollbar-hide max-w-full">
+            {[
+              { id: 'trending', label: 'Trending', icon: '✦' },
+              { id: 'popular', label: 'Popular', icon: '❋' },
+              { id: 'recent', label: 'Recently Added', icon: '＋' },
+            ].map((t) => {
+              const isActive = activeTab === t.id;
+              return (
+                <Link
+                  key={t.id}
+                  href={`/?tab=${t.id}`}
+                  data-apex-nav
+                  className={`apex-focusable relative flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold tracking-wide transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-apex-cyan to-apex-violet text-black shadow-apex-glow'
+                      : 'text-white/55 hover:text-white'
+                  }`}
+                >
+                  <span className={isActive ? 'opacity-90' : 'opacity-70'}>{t.icon}</span>
+                  {t.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

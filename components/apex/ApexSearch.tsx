@@ -44,8 +44,14 @@ export default function ApexSearch() {
         setOpen(false);
       }
     };
+    // The nav dock (and anything else) can open search via this event.
+    const onOpen = () => setOpen(true);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("apex:open-search", onOpen as EventListener);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("apex:open-search", onOpen as EventListener);
+    };
   }, []);
 
   // Focus input + lock scroll while open.
@@ -111,27 +117,8 @@ export default function ApexSearch() {
 
   return (
     <>
-      {/* Floating launcher */}
-      <button
-        onClick={() => setOpen(true)}
-        data-apex-nav
-        aria-label="Search films and series"
-        className="apex-glass apex-focusable fixed right-4 top-4 z-[70] flex items-center gap-2 rounded-full px-3.5 py-2.5 text-sm font-medium text-white/70 hover:text-white hover:shadow-apex-glow transition-all sm:right-6 sm:top-6"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-5 w-5">
-          <path
-            d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 1 1 4 10.5a6.5 6.5 0 0 1 13 0Z"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <span className="hidden sm:inline">Search</span>
-        <kbd className="hidden rounded border border-white/15 px-1.5 py-0.5 font-mono text-[10px] text-white/50 md:inline">
-          ⌘K
-        </kbd>
-      </button>
-
+      {/* Launcher lives in the SpatialDock; this overlay opens via ⌘K or the
+          "apex:open-search" window event. */}
       <AnimatePresence>
         {open && (
           <motion.div

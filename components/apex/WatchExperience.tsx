@@ -138,7 +138,10 @@ export default function WatchExperience({
       </div>
 
       {/* ─────────────────────────── Cinematic hero ─────────────────────────── */}
-      <section ref={heroRef} className="relative h-[82vh] min-h-[520px] w-full overflow-hidden">
+      <section
+        ref={heroRef}
+        className="relative h-[68svh] min-h-[400px] max-h-[760px] w-full overflow-hidden"
+      >
         {backdrop && (
           <motion.div style={{ y: heroY, scale: heroScale, opacity: heroFade }} className="absolute inset-0">
             <Image src={backdrop} alt={media.title} fill priority className="object-cover object-top" />

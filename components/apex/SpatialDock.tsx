@@ -84,6 +84,7 @@ export default function SpatialDock() {
   useSpatialNavigation();
 
   const spring = { type: "spring" as const, stiffness: 380, damping: 30 };
+  const openSearch = () => window.dispatchEvent(new Event("apex:open-search"));
 
   return (
     <motion.nav
@@ -98,6 +99,34 @@ export default function SpatialDock() {
                  bottom-4 left-1/2 -translate-x-1/2 flex-row
                  md:bottom-auto md:left-4 md:top-1/2 md:-translate-x-0 md:-translate-y-1/2 md:flex-col"
     >
+      {/* Universal search — sits with Browse / Movies / Series */}
+      <button
+        type="button"
+        onClick={openSearch}
+        data-apex-nav
+        aria-label="Search"
+        className="apex-focusable group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-white/60 outline-none transition-colors hover:text-white"
+      >
+        <span className="relative flex h-6 w-6 shrink-0 items-center justify-center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-6 w-6">
+            <path
+              d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 1 1 4 10.5a6.5 6.5 0 0 1 13 0Z"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <motion.span
+          initial={false}
+          animate={{ width: expanded ? "auto" : 0, opacity: expanded ? 1 : 0 }}
+          transition={spring}
+          className="overflow-hidden whitespace-nowrap text-sm font-medium tracking-wide"
+        >
+          Search
+        </motion.span>
+      </button>
+
       {items.map((item) => {
         const active =
           item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
