@@ -94,3 +94,59 @@ a { transition: color 0.2s ease; }
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================
+   PROJECT APEX — Spatial / OLED / Glassmorphism utility layer
+   (additive; does not override existing RaY-Movies styles)
+   ============================================================ */
+
+/* Glassmorphic translucent panel — used by dock, overlays, chrome */
+.apex-glass {
+  background: linear-gradient(180deg, rgba(16,18,26,0.72), rgba(6,7,11,0.62));
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Neon focus ring tuned for Smart-TV D-pad traversal */
+.apex-focusable:focus-visible,
+.apex-focusable[data-apex-focused="true"] {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 230, 216, 0.9),
+    0 0 22px 2px rgba(34, 230, 216, 0.55);
+  border-radius: 0.85rem;
+  z-index: 40;
+}
+
+/* Skeleton shimmer for async loading states */
+.apex-skeleton {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.04) 30%,
+    rgba(255, 255, 255, 0.10) 50%,
+    rgba(255, 255, 255, 0.04) 70%
+  );
+  background-size: 200% 100%;
+  animation: apex-shimmer 1.6s linear infinite;
+}
+
+/* Cinematic gradient text for the Apex wordmark */
+.apex-wordmark {
+  background: linear-gradient(92deg, #22e6d8, #8b5cf6 55%, #f02fb2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Reduced-motion: honour user preference across all Apex animation */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-apex-float,
+  .animate-apex-pulse,
+  .animate-apex-shimmer,
+  .apex-skeleton {
+    animation: none !important;
+  }
+}
