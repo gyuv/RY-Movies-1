@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import { ApexIntro, SpatialDock } from "@/components/apex";
+import { ApexIntro, SpatialDock, ApexSearch } from "@/components/apex";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -34,6 +34,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Floating spatial navigation dock (spring physics + D-pad) — sole nav */}
         <SpatialDock />
+
+        {/* Universal search — floating launcher + ⌘K command palette */}
+        <ApexSearch />
         
         {/* Main Content Wrapper */}
         <div className="flex-1 w-full max-w-[1600px] mx-auto pb-28 md:pb-0 md:pl-20 lg:pl-0">
