@@ -291,7 +291,7 @@ export default function ApexIntro() {
                 >
                   <span className="pointer-events-none absolute -inset-x-16 -inset-y-10 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.35),rgba(201,162,39,0.2)_45%,transparent_72%)] blur-2xl" />
                   <h1 className="relative select-none font-heading text-6xl font-extrabold tracking-tight sm:text-8xl md:text-9xl">
-                    <span className="ray-brand">Ray</span>
+                    <span className="gold-metal">Ray</span>
                     <span className="ray-brand-alt">Movies</span>
                   </h1>
                 </motion.div>

@@ -18,7 +18,7 @@ export default function Footer() {
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="font-display italic text-2xl font-bold tracking-tight text-white group-hover:text-marquee transition-colors">
+                <span className="gold-metal font-display italic text-2xl font-bold tracking-tight">
                   RaY-Movies
                 </span>
                 <span className="text-[10px] uppercase tracking-widest text-gray-500">Cinematic Discovery Engine</span>
