@@ -4,6 +4,7 @@ import Footer from '../../components/Footer';
 import StreamingPlayer from '../../components/StreamingPlayer';
 import CastRow from '../../../components/CastRow';
 import type { CastMember } from '@/types';
+import { WatchExperience } from '@/components/apex';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p';
 
@@ -121,133 +122,36 @@ export default async function MediaPage({
   const youtubeKey = trailer?.key;
 
   return (
-    <main className="min-h-screen bg-ink text-paper">
-      {/* Backdrop Header */}
-      <div className="relative h-[55vh] md:h-[65vh] w-full">
-        <Image
-          src={`${IMG_BASE}/original${media.backdrop_path}`}
-          alt={media.title}
-          fill
-          className="object-cover"
-          priority
+    <WatchExperience
+      media={{
+        id: media.id,
+        title: media.title,
+        original_title: media.original_title,
+        overview: media.overview,
+        poster_path: media.poster_path,
+        backdrop_path: media.backdrop_path,
+        vote_average: media.vote_average,
+        releaseYear,
+        runtimeHours,
+        runtimeMins,
+        genres: media.genres,
+        status: media.status,
+        original_language: media.original_language,
+        popularity: media.popularity,
+        kind: type,
+        youtubeKey,
+      }}
+      hasCast={Array.isArray(media.cast) && media.cast.length > 0}
+      /* Streaming is untouched: the exact existing player + props are injected as a slot. */
+      playerSlot={
+        <StreamingPlayer
+          movieId={media.id}
+          type={type}
+          language={media.original_language}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-transparent to-transparent" />
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
-          <p className="stub-label mb-2">{type === 'tv' ? 'Series' : 'Film'}</p>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold mb-4 leading-tight">
-            {media.title}
-          </h1>
-          <div className="flex flex-wrap items-center gap-4 text-sm sm:text-base text-paper-dim">
-            <span className="badge-rating">★ {media.vote_average?.toFixed(1) ?? '—'}</span>
-            <span>{releaseYear}</span>
-            <span>{runtimeHours}h {runtimeMins}m</span>
-            {media.genres?.map((genre: { name: string }) => (
-              <span key={genre.name} className="border border-ink-line px-2 py-0.5 rounded text-xs uppercase tracking-wide">
-                {genre.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Poster + back link */}
-          <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-24 space-y-6">
-              <div className="glass-card">
-                <Image
-                  src={`${IMG_BASE}/w500${media.poster_path}`}
-                  alt={media.title}
-                  width={500}
-                  height={750}
-                  className="w-full"
-                />
-              </div>
-              <Link
-                href="/"
-                className="block w-full text-center py-3 border border-ink-line rounded-md hover:border-marquee hover:text-marquee transition-colors stub-label"
-              >
-                ← Back to Browse
-              </Link>
-            </div>
-          </div>
-
-          {/* Details column */}
-          <div className="lg:col-span-2 space-y-10">
-            
-            <section>
-              <h2 className="text-xl font-display font-bold mb-3 section-heading">Overview</h2>
-              <p className="text-paper-dim leading-relaxed text-lg">
-                {media.overview || 'No overview available.'}
-              </p>
-            </section>
-
-            {youtubeKey && (
-              <section>
-                <h2 className="text-xl font-display font-bold mb-3 section-heading">Official Trailer</h2>
-                <div className="aspect-video bg-black rounded-md overflow-hidden border border-ink-line shadow-2xl">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=0&rel=0&modestbranding=1`}
-                    title={`${media.title} Trailer`}
-                    className="w-full h-full"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  />
-                </div>
-              </section>
-            )}
-
-            {media.cast?.length > 0 && (
-              <section>
-                <h2 className="text-xl font-display font-bold mb-3 section-heading">Cast</h2>
-                <CastRow cast={media.cast} />
-              </section>
-            )}
-
-            <section>
-              <h2 className="text-xl font-display font-bold mb-4 section-heading">Details</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="stub-label">Original Title</span>
-                  <p className="font-medium mt-1">{media.original_title}</p>
-                </div>
-                <div>
-                  <span className="stub-label">Status</span>
-                  <p className="font-medium mt-1">{media.status}</p>
-                </div>
-                <div>
-                  <span className="stub-label">Language</span>
-                  <p className="font-medium mt-1">{media.original_language?.toUpperCase()}</p>
-                </div>
-                <div>
-                  <span className="stub-label">Popularity</span>
-                  <p className="font-medium mt-1">{media.popularity?.toFixed(0) ?? '—'}</p>
-                </div>
-              </div>
-            </section>
-
-            {/* WATCH ONLINE PLAYER SECTION (Moved below Details) */}
-            <section className="bg-[#12141c] p-6 rounded-2xl border border-ink-line shadow-xl">
-              <h2 className="text-xl font-display font-bold mb-4 section-heading flex items-center gap-2">
-                <span className="w-2.5 h-6 bg-marquee rounded-full"></span>
-                Watch Online
-              </h2>
-              <StreamingPlayer 
-                movieId={media.id} 
-                type={type} 
-                language={media.original_language} 
-              />
-            </section>
-
-          </div>
-        </div>
-      </div>
-
-      <Footer />
-    </main>
+      }
+      castSlot={<CastRow cast={media.cast} />}
+      footerSlot={<Footer />}
+    />
   );
 }

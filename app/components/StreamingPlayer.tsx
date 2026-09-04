@@ -19,13 +19,14 @@ export default function StreamingPlayer({ movieId, type, language = 'en' }: Stre
   const [provider, setProvider] = useState<string>('promulti');
 
   return (
-    <div className="bg-[#14151a] p-4 rounded-lg">
+    <div className="bg-[#0F1A44] p-4 rounded-lg">
       <div className="flex flex-wrap gap-2 mb-4">
         {SERVERS.map((s) => (
           <button
             key={s.id}
             onClick={() => setProvider(s.id)}
-            className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
+            data-apex-nav
+            className={`apex-focusable px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
               provider === s.id
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                 : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'

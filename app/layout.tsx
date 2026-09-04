@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, Inter, IBM_Plex_Mono, Sora } from "next/font/google";
 import "./globals.css";
-import SiteHeader from "@/components/SiteHeader";
+import { ApexIntro, SpatialDock, ApexSearch } from "@/components/apex";
 
 const display = Fraunces({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-display",
+});
+
+// Modern geometric display face for premium UI headings.
+const heading = Sora({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-heading",
 });
 
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
@@ -26,18 +33,25 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
-      <body className="bg-[#141414] text-white flex flex-col min-h-screen">
-        
-        <SiteHeader />
+    <html lang="en" className={`${display.variable} ${heading.variable} ${body.variable} ${mono.variable}`}>
+      <body className="bg-apex-void text-white flex flex-col min-h-screen overflow-x-clip">
+
+        {/* Project Apex — cinematic entry (self-dismisses; remembers via localStorage) */}
+        <ApexIntro />
+
+        {/* Floating spatial navigation dock (spring physics + D-pad) — sole nav */}
+        <SpatialDock />
+
+        {/* Universal search — floating launcher + ⌘K command palette */}
+        <ApexSearch />
         
         {/* Main Content Wrapper */}
-        <div className="flex-1 w-full max-w-[1600px] mx-auto">
+        <div className="flex-1 w-full max-w-[1600px] mx-auto pb-28 md:pb-0 md:pl-20 lg:pl-0">
           {children}
         </div>
         
         {/* Footer */}
-        <footer className="bg-[#1a1a1a] border-t border-gray-800 mt-16 py-4 w-full">
+        <footer className="bg-[#0B1437] border-t border-gray-800 mt-16 py-4 w-full">
           <div className="max-w-[1600px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-sm text-gray-400 font-medium">
             <p>Email: Milad.barzegar71@gmail.com</p>
             

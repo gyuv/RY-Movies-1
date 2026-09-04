@@ -5,25 +5,43 @@
 html { scroll-behavior: smooth; }
 
 body {
-  /* Dark gray/black background matching the design */
-  @apply bg-[#141414] text-gray-200 font-body;
+  @apply bg-apex-void text-gray-200 font-body;
 }
 
 h1, h2, h3, h4 {
-  @apply font-display text-white;
-  letter-spacing: -0.01em;
+  @apply font-heading text-white;
+  letter-spacing: -0.02em;
 }
 
 a { transition: color 0.2s ease; }
 
-/* Section headline with an icon placeholder, matching "Movies" and "Series" */
-.section-heading { 
-  @apply flex items-center gap-2 text-xl font-bold text-white mb-4;
+/* Premium section headline — modern face, tight tracking, accent bar. */
+.section-heading {
+  @apply relative flex items-center gap-3 font-heading text-lg sm:text-xl font-bold text-white mb-4 tracking-tight;
+}
+.section-heading::before {
+  content: "";
+  @apply h-5 w-1 rounded-full bg-gradient-to-b from-apex-cyan to-apex-violet;
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.7);
+}
+
+/* Animated gradient-sheen title text (premium, subtle). */
+.apex-title {
+  @apply font-heading font-bold tracking-tight;
+  background-image: linear-gradient(100deg, #ffffff 20%, #E7CE86 40%, #ffffff 60%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: apex-sheen 6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .apex-title { animation: none; }
 }
 
 /* Base card styling */
 .glass-card {
-  @apply bg-[#1e1e1e] border border-transparent rounded-lg relative overflow-hidden transition-all duration-300;
+  @apply bg-[#0F1A44] border border-transparent rounded-lg relative overflow-hidden transition-all duration-300;
   box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
@@ -36,7 +54,7 @@ a { transition: color 0.2s ease; }
 
 /* Active card styling (like "Red Sparrow" in the image) */
 .glass-card.active {
-  @apply border-t-4 border-t-red-600 bg-white text-black scale-105 shadow-xl;
+  @apply border-t-4 border-t-marquee bg-white text-black scale-105 shadow-xl;
   z-index: 20;
 }
 
@@ -46,9 +64,9 @@ a { transition: color 0.2s ease; }
 
 /* Primary CTA — Red Watch Button */
 .btn-primary {
-  @apply inline-flex items-center gap-2 px-8 py-2.5 rounded-full font-bold bg-red-600 text-white transition-all shadow-md shadow-red-900/50;
+  @apply inline-flex items-center gap-2 px-8 py-2.5 rounded-full font-bold bg-marquee text-arcade-deep transition-all shadow-md shadow-black/40;
 }
-.btn-primary:hover { @apply bg-red-500 scale-105; }
+.btn-primary:hover { @apply bg-marquee-hot scale-105; }
 
 /* Genre Pills */
 .genre-pill {
@@ -58,7 +76,7 @@ a { transition: color 0.2s ease; }
   @apply bg-[#3a3a3a] text-white;
 }
 .genre-pill.active {
-  @apply bg-red-600 text-white shadow-md shadow-red-900/40;
+  @apply bg-marquee text-arcade-deep shadow-md shadow-black/40;
 }
 
 /* Sub-nav Tabs (Trends Now, Popular) */
@@ -66,15 +84,15 @@ a { transition: color 0.2s ease; }
   @apply text-gray-400 font-medium pb-2 cursor-pointer transition-colors flex items-center gap-2;
 }
 .sub-nav-tab.active {
-  @apply text-white border-b-2 border-red-600;
+  @apply text-white border-b-2 border-marquee;
 }
 
 /* Dropdown Sort Styling */
 .sort-dropdown {
-  @apply bg-[#2a2a2a] text-gray-200 text-sm rounded-md px-3 py-1 border border-gray-700 outline-none focus:border-red-500;
+  @apply bg-[#2a2a2a] text-gray-200 text-sm rounded-md px-3 py-1 border border-gray-700 outline-none focus:border-marquee;
 }
 .sort-dropdown.active {
-  @apply bg-red-600 text-white border-red-600;
+  @apply bg-marquee text-arcade-deep border-marquee;
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -85,7 +103,7 @@ a { transition: color 0.2s ease; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 /* Smart TV / Keyboard Navigation Focus State */
 :focus-visible { 
-  @apply outline-none ring-4 ring-red-600 ring-offset-4 ring-offset-[#141414] rounded-lg z-50 relative transition-all duration-300;
+  @apply outline-none ring-4 ring-marquee ring-offset-4 ring-offset-apex-void rounded-lg z-50 relative transition-all duration-300;
 }
 
 /* Ensure the carousel doesn't hide focused elements */
@@ -94,3 +112,96 @@ a { transition: color 0.2s ease; }
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================
+   PROJECT APEX — Spatial / OLED / Glassmorphism utility layer
+   (additive; does not override existing RaY-Movies styles)
+   ============================================================ */
+
+/* Glassmorphic translucent panel — used by dock, overlays, chrome */
+.apex-glass {
+  background: linear-gradient(180deg, rgba(15,26,68,0.72), rgba(6,11,36,0.66));
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Neon focus ring tuned for Smart-TV D-pad traversal */
+.apex-focusable:focus-visible,
+.apex-focusable[data-apex-focused="true"] {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.95),
+    0 0 22px 2px rgba(59, 130, 246, 0.55);
+  border-radius: 0.85rem;
+  z-index: 40;
+}
+
+/* Skeleton shimmer for async loading states */
+.apex-skeleton {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.04) 30%,
+    rgba(255, 255, 255, 0.10) 50%,
+    rgba(255, 255, 255, 0.04) 70%
+  );
+  background-size: 200% 100%;
+  animation: apex-shimmer 1.6s linear infinite;
+}
+
+/* Cinematic gradient text for the Apex wordmark */
+.apex-wordmark {
+  background: linear-gradient(92deg, #C9A227, #3B82F6 55%, #E5C15B);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Metallic gold — light-catching gradient TEXT with a slow travelling sheen. */
+.gold-metal {
+  background-image: linear-gradient(
+    100deg,
+    #8f6a1e 0%,
+    #c9a227 22%,
+    #f4e6ad 42%,
+    #ffffff 50%,
+    #f4e6ad 58%,
+    #c9a227 78%,
+    #8f6a1e 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: apex-sheen 4.5s linear infinite;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+/* Metallic gold BACKGROUND fill (buttons) — brushed-gold with a moving sheen. */
+.gold-metal-bg {
+  background-image: linear-gradient(
+    100deg,
+    #a9821f 0%,
+    #c9a227 25%,
+    #f0dd9c 48%,
+    #c9a227 72%,
+    #a9821f 100%
+  );
+  background-size: 220% auto;
+  animation: apex-sheen 4.5s linear infinite;
+}
+
+/* Reduced-motion: honour user preference across all Apex animation */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-apex-float,
+  .animate-apex-pulse,
+  .animate-apex-shimmer,
+  .animate-heartbeat,
+  .gold-metal,
+  .gold-metal-bg,
+  .apex-skeleton {
+    animation: none !important;
+  }
+}

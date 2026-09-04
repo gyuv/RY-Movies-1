@@ -44,8 +44,8 @@ export default function Hero({ movies }: { movies: Movie[] }) {
       </div>
 
       {/* Stronger gradient on mobile for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/80 md:via-[#141414]/60 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#141414] md:from-[#141414]/90 via-[#141414]/40 md:via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#060B24] via-[#060B24]/80 md:via-[#060B24]/60 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#060B24] md:from-[#060B24]/90 via-[#060B24]/40 md:via-transparent to-transparent" />
 
       <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-10 max-w-[1600px] mx-auto z-10">
         <div className="max-w-2xl space-y-2 md:space-y-4 mb-4 md:mb-8">
@@ -68,7 +68,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
           <div className="flex gap-3 md:gap-4 pt-2 md:pt-4">
             <Link
               href={`/media/${movie.id}`}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2 md:px-8 md:py-2.5 rounded-full text-sm md:text-base font-bold bg-red-600 text-white transition-all shadow-md shadow-red-900/50 hover:bg-red-500 md:hover:scale-105 w-auto"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2 md:px-8 md:py-2.5 rounded-full text-sm md:text-base font-bold bg-marquee text-white transition-all shadow-md shadow-black/50 hover:bg-marquee md:hover:scale-105 w-auto"
             >
               ▶ Watch
             </Link>
@@ -81,7 +81,7 @@ export default function Hero({ movies }: { movies: Movie[] }) {
                 onClick={() => setCurrent(i)}
                 aria-label={`Show ${m.title}`}
                 className={`h-1 md:h-1.5 rounded-full transition-all duration-300 ${
-                  i === current ? 'w-6 md:w-8 bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.8)]' : 'w-1.5 md:w-2 bg-gray-600 hover:bg-gray-400'
+                  i === current ? 'w-6 md:w-8 bg-marquee shadow-[0_0_8px_rgba(220,38,38,0.8)]' : 'w-1.5 md:w-2 bg-gray-600 hover:bg-gray-400'
                 }`}
               />
             ))}

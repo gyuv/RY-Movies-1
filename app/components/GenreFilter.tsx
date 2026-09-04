@@ -76,7 +76,7 @@ function GenreFilterInner({ genres }: { genres: Genre[] }) {
       </button>
 
       {open && (
-        <div className="absolute top-full mt-2 left-0 z-50 w-72 max-h-96 overflow-y-auto bg-[#141414] border border-white/10 rounded-xl shadow-2xl p-3">
+        <div className="absolute top-full mt-2 left-0 z-50 w-72 max-h-96 overflow-y-auto bg-[#060B24] border border-white/10 rounded-xl shadow-2xl p-3">
           <div className="grid grid-cols-2 gap-1 mb-3">
             {genres.map((genre, index) => {
               const genreId = genre.id ?? index;

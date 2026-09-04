@@ -23,7 +23,7 @@ export default function StreamSelector({ movieId, type }: StreamSelectorProps) {
   ];
 
   return (
-    <div className="bg-[#14151a] p-4 rounded-lg">
+    <div className="bg-[#0F1A44] p-4 rounded-lg">
       {/* Server Selection Buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
         {providers.map((p) => (

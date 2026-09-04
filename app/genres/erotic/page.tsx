@@ -1,164 +1,175 @@
-import Image from 'next/image';
-import Link from 'next/link';
+import { Suspense } from 'react';
+import MediaCard from '../../components/MediaCard';
+import SectionFilters from '../../components/SectionFilters';
+import Pagination from '../../components/Pagination';
+import { SectionTitle } from '@/components/apex';
 
 // 🔑 API Configuration
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
-const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
-// 🎬 Data Interface
 interface Movie {
   id: number;
   title: string;
-  overview: string;
   poster_path: string;
   vote_average: number;
   original_language: string;
   release_date: string;
   popularity: number;
-  adult: boolean;
 }
 
-// 🏷️ FreudX-Style Keywords (More inclusive)
-const FREUDX_KEYWORDS = '1009,1493,1896,2123,11836,12295,17165,17664,20594,23038,25463,27047,2924,2926,3213,3603,4365,4607,5451,5991,6622,7236,7755,8093,9303';
+// Curated erotic/sensual keyword ids (OR-joined — commas would mean AND).
+const EROTIC_KEYWORDS =
+  '1009,1493,1896,2123,11836,12295,17165,17664,20594,23038,25463,27047,2924,2926,3213,3603,4365,4607,5451,5991,6622,7236,7755,8093,9303,190370,262247';
 
-// 🎭 Genres to pair with keywords for better coverage
-const TARGET_GENRES = '10749,18,53,9648'; // Romance, Drama, Thriller, Mystery
+interface FetchParams {
+  page: number;
+  sort: string;
+  language: string;
+  year: string;
+}
 
-// 🌍 Target Languages
-const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml', 'pt', 'ru', 'ja', 'zh'];
+interface FetchResult {
+  results: Movie[];
+  total_pages: number;
+  total_results: number;
+}
 
 /**
- * Fetches content using a dual strategy: Keywords + Genres
+ * Paginated, filterable discovery over TMDB.
+ * NOTE: TMDB treats commas in with_keywords as AND and the pipe `|` as OR —
+ * we OR-join so the collection is broad, then apply the user's filters.
  */
-async function fetchEroticContent(): Promise<Movie[]> {
-  if (!TMDB_API_KEY) return [];
+async function fetchEroticContent({ page, sort, language, year }: FetchParams): Promise<FetchResult> {
+  if (!TMDB_API_KEY) return { results: [], total_pages: 0, total_results: 0 };
+
+  const keywordsOR = EROTIC_KEYWORDS.split(',').join('|');
+  const params = new URLSearchParams({
+    api_key: TMDB_API_KEY,
+    with_keywords: keywordsOR,
+    sort_by: sort,
+    include_adult: 'true',
+    include_video: 'false',
+    'vote_count.gte': sort === 'vote_average.desc' ? '20' : '1',
+    page: String(page),
+  });
+  if (language) params.set('with_original_language', language);
+  if (year) params.set('primary_release_year', year);
 
   try {
-    // 1. Fetch by Genres (Romance, Drama, Thriller) + Adult Flag
-    // This covers 90% of "Hardcore" films that lack specific keywords
-    const genreRes = await fetch(
-      `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=10749,18,53&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false&with_original_language=en`,
-      { next: { revalidate: 3600 } }
-    );
-    const enData = await genreRes.json();
-
-    // 2. Fetch specific "Erotic" keywords for non-English languages
-    const keywordPromises = ['pl', 'ko', 'fr', 'es'].map(async (lang) => {
-      const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=620,2123,1493&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false`,
-        { next: { revalidate: 3600 } }
-      );
-      const data = await res.json();
-      return data.results || [];
+    const res = await fetch(`${BASE_URL}/discover/movie?${params.toString()}`, {
+      next: { revalidate: 3600 },
     });
-
-    const keywordResults = await Promise.all(keywordPromises);
-    const allMovies = [...(enData.results || []), ...keywordResults.flat()];
-
-    // Deduplicate and Sort
-    const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
-    const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
-
-    return sortedMovies.slice(0, 24); // Return top 24
-
-  } catch (error) {
-    console.error(error);
-    return [];
+    if (!res.ok) return { results: [], total_pages: 0, total_results: 0 };
+    const data = await res.json();
+    const results: Movie[] = (data.results || []).filter((m: Movie) => m.poster_path);
+    return {
+      results,
+      total_pages: Math.min(data.total_pages || 1, 500),
+      total_results: data.total_results || results.length,
+    };
+  } catch {
+    return { results: [], total_pages: 0, total_results: 0 };
   }
 }
-/**
- * Helper to get human-readable language names
- */
-const getLangName = (code: string) => {
-  const langs: Record<string, string> = {
-    pl: 'PL', ko: 'KR', fr: 'FR', en: 'EN', es: 'ES', hi: 'HI', ta: 'TA', te: 'TE', ml: 'ML',
-    pt: 'PT', ru: 'RU', ja: 'JP', zh: 'CN', de: 'DE', it: 'IT', ar: 'AR', tr: 'TR', sv: 'SE',
-    no: 'NO', da: 'DK', fi: 'FI', nl: 'NL', id: 'ID', ms: 'MS', th: 'TH', vi: 'VN', he: 'IL'
-  };
-  return langs[code] || code.toUpperCase();
-};
 
-export default async function FreudXPage() {
-  const movies = await fetchEroticContent();
+const SORT_OPTIONS = [
+  { label: 'Most Popular', value: 'popularity.desc' },
+  { label: 'Highest Rated', value: 'vote_average.desc' },
+  { label: 'Newest', value: 'primary_release_date.desc' },
+  { label: 'Trending Titles', value: 'revenue.desc' },
+];
+
+const LANGUAGE_OPTIONS = [
+  { label: 'English', value: 'en' }, { label: 'Korean', value: 'ko' }, { label: 'Japanese', value: 'ja' },
+  { label: 'French', value: 'fr' }, { label: 'Spanish', value: 'es' }, { label: 'Italian', value: 'it' },
+  { label: 'German', value: 'de' }, { label: 'Thai', value: 'th' }, { label: 'Hindi', value: 'hi' },
+  { label: 'Chinese', value: 'zh' }, { label: 'Polish', value: 'pl' }, { label: 'Russian', value: 'ru' },
+];
+
+const YEAR_OPTIONS = Array.from({ length: 45 }, (_, i) => {
+  const yr = new Date().getFullYear() - i;
+  return { label: yr.toString(), value: yr.toString() };
+});
+
+export default async function EroticPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const page = Number(searchParams?.page) || 1;
+  const sort = (searchParams?.sort as string) || 'popularity.desc';
+  const language = (searchParams?.language as string) || '';
+  const year = (searchParams?.year as string) || '';
+
+  const data = await fetchEroticContent({ page, sort, language, year });
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 font-sans">
-      {/* Header */}
-      <div className="relative w-full h-48 bg-gradient-to-b from-gray-900 to-black">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534528741775-53994a695755?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-        <div className="relative z-10 max-w-7xl mx-auto p-6">
-          <h1 className="text-5xl font-black tracking-tighter text-white uppercase">
-            Freud<span className="text-red-600">X</span>
-          </h1>
-          <p className="text-gray-400 text-sm mt-2 uppercase tracking-widest">
-            Global Hardcore & Erotic Collection
+    <main className="min-h-screen bg-apex-void text-paper">
+      <div className="mx-auto max-w-[1600px] py-10">
+        {/* Premium header */}
+        <div className="mb-6 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <SectionTitle kicker="Adults Only" title="Erotic" size="lg" as="h1" />
+            <span className="mt-6 rounded-md border border-marquee/50 bg-marquee/10 px-2 py-0.5 text-[11px] font-bold tracking-wider text-marquee">
+              18+
+            </span>
+          </div>
+          <p className="mt-3 max-w-2xl text-sm text-white/50">
+            {data.total_results
+              ? `${data.total_results.toLocaleString()} titles · sensual thrillers, romance & drama for mature audiences. Viewer discretion advised.`
+              : 'Sensual thrillers, romance and drama for mature audiences. Viewer discretion advised.'}
           </p>
         </div>
-      </div>
 
-      {/* Content Grid */}
-      <div className="max-w-7xl mx-auto p-6">
-        {movies.length === 0 ? (
-          <div className="text-center py-20 text-gray-500">
-            <p>No content found matching the FreudX criteria.</p>
-            <p className="text-xs mt-2">Check TMDB API Key & Adult Content settings.</p>
-            <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
-              <p><strong>Debug:</strong></p>
-              <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
-              <p>Keywords: {FREUDX_KEYWORDS}</p>
-              <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
+        {/* Filters */}
+        <Suspense fallback={<div className="mb-8 px-4 sm:px-6 lg:px-8"><div className="apex-skeleton h-16 rounded-2xl" /></div>}>
+          <SectionFilters
+            sortOptions={SORT_OPTIONS}
+            extraOptions={[
+              { name: 'language', label: 'Language', options: LANGUAGE_OPTIONS },
+              { name: 'year', label: 'Year', options: YEAR_OPTIONS },
+            ]}
+          />
+        </Suspense>
+
+        {data.results.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-4 py-24 text-center">
+            <div className="mb-4 h-16 w-16 text-ink-line">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+              </svg>
             </div>
+            <h3 className="mb-2 font-heading text-xl font-semibold text-white">No titles match these filters</h3>
+            <p className="max-w-md text-sm text-white/45">
+              Try clearing the language or year filter. (TMDB API key: {TMDB_API_KEY ? 'loaded' : 'missing'}.)
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {movies.map((movie) => (
-              <Link 
-                key={movie.id} 
-                href={`/movie/${movie.id}`} 
-                className="group relative block aspect-[2/3] overflow-hidden bg-gray-900"
-              >
-                {movie.poster_path ? (
-                  <Image
-                    src={`${IMAGE_BASE_URL}${movie.poster_path}`}
-                    alt={movie.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110 group-hover:grayscale-0 grayscale"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 20vw, 15vw"
+          <>
+            <div className="grid grid-cols-2 gap-4 px-4 sm:grid-cols-3 sm:gap-5 sm:px-6 md:grid-cols-4 lg:grid-cols-5 lg:gap-6 lg:px-8 xl:grid-cols-6 2xl:grid-cols-7">
+              {data.results.map((movie, i) => (
+                <div key={movie.id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}>
+                  <MediaCard
+                    id={movie.id}
+                    title={movie.title}
+                    poster_path={movie.poster_path}
+                    vote_average={movie.vote_average}
+                    release_date={movie.release_date}
+                    media_type="movie"
                   />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-gray-800 text-gray-600 text-xs">
-                    No Image
-                  </div>
-                )}
-                
-                {/* Hover Overlay - FreudX style is subtle and sleek */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
-                
-                {/* Info Bar on Hover */}
-                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-white truncate w-32">{movie.title}</span>
-                    <span className="text-[10px] text-gray-400">{movie.release_date?.slice(0, 4)}</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-xs font-bold text-red-500">{movie.vote_average.toFixed(1)}</span>
-                    <span className="text-[10px] text-gray-500 uppercase border border-gray-700 px-1 rounded">
-                      {getLangName(movie.original_language)}
-                    </span>
-                  </div>
                 </div>
-              </Link>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {data.total_pages > 1 && (
+              <div className="mt-10">
+                <Pagination currentPage={page} totalPages={data.total_pages} />
+              </div>
+            )}
+          </>
         )}
       </div>
-      
-      {/* Footer */}
-      <div className="text-center py-8 text-gray-600 text-xs uppercase tracking-widest">
-        FreudX • Curated by TMDB
-      </div>
-    </div>
+    </main>
   );
 }

@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import MoviesSection from '../components/MoviesSection';
 import Pagination from '../components/Pagination';
 import SectionFilters from '../components/SectionFilters';
+import { SectionTitle } from '@/components/apex';
 
 const MOCK_MOVIE = {
   id: 99, title: "Mock Movie", poster_path: "/9lH0V6e4b4w8r5k6j7h8g9f0d1s2a3.jpg",
@@ -102,11 +103,9 @@ export default async function MoviesPage({
     <main className="min-h-screen bg-ink text-paper">
       <div className="max-w-[1600px] mx-auto py-10">
         <div className="px-4 sm:px-6 lg:px-8 mb-6">
-          <h1 className="text-2xl md:text-3xl font-display font-bold text-paper section-heading">
-            Movies
-          </h1>
-          <p className="stub-label mt-2">
-            {data.total_results ? `${data.total_results.toLocaleString()} titles` : ''}
+          <SectionTitle kicker="Browse" title="Movies" size="lg" as="h1" />
+          <p className="mt-3 text-sm text-white/45">
+            {data.total_results ? `${data.total_results.toLocaleString()} titles` : 'Discover films across every language & genre'}
           </p>
         </div>
 

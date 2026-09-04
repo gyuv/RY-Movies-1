@@ -141,10 +141,10 @@ export default function Filters() {
 
   const selectWrapper = "relative flex-1 min-w-[130px] sm:min-w-[145px]";
   const selectStyle =
-    "w-full appearance-none bg-ink/70 hover:bg-ink text-paper text-xs sm:text-sm font-medium rounded-lg px-3.5 py-2.5 pr-8 border border-ink-line hover:border-marquee/40 focus:border-marquee focus:outline-none transition-all shadow-inner cursor-pointer";
+    "apex-focusable w-full appearance-none bg-white/[0.04] hover:bg-white/[0.08] text-white text-xs sm:text-sm font-medium rounded-xl px-3.5 py-2.5 pr-8 border border-white/10 hover:border-apex-cyan/40 focus:border-apex-cyan focus:outline-none transition-all cursor-pointer";
 
   return (
-    <div className="w-full bg-ink-raised/90 backdrop-blur-xl border-y border-ink-line py-3 px-4 sm:px-6 lg:px-8 shadow-xl">
+    <div className="w-full apex-glass border-x-0 rounded-none py-3 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
         
         {/* Horizontal Scrolling Filter Inputs */}
@@ -153,6 +153,7 @@ export default function Filters() {
           {/* Genre */}
           <div className={selectWrapper}>
             <select
+              data-apex-nav
               aria-label="Filter by Genre"
               value={genre}
               onChange={(e) => handleFilterChange("genre", e.target.value)}
@@ -172,6 +173,7 @@ export default function Filters() {
           {/* Language */}
           <div className={selectWrapper}>
             <select
+              data-apex-nav
               aria-label="Filter by Language"
               value={language}
               onChange={(e) => handleFilterChange("language", e.target.value)}
@@ -191,6 +193,7 @@ export default function Filters() {
           {/* Region */}
           <div className={selectWrapper}>
             <select
+              data-apex-nav
               aria-label="Filter by Region"
               value={region}
               onChange={(e) => handleFilterChange("region", e.target.value)}
@@ -211,6 +214,7 @@ export default function Filters() {
           {/* Year */}
           <div className={selectWrapper}>
             <select
+              data-apex-nav
               aria-label="Filter by Year"
               value={year}
               onChange={(e) => handleFilterChange("year", e.target.value)}
@@ -231,6 +235,7 @@ export default function Filters() {
           {/* Actor */}
           <div className={selectWrapper}>
             <select
+              data-apex-nav
               aria-label="Filter by Actor"
               value={actor}
               disabled={actorsList.length === 0}
@@ -254,6 +259,7 @@ export default function Filters() {
           {/* Sort */}
           <div className={selectWrapper}>
             <select
+              data-apex-nav
               aria-label="Sort Results"
               value={sort}
               onChange={(e) => handleFilterChange("sort", e.target.value)}

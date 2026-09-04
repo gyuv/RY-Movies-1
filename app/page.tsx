@@ -1,11 +1,11 @@
 import Filters from './components/Filters';
 import MoviesSection from './components/MoviesSection';
-import Hero from './components/Hero';
 import Footer from './components/Footer';
 import MovieCarousel from './components/MovieCarousel';
 import Pagination from './components/Pagination';
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { CinematicHero, SectionTitle } from '@/components/apex';
 
 const MOCK_MOVIE = { 
   id: 99, 
@@ -174,42 +174,43 @@ export default async function Home({
     ]);
   }
 
-  const getRowTitle = (categoryName: string) => {
-    if (activeTab === 'popular') return `🔥 Popular ${categoryName}`;
-    if (activeTab === 'recent') return `➕ Recently Added ${categoryName}`;
-    return `⭐ Trending ${categoryName}`;
-  };
+  const tabKicker =
+    activeTab === 'popular' ? 'Popular' : activeTab === 'recent' ? 'Recently Added' : 'Trending';
 
   return (
-    <main className="min-h-screen bg-[#141414] text-white">
-      {!hasFilters && heroData && <Hero movies={heroData} />}
+    <main className="min-h-screen bg-apex-void text-white">
+      {!hasFilters && heroData && <CinematicHero movies={heroData} />}
       
       {!hasFilters && (
-        <div className="bg-[#1a1a1a] border-b border-gray-800">
-          <div className="max-w-[1600px] mx-auto px-6 flex justify-center gap-12 pt-4 overflow-x-auto scrollbar-hide">
-            <Link 
-              href="/?tab=trending" 
-              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'trending' ? 'active' : ''}`}
-            >
-               <span>⭐</span> Trends Now
-            </Link>
-            <Link 
-              href="/?tab=popular" 
-              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'popular' ? 'active' : ''}`}
-            >
-               <span>🔥</span> Popular
-            </Link>
-            <Link 
-              href="/?tab=recent" 
-              className={`sub-nav-tab whitespace-nowrap ${activeTab === 'recent' ? 'active' : ''}`}
-            >
-               <span>➕</span> Recently Added
-            </Link>
+        <div className="relative flex justify-center px-4 pt-8 pb-2">
+          <div className="apex-glass inline-flex items-center gap-1 rounded-full p-1.5 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.9)] overflow-x-auto scrollbar-hide max-w-full">
+            {[
+              { id: 'trending', label: 'Trending', icon: '✦' },
+              { id: 'popular', label: 'Popular', icon: '❋' },
+              { id: 'recent', label: 'Recently Added', icon: '＋' },
+            ].map((t) => {
+              const isActive = activeTab === t.id;
+              return (
+                <Link
+                  key={t.id}
+                  href={`/?tab=${t.id}`}
+                  data-apex-nav
+                  className={`apex-focusable relative flex items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold tracking-wide transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-apex-cyan to-apex-violet text-black shadow-apex-glow'
+                      : 'text-white/55 hover:text-white'
+                  }`}
+                >
+                  <span className={isActive ? 'opacity-90' : 'opacity-70'}>{t.icon}</span>
+                  {t.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}
 
-      <div className="sticky top-0 z-40 bg-[#141414]/90 backdrop-blur-md">
+      <div className="sticky top-0 z-40 bg-[#060B24]/90 backdrop-blur-md">
         <Suspense fallback={<div className="h-16" />}>
           <Filters />
         </Suspense>
@@ -219,13 +220,13 @@ export default async function Home({
         
         {hasFilters && filteredData && (
           <div className="mt-6">
-            <h2 className="text-xl md:text-2xl font-bold text-white mb-6">
-              {actorDetails 
-                ? `Movies starring ${actorDetails.name}` 
-                : year 
-                  ? `Movies from ${year}` 
-                  : genre 
-                    ? `Results for Genre` 
+            <h2 className="apex-title text-2xl md:text-4xl mb-6">
+              {actorDetails
+                ? `Movies starring ${actorDetails.name}`
+                : year
+                  ? `Movies from ${year}`
+                  : genre
+                    ? `Results for Genre`
                     : `Latest ${language.toUpperCase()} Movies`}
             </h2>
             <MoviesSection movies={filteredData.results || []} />
@@ -243,9 +244,9 @@ export default async function Home({
             {englishMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">{getRowTitle("English Movies")}</h2>
+                  <SectionTitle kicker={tabKicker} title="English Movies" />
                   <div className="flex items-center gap-3 text-sm">
-                    <a href="?language=en&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
+                    <a href="?language=en&sort=popularity.desc" className="text-apex-cyan hover:text-white font-semibold ml-2">View All</a>
                   </div>
                 </div>
                 <MovieCarousel title="" movies={englishMovies} languageCode="en" />
@@ -255,9 +256,9 @@ export default async function Home({
             {tamilMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">{getRowTitle("Tamil Movies")}</h2>
+                  <SectionTitle kicker={tabKicker} title="Tamil Movies" />
                   <div className="flex items-center gap-3 text-sm">
-                    <a href="?language=ta&sort=primary_release_date.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
+                    <a href="?language=ta&sort=primary_release_date.desc" className="text-apex-cyan hover:text-white font-semibold ml-2">View All</a>
                   </div>
                 </div>
                 <MovieCarousel title="" movies={tamilMovies} languageCode="ta" />
@@ -267,9 +268,9 @@ export default async function Home({
             {teluguMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">{getRowTitle("Telugu Movies")}</h2>
+                  <SectionTitle kicker={tabKicker} title="Telugu Movies" />
                   <div className="flex items-center gap-3 text-sm">
-                    <a href="?language=te&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
+                    <a href="?language=te&sort=popularity.desc" className="text-apex-cyan hover:text-white font-semibold ml-2">View All</a>
                   </div>
                 </div>
                 <MovieCarousel title="" movies={teluguMovies} languageCode="te" />
@@ -279,9 +280,9 @@ export default async function Home({
             {hindiMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">{getRowTitle("Hindi Movies")}</h2>
+                  <SectionTitle kicker={tabKicker} title="Hindi Movies" />
                   <div className="flex items-center gap-3 text-sm">
-                    <a href="?language=hi&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
+                    <a href="?language=hi&sort=popularity.desc" className="text-apex-cyan hover:text-white font-semibold ml-2">View All</a>
                   </div>
                 </div>
                 <MovieCarousel title="" movies={hindiMovies} languageCode="hi" />
@@ -291,9 +292,9 @@ export default async function Home({
             {koreanMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">{getRowTitle("Korean Movies")}</h2>
+                  <SectionTitle kicker={tabKicker} title="Korean Movies" />
                   <div className="flex items-center gap-3 text-sm">
-                    <a href="?language=ko&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
+                    <a href="?language=ko&sort=popularity.desc" className="text-apex-cyan hover:text-white font-semibold ml-2">View All</a>
                   </div>
                 </div>
                 <MovieCarousel title="" movies={koreanMovies} languageCode="ko" />
@@ -303,9 +304,9 @@ export default async function Home({
             {japaneseMovies && (
               <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                  <h2 className="section-heading mb-0">{getRowTitle("Japanese Movies")}</h2>
+                  <SectionTitle kicker={tabKicker} title="Japanese Movies" />
                   <div className="flex items-center gap-3 text-sm">
-                    <a href="?language=ja&sort=popularity.desc" className="text-red-500 hover:text-red-400 ml-2">View All</a>
+                    <a href="?language=ja&sort=popularity.desc" className="text-apex-cyan hover:text-white font-semibold ml-2">View All</a>
                   </div>
                 </div>
                 <MovieCarousel title="" movies={japaneseMovies} languageCode="ja" />

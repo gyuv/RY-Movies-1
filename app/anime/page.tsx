@@ -172,7 +172,7 @@ export default async function AnimePage({
               {mainList.media.map((item: AnimeData) => (
                 <div
                   key={item.id}
-                  className="group relative bg-[#1a1a1a] rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 hover:z-10"
+                  className="group relative bg-[#0B1437] rounded-lg overflow-hidden transition-transform duration-200 hover:scale-105 hover:z-10"
                 >
                   <div className="relative aspect-[0.75] w-full">
                     <Image

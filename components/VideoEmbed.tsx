@@ -19,7 +19,11 @@ export default function VideoEmbed({ type, id, provider, className }: VideoEmbed
         title="Video Player"
         className="w-full h-full rounded-lg bg-black"
         allowFullScreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        /* Universal ad/redirect guard: block pop-ups, pop-unders and parent
+           redirects from third-party embeds. Stream URLs + routing unchanged. */
+        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
+        referrerPolicy="no-referrer"
         frameBorder="0"
         scrolling="no"
         onError={() => console.log("Video iframe error")}
