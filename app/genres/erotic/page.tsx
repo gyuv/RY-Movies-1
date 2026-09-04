@@ -1,5 +1,3 @@
-import Image from 'next/image';
-import Link from 'next/link';
 
 // 🔑 API Configuration
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || process.env.TMDB_API_KEY;
@@ -95,99 +93,59 @@ async function fetchEroticContent(): Promise<Movie[]> {
     return [];
   }
 }
-/**
- * Helper to get human-readable language names
- */
-const getLangName = (code: string) => {
-  const langs: Record<string, string> = {
-    pl: 'PL', ko: 'KR', fr: 'FR', en: 'EN', es: 'ES', hi: 'HI', ta: 'TA', te: 'TE', ml: 'ML',
-    pt: 'PT', ru: 'RU', ja: 'JP', zh: 'CN', de: 'DE', it: 'IT', ar: 'AR', tr: 'TR', sv: 'SE',
-    no: 'NO', da: 'DK', fi: 'FI', nl: 'NL', id: 'ID', ms: 'MS', th: 'TH', vi: 'VN', he: 'IL'
-  };
-  return langs[code] || code.toUpperCase();
-};
 
-export default async function FreudXPage() {
+import MediaCard from '../../components/MediaCard';
+import { SectionTitle } from '@/components/apex';
+
+export default async function EroticPage() {
   const movies = await fetchEroticContent();
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 font-sans">
-      {/* Header */}
-      <div className="relative w-full h-48 bg-gradient-to-b from-gray-900 to-black">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534528741775-53994a695755?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-        <div className="relative z-10 max-w-7xl mx-auto p-6">
-          <h1 className="text-5xl font-black tracking-tighter text-white uppercase">
-            Freud<span className="text-marquee">X</span>
-          </h1>
-          <p className="text-gray-400 text-sm mt-2 uppercase tracking-widest">
-            Global Hardcore & Erotic Collection
+    <main className="min-h-screen bg-apex-void text-paper">
+      <div className="mx-auto max-w-[1600px] py-10">
+        {/* Premium header */}
+        <div className="mb-8 flex flex-col gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <SectionTitle kicker="Adults Only" title="Erotic" size="lg" as="h1" />
+            <span className="mt-6 rounded-md border border-marquee/50 bg-marquee/10 px-2 py-0.5 text-[11px] font-bold tracking-wider text-marquee">
+              18+
+            </span>
+          </div>
+          <p className="max-w-2xl text-sm text-white/50">
+            Sensual thrillers, romance and drama for mature audiences. Viewer discretion advised.
           </p>
         </div>
-      </div>
 
-      {/* Content Grid */}
-      <div className="max-w-7xl mx-auto p-6">
         {movies.length === 0 ? (
-          <div className="text-center py-20 text-gray-500">
-            <p>No content found matching the FreudX criteria.</p>
-            <p className="text-xs mt-2">Check TMDB API Key & Adult Content settings.</p>
-            <div className="mt-4 p-4 bg-gray-900 rounded-lg max-w-md mx-auto text-left text-xs font-mono">
-              <p><strong>Debug:</strong></p>
-              <p>API Key: {TMDB_API_KEY ? 'Loaded' : 'Missing'}</p>
-              <p>Keywords: {FREUDX_KEYWORDS}</p>
-              <p>Languages: {TARGET_LANGUAGES.join(', ')}</p>
+          <div className="flex flex-col items-center justify-center px-4 py-24 text-center">
+            <div className="mb-4 h-16 w-16 text-ink-line">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+              </svg>
             </div>
+            <h3 className="mb-2 font-heading text-xl font-semibold text-white">No titles available</h3>
+            <p className="max-w-md text-sm text-white/45">
+              We couldn&apos;t load this collection right now. This may require the TMDB API key
+              ({TMDB_API_KEY ? 'loaded' : 'missing'}) and adult-content access.
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {movies.map((movie) => (
-              <Link
-                key={movie.id}
-                href={`/media/${movie.id}?type=movie`}
-                data-apex-nav
-                className="apex-focusable group relative block aspect-[2/3] overflow-hidden rounded-lg bg-apex-panel"
-              >
-                {movie.poster_path ? (
-                  <Image
-                    src={`${IMAGE_BASE_URL}${movie.poster_path}`}
-                    alt={movie.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 20vw, 15vw"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-gray-800 text-gray-600 text-xs">
-                    No Image
-                  </div>
-                )}
-                
-                {/* Hover Overlay - FreudX style is subtle and sleek */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
-                
-                {/* Info Bar on Hover */}
-                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-white truncate w-32">{movie.title}</span>
-                    <span className="text-[10px] text-gray-400">{movie.release_date?.slice(0, 4)}</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-xs font-bold text-marquee">{movie.vote_average.toFixed(1)}</span>
-                    <span className="text-[10px] text-gray-500 uppercase border border-gray-700 px-1 rounded">
-                      {getLangName(movie.original_language)}
-                    </span>
-                  </div>
-                </div>
-              </Link>
+          <div className="grid grid-cols-2 gap-4 px-4 sm:grid-cols-3 sm:gap-5 sm:px-6 md:grid-cols-4 lg:grid-cols-5 lg:gap-6 lg:px-8 xl:grid-cols-6 2xl:grid-cols-7">
+            {movies.map((movie, i) => (
+              <div key={movie.id} className="animate-fade-in-up" style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}>
+                <MediaCard
+                  id={movie.id}
+                  title={movie.title}
+                  poster_path={movie.poster_path}
+                  vote_average={movie.vote_average}
+                  release_date={movie.release_date}
+                  media_type="movie"
+                />
+              </div>
             ))}
           </div>
         )}
       </div>
-      
-      {/* Footer */}
-      <div className="text-center py-8 text-gray-600 text-xs uppercase tracking-widest">
-        FreudX • Curated by TMDB
-      </div>
-    </div>
+    </main>
   );
 }
