@@ -104,7 +104,7 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-apex-void"
+      className="relative flex min-h-[92svh] w-full flex-col overflow-hidden bg-apex-void"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -129,9 +129,9 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
       </div>
 
       {/* ── Hero-local header ── */}
-      <header className="relative z-20 mx-auto flex max-w-[1600px] items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
+      <header className="relative z-20 mx-auto flex w-full max-w-[1600px] items-center justify-between px-5 py-5 sm:px-8 md:pl-24 lg:pl-28 lg:pr-12">
         <Link href="/" data-apex-nav className="apex-focusable rounded-md">
-          <span className="font-heading text-2xl font-extrabold tracking-tight text-[#e50914] drop-shadow-[0_0_18px_rgba(229,9,20,0.55)] sm:text-3xl">
+          <span className="font-heading text-2xl font-extrabold tracking-tight text-arcade-gold drop-shadow-[0_0_18px_rgba(231,185,75,0.55)] sm:text-3xl">
             RayMovies
           </span>
         </Link>
@@ -144,14 +144,15 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
               className="apex-focusable group relative rounded-md px-1 py-1 text-sm font-medium text-white/80 transition-colors hover:text-white"
             >
               {n.label}
-              <span className="absolute -bottom-0.5 left-0 h-0.5 w-0 rounded-full bg-[#e50914] shadow-[0_0_10px_rgba(229,9,20,0.9)] transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-0.5 left-0 h-0.5 w-0 rounded-full bg-arcade-gold shadow-[0_0_10px_rgba(231,185,75,0.95)] transition-all duration-300 group-hover:w-full" />
             </Link>
           ))}
         </nav>
       </header>
 
-      {/* ── Featured content ── */}
-      <div className="relative z-10 mx-auto grid max-w-[1600px] grid-cols-1 items-center gap-6 px-5 pt-6 pb-40 sm:px-8 md:min-h-[62vh] md:grid-cols-2 md:pb-48 lg:px-12">
+      {/* ── Featured content (grows to fill; sits ABOVE the poster row) ── */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-1 items-center px-5 py-6 sm:px-8 md:pl-24 lg:pl-28 lg:pr-12">
+        <div className="grid w-full grid-cols-1 items-center gap-6 md:grid-cols-2">
         {/* spacer so backdrop characters read on the left (desktop) */}
         <div className="hidden md:block" />
 
@@ -198,24 +199,25 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
               <Link
                 href={`/media/${current.id}`}
                 data-apex-nav
-                className="apex-focusable group relative inline-flex items-center gap-2.5 rounded-full bg-[#e50914] px-8 py-3.5 text-base font-bold text-white shadow-[0_10px_40px_-8px_rgba(229,9,20,0.8)] transition-all hover:-translate-y-0.5 hover:bg-[#ff1f2b] hover:shadow-[0_16px_55px_-6px_rgba(229,9,20,0.95)]"
+                className="apex-focusable group relative inline-flex items-center gap-2.5 rounded-full bg-arcade-gold px-8 py-3.5 text-base font-bold text-arcade-deep shadow-[0_10px_40px_-8px_rgba(231,185,75,0.75)] transition-all hover:-translate-y-0.5 hover:bg-arcade-goldHot hover:shadow-[0_16px_55px_-6px_rgba(231,185,75,0.95)]"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
                   <path d="M8 5v14l11-7z" />
                 </svg>
                 Watch Now
-                <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 ring-2 ring-white/40 transition-opacity duration-300 group-hover:opacity-100" />
+                <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 ring-2 ring-arcade-blue/60 transition-opacity duration-300 group-hover:opacity-100" />
               </Link>
             </div>
           </motion.div>
         </AnimatePresence>
+        </div>
       </div>
 
-      {/* ── Floating poster carousel ── */}
-      <div className="absolute inset-x-0 bottom-0 z-20 pb-6">
+      {/* ── Floating poster carousel (in normal flow — never overlaps content) ── */}
+      <div className="relative z-20 w-full pb-6">
         <div
           ref={rowRef}
-          className="scrollbar-hide flex items-end gap-3 overflow-x-auto px-5 pb-2 pt-6 sm:gap-4 sm:px-8 lg:px-12 snap-x snap-mandatory"
+          className="scrollbar-hide flex items-end gap-3 overflow-x-auto px-5 pb-2 pt-6 sm:gap-4 sm:px-8 md:pl-24 lg:pl-28 lg:pr-12 snap-x snap-mandatory"
         >
           {list.map((m, i) => {
             const isActive = i === active;
@@ -245,11 +247,11 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
                     {m.title || m.name}
                   </div>
                 )}
-                {/* active glow frame (blue↔red) */}
+                {/* active glow frame (gold ring + blue inner bloom) */}
                 <span
                   className={`pointer-events-none absolute inset-0 rounded-lg transition-all duration-300 ${
                     isActive
-                      ? "ring-2 ring-[#e50914] shadow-[0_0_22px_rgba(229,9,20,0.7),inset_0_0_18px_rgba(58,160,255,0.35)]"
+                      ? "ring-2 ring-arcade-gold shadow-[0_0_22px_rgba(231,185,75,0.7),inset_0_0_18px_rgba(59,130,246,0.4)]"
                       : "ring-1 ring-white/10"
                   }`}
                 />

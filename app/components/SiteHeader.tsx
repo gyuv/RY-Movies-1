@@ -16,13 +16,13 @@ export default function SiteHeader() {
   const Logo = () => (
     <Link href="/" className="group flex flex-col gap-3 shrink-0 mb-8" onClick={() => setIsMobileMenuOpen(false)}>
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-red-600/10 flex items-center justify-center border border-red-600/30 group-hover:bg-red-600/20 group-hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(220,38,38,0.15)]">
+        <div className="w-10 h-10 rounded-xl bg-marquee/10 flex items-center justify-center border border-marquee/30 group-hover:bg-marquee/20 group-hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(220,38,38,0.15)]">
           {/* Cinematic Film Strip Icon */}
-          <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-6 h-6 text-marquee" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
           </svg>
         </div>
-        <span className="font-display italic text-2xl font-bold tracking-tight text-white group-hover:text-red-500 transition-colors leading-none">
+        <span className="font-display italic text-2xl font-bold tracking-tight text-white group-hover:text-marquee transition-colors leading-none">
           RaY-Movies
         </span>
       </div>
@@ -35,9 +35,9 @@ export default function SiteHeader() {
   return (
     <>
       {/* Mobile Top Bar (Visible only on small screens) */}
-      <div className="md:hidden fixed top-0 inset-x-0 h-16 bg-[#141414]/95 backdrop-blur-xl z-50 border-b border-gray-800 flex items-center justify-between px-4">
+      <div className="md:hidden fixed top-0 inset-x-0 h-16 bg-[#060B24]/95 backdrop-blur-xl z-50 border-b border-gray-800 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-           <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+           <svg className="w-6 h-6 text-marquee" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
             </svg>
             <span className="font-display italic text-xl font-bold text-white">RaY-Movies</span>
@@ -93,7 +93,7 @@ export default function SiteHeader() {
                 >
                   {/* Glowing left accent line on hover/active */}
                   <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-r-md transition-all duration-300 ${
-                    isActive ? "h-3/4 bg-red-600" : "h-0 bg-red-600 group-hover:h-1/2"
+                    isActive ? "h-3/4 bg-marquee" : "h-0 bg-marquee group-hover:h-1/2"
                   }`} />
                   
                   <span className={`transition-transform duration-300 ${isActive ? "translate-x-2" : "group-hover:translate-x-2"}`}>

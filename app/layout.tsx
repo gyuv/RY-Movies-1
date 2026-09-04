@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </div>
         
         {/* Footer */}
-        <footer className="bg-[#1a1a1a] border-t border-gray-800 mt-16 py-4 w-full">
+        <footer className="bg-[#0B1437] border-t border-gray-800 mt-16 py-4 w-full">
           <div className="max-w-[1600px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-sm text-gray-400 font-medium">
             <p>Email: Milad.barzegar71@gmail.com</p>
             

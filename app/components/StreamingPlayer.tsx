@@ -19,7 +19,7 @@ export default function StreamingPlayer({ movieId, type, language = 'en' }: Stre
   const [provider, setProvider] = useState<string>('promulti');
 
   return (
-    <div className="bg-[#14151a] p-4 rounded-lg">
+    <div className="bg-[#0F1A44] p-4 rounded-lg">
       <div className="flex flex-wrap gap-2 mb-4">
         {SERVERS.map((s) => (
           <button

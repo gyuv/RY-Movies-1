@@ -90,7 +90,7 @@ export default async function FreudXPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
         <div className="relative z-10 max-w-7xl mx-auto p-6">
           <h1 className="text-5xl font-black tracking-tighter text-white uppercase">
-            Freud<span className="text-red-600">X</span>
+            Freud<span className="text-marquee">X</span>
           </h1>
           <p className="text-gray-400 text-sm mt-2 uppercase tracking-widest">
             Global Hardcore & Erotic Collection
@@ -143,7 +143,7 @@ export default async function FreudXPage() {
                     <span className="text-[10px] text-gray-400">{movie.release_date?.slice(0, 4)}</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-xs font-bold text-red-500">{movie.vote_average.toFixed(1)}</span>
+                    <span className="text-xs font-bold text-marquee">{movie.vote_average.toFixed(1)}</span>
                     <span className="text-[10px] text-gray-500 uppercase border border-gray-700 px-1 rounded">
                       {getLangName(movie.original_language)}
                     </span>

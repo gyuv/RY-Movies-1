@@ -5,33 +5,47 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // ── Arcade Navy Blue + Arcade Gold — global palette ──
+        // Legacy tokens are repointed to the Arcade palette so every page
+        // adopts it automatically.
         ink: {
-          DEFAULT: "#0B0D10", // near-black house background
-          raised: "#14171C", // card / surface
-          line: "#232830", // hairline dividers
+          DEFAULT: "#060B24", // deep arcade navy — house background
+          raised: "#0F1A44", // navy card / surface
+          line: "#22306A", // navy hairline dividers
         },
         paper: {
-          DEFAULT: "#F2EFE9", // ticket-stub off-white for primary text
-          dim: "#9A9FA8", // muted metadata text
+          DEFAULT: "#F3F1FF", // soft off-white primary text
+          dim: "#9FA8C7", // muted navy-tinted metadata text
         },
         marquee: {
-          DEFAULT: "#E8A33D", // amber bulb accent — primary brand
-          hot: "#F2B65B",
+          DEFAULT: "#E7B94B", // arcade gold — primary brand accent
+          hot: "#FFD57A",
         },
         reel: {
-          teal: "#34D0A8", // "Free" badge
-          rose: "#E85B4B", // "Rent/Buy" badge / alerts
+          teal: "#3B82F6", // arcade blue accent
+          rose: "#E7B94B", // gold alert/accent
         },
-        // ── Project Apex: OLED + neon spatial palette ──
+        // Arcade palette (canonical names)
+        arcade: {
+          navy: "#0B1437", // core arcade navy
+          deep: "#060B24", // deepest navy (page ground)
+          panel: "#0F1A44", // raised navy glass panels
+          line: "#22306A", // hairline dividers
+          blue: "#3B82F6", // arcade royal blue
+          blueHot: "#60A5FA",
+          gold: "#E7B94B", // arcade gold
+          goldHot: "#FFD57A",
+        },
+        // apex.* kept as aliases so existing components recolor for free.
         apex: {
-          void: "#000000", // true OLED black
-          abyss: "#050505", // near-black surface base
-          panel: "#0A0B0F", // raised glass panels
-          hair: "#1A1D26", // hairline dividers
-          cyan: "#22E6D8", // primary neon accent
-          violet: "#8B5CF6", // secondary neon accent
-          magenta: "#F02FB2", // tertiary hot accent
-          amber: "#E8A33D", // legacy brand carry-over
+          void: "#060B24", // page ground → deep navy
+          abyss: "#081030",
+          panel: "#0F1A44",
+          hair: "#22306A",
+          cyan: "#E7B94B", // primary accent → arcade gold
+          violet: "#3B82F6", // secondary accent → arcade blue
+          magenta: "#FFD57A", // tertiary → gold-hot
+          amber: "#E7B94B",
         },
       },
       fontFamily: {
@@ -44,16 +58,16 @@ const config: Config = {
         sprockets:
           "repeating-linear-gradient(90deg, transparent 0 18px, #232830 18px 20px)",
         "apex-radial":
-          "radial-gradient(ellipse at 50% 0%, rgba(34,230,216,0.12), transparent 60%)",
+          "radial-gradient(ellipse at 50% 0%, rgba(231,185,75,0.14), transparent 60%)",
         "apex-portal":
-          "radial-gradient(circle at center, rgba(139,92,246,0.35), rgba(34,230,216,0.12) 40%, transparent 70%)",
+          "radial-gradient(circle at center, rgba(59,130,246,0.35), rgba(231,185,75,0.14) 40%, transparent 70%)",
       },
       letterSpacing: {
         stub: "0.22em",
       },
       boxShadow: {
-        "apex-glow": "0 0 0 1px rgba(34,230,216,0.35), 0 8px 40px -8px rgba(34,230,216,0.45)",
-        "apex-violet": "0 0 0 1px rgba(139,92,246,0.4), 0 10px 50px -10px rgba(139,92,246,0.5)",
+        "apex-glow": "0 0 0 1px rgba(231,185,75,0.40), 0 8px 40px -8px rgba(231,185,75,0.50)",
+        "apex-violet": "0 0 0 1px rgba(59,130,246,0.45), 0 10px 50px -10px rgba(59,130,246,0.55)",
       },
       keyframes: {
         "fade-in-up": {

@@ -210,7 +210,7 @@ export default async function Home({
         </div>
       )}
 
-      <div className="sticky top-0 z-40 bg-[#141414]/90 backdrop-blur-md">
+      <div className="sticky top-0 z-40 bg-[#060B24]/90 backdrop-blur-md">
         <Suspense fallback={<div className="h-16" />}>
           <Filters />
         </Suspense>

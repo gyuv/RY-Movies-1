@@ -231,7 +231,7 @@ export default async function MediaPage({
             </section>
 
             {/* WATCH ONLINE PLAYER SECTION (Moved below Details) */}
-            <section className="bg-[#12141c] p-6 rounded-2xl border border-ink-line shadow-xl">
+            <section className="bg-[#0F1A44] p-6 rounded-2xl border border-ink-line shadow-xl">
               <h2 className="text-xl font-display font-bold mb-4 section-heading flex items-center gap-2">
                 <span className="w-2.5 h-6 bg-marquee rounded-full"></span>
                 Watch Online

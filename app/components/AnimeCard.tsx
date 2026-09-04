@@ -17,7 +17,7 @@ export default function AnimeCard({
 }) {
   return (
     <Link href={`/anime/${mal_id}`} className="group block">
-      <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#1a1a1a]">
+      <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#0B1437]">
         <Image src={image} alt={title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
         {episodes != null && (
           <span className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm text-green-400 text-xs font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">

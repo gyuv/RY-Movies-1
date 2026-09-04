@@ -136,7 +136,7 @@ export default function ApexIntro() {
     const cy = () => h / 2;
     const GOLD = "232,184,75";
     const BLUE = "58,160,255";
-    const CRIMSON = "229,9,20";
+    const IMPACT = "231,185,75"; // arcade gold flash
 
     const COUNT = reduce ? 70 : Math.min(260, Math.floor((w * h) / 7600));
     const parts = Array.from({ length: COUNT }, () => {
@@ -171,7 +171,7 @@ export default function ApexIntro() {
       const g = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), coreR);
       if (inImpact) {
         const flash = Math.max(0, 1 - sinceImpact * 1.6); // crimson flash decays
-        g.addColorStop(0, `rgba(${CRIMSON},${0.28 + flash * 0.5})`);
+        g.addColorStop(0, `rgba(${IMPACT},${0.28 + flash * 0.5})`);
         g.addColorStop(0.35, `rgba(${GOLD},${0.14})`);
         g.addColorStop(1, "rgba(0,0,0,0)");
       } else {
@@ -222,7 +222,7 @@ export default function ApexIntro() {
         p.x += p.vx;
         p.y += p.vy;
 
-        const hue = inImpact && sinceImpact < 0.5 ? CRIMSON : p.hue;
+        const hue = inImpact && sinceImpact < 0.5 ? IMPACT : p.hue;
         const alpha = inImpact
           ? Math.max(0, 0.9 - sinceImpact * 0.5)
           : Math.min(1, 60 / dist);
@@ -272,7 +272,7 @@ export default function ApexIntro() {
                 className="pointer-events-none absolute inset-0"
                 style={{
                   background:
-                    "radial-gradient(circle at center, rgba(229,9,20,0.55), rgba(232,184,75,0.15) 40%, transparent 70%)",
+                    "radial-gradient(circle at center, rgba(59,130,246,0.5), rgba(231,185,75,0.22) 40%, transparent 70%)",
                 }}
               />
             )}
@@ -289,7 +289,7 @@ export default function ApexIntro() {
                   transition={{ type: "spring", stiffness: 260, damping: 18, mass: 0.7 }}
                   className="relative"
                 >
-                  <span className="pointer-events-none absolute -inset-x-16 -inset-y-10 rounded-full bg-[radial-gradient(circle,rgba(229,9,20,0.35),rgba(232,184,75,0.18)_45%,transparent_72%)] blur-2xl" />
+                  <span className="pointer-events-none absolute -inset-x-16 -inset-y-10 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.35),rgba(231,185,75,0.2)_45%,transparent_72%)] blur-2xl" />
                   <h1 className="relative select-none font-heading text-6xl font-extrabold tracking-tight sm:text-8xl md:text-9xl">
                     <span className="ray-brand">Ray</span>
                     <span className="ray-brand-alt">Movies</span>
@@ -331,14 +331,14 @@ export default function ApexIntro() {
           {/* scoped brand styles */}
           <style>{`
             .ray-brand {
-              background: linear-gradient(180deg, #ff5a5f 0%, #e50914 55%, #b0060d 100%);
+              background: linear-gradient(180deg, #ffe7a8 0%, #e7b94b 55%, #c8912a 100%);
               -webkit-background-clip: text; background-clip: text; color: transparent;
-              text-shadow: 0 0 42px rgba(229,9,20,0.55);
+              text-shadow: 0 0 42px rgba(231,185,75,0.55);
             }
             .ray-brand-alt {
-              background: linear-gradient(180deg, #ffe7a8 0%, #e8b84b 55%, #c8912a 100%);
+              background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 55%, #1d4ed8 100%);
               -webkit-background-clip: text; background-clip: text; color: transparent;
-              text-shadow: 0 0 42px rgba(232,184,75,0.5);
+              text-shadow: 0 0 42px rgba(59,130,246,0.55);
             }
             .ray-quote {
               background: linear-gradient(100deg, rgba(255,255,255,0.55) 20%, #ffffff 45%, rgba(255,255,255,0.55) 70%);
@@ -347,7 +347,7 @@ export default function ApexIntro() {
               animation: apex-sheen 3.5s linear infinite;
             }
             .ray-caret {
-              color: #e8b84b; margin-left: 2px;
+              color: #e7b94b; margin-left: 2px;
               animation: rayBlink 1s steps(1) infinite;
             }
             @keyframes rayBlink { 50% { opacity: 0; } }
