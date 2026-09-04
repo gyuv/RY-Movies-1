@@ -1,12 +1,11 @@
 import Filters from './components/Filters';
 import MoviesSection from './components/MoviesSection';
-import Hero from './components/Hero';
 import Footer from './components/Footer';
 import MovieCarousel from './components/MovieCarousel';
 import Pagination from './components/Pagination';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { SectionTitle } from '@/components/apex';
+import { CinematicHero, SectionTitle } from '@/components/apex';
 
 const MOCK_MOVIE = { 
   id: 99, 
@@ -180,7 +179,7 @@ export default async function Home({
 
   return (
     <main className="min-h-screen bg-apex-void text-white">
-      {!hasFilters && heroData && <Hero movies={heroData} />}
+      {!hasFilters && heroData && <CinematicHero movies={heroData} />}
       
       {!hasFilters && (
         <div className="relative flex justify-center px-4 pt-8 pb-2">
