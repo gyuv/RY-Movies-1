@@ -36,6 +36,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-display)", "serif"],
+        heading: ["var(--font-heading)", "var(--font-body)", "sans-serif"],
         body: ["var(--font-body)", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
       },
@@ -71,12 +72,21 @@ const config: Config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "apex-sheen": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "100%": { backgroundPosition: "200% 50%" },
+        },
+        "apex-bar": {
+          "0%": { transform: "scaleX(0)", opacity: "0" },
+          "100%": { transform: "scaleX(1)", opacity: "1" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 0.7s cubic-bezier(0.16,1,0.3,1) both",
         "apex-float": "apex-float 6s ease-in-out infinite",
         "apex-pulse": "apex-pulse 3.5s ease-in-out infinite",
         "apex-shimmer": "apex-shimmer 1.6s linear infinite",
+        "apex-sheen": "apex-sheen 6s linear infinite",
       },
     },
   },

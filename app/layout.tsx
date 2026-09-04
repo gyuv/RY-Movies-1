@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, Inter, IBM_Plex_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { ApexIntro, SpatialDock, ApexSearch } from "@/components/apex";
 
@@ -8,6 +8,13 @@ const display = Fraunces({
   weight: ["500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-display",
+});
+
+// Modern geometric display face for premium UI headings.
+const heading = Sora({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-heading",
 });
 
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
@@ -26,7 +33,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" className={`${display.variable} ${heading.variable} ${body.variable} ${mono.variable}`}>
       <body className="bg-apex-void text-white flex flex-col min-h-screen overflow-x-clip">
 
         {/* Project Apex — cinematic entry (self-dismisses; remembers via localStorage) */}
