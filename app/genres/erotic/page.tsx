@@ -29,39 +29,67 @@ const TARGET_GENRES = '10749,18,53,9648'; // Romance, Drama, Thriller, Mystery
 const TARGET_LANGUAGES = ['pl', 'ko', 'fr', 'en', 'es', 'hi', 'ta', 'te', 'ml', 'pt', 'ru', 'ja', 'zh'];
 
 /**
- * Fetches content using a dual strategy: Keywords + Genres
+ * Fetches content using a dual strategy: erotic Keywords (OR) + sensual
+ * Romance genre. IMPORTANT: TMDB treats commas in `with_genres`/`with_keywords`
+ * as AND and the pipe `|` as OR — we use OR so results are broad, not empty.
  */
 async function fetchEroticContent(): Promise<Movie[]> {
   if (!TMDB_API_KEY) return [];
 
-  try {
-    // 1. Fetch by Genres (Romance, Drama, Thriller) + Adult Flag
-    // This covers 90% of "Hardcore" films that lack specific keywords
-    const genreRes = await fetch(
-      `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=10749,18,53&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false&with_original_language=en`,
-      { next: { revalidate: 3600 } }
-    );
-    const enData = await genreRes.json();
+  // OR-join the curated erotic keyword ids.
+  const keywordsOR = FREUDX_KEYWORDS.split(',').join('|');
 
-    // 2. Fetch specific "Erotic" keywords for non-English languages
-    const keywordPromises = ['pl', 'ko', 'fr', 'es'].map(async (lang) => {
-      const res = await fetch(
-        `${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_keywords=620,2123,1493&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=5&include_adult=true&include_video=false`,
-        { next: { revalidate: 3600 } }
-      );
+  const get = async (query: string): Promise<Movie[]> => {
+    try {
+      const res = await fetch(`${BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&${query}`, {
+        next: { revalidate: 3600 },
+      });
+      if (!res.ok) return [];
       const data = await res.json();
-      return data.results || [];
-    });
+      return (data.results || []) as Movie[];
+    } catch {
+      return [];
+    }
+  };
 
-    const keywordResults = await Promise.all(keywordPromises);
-    const allMovies = [...(enData.results || []), ...keywordResults.flat()];
+  try {
+    const requests: Promise<Movie[]>[] = [];
 
-    // Deduplicate and Sort
-    const uniqueMovies = Array.from(new Map(allMovies.map(item => [item.id, item])).values());
-    const sortedMovies = uniqueMovies.sort((a, b) => b.popularity - a.popularity);
+    // 1. Erotic KEYWORDS (OR) across pages — the core of the collection.
+    for (let page = 1; page <= 3; page++) {
+      requests.push(
+        get(
+          `with_keywords=${keywordsOR}&sort_by=popularity.desc&vote_count.gte=1&include_adult=true&include_video=false&page=${page}`
+        )
+      );
+    }
 
-    return sortedMovies.slice(0, 24); // Return top 24
+    // 2. Sensual ROMANCE genre (single genre = broad) as reliable fallback.
+    for (let page = 1; page <= 2; page++) {
+      requests.push(
+        get(
+          `with_genres=10749&sort_by=popularity.desc&vote_count.gte=40&include_adult=true&include_video=false&page=${page}`
+        )
+      );
+    }
 
+    // 3. A couple of high-heat languages known for the genre.
+    for (const lang of ['ko', 'fr', 'ja']) {
+      requests.push(
+        get(
+          `with_keywords=${keywordsOR}&with_original_language=${lang}&sort_by=popularity.desc&vote_count.gte=1&include_adult=true&page=1`
+        )
+      );
+    }
+
+    const all = (await Promise.all(requests)).flat();
+
+    // Deduplicate, require a poster, sort by popularity.
+    const unique = Array.from(new Map(all.map((m) => [m.id, m])).values())
+      .filter((m) => m.poster_path)
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+    return unique.slice(0, 36);
   } catch (error) {
     console.error(error);
     return [];
@@ -114,17 +142,18 @@ export default async function FreudXPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {movies.map((movie) => (
-              <Link 
-                key={movie.id} 
-                href={`/movie/${movie.id}`} 
-                className="group relative block aspect-[2/3] overflow-hidden bg-gray-900"
+              <Link
+                key={movie.id}
+                href={`/media/${movie.id}?type=movie`}
+                data-apex-nav
+                className="apex-focusable group relative block aspect-[2/3] overflow-hidden rounded-lg bg-apex-panel"
               >
                 {movie.poster_path ? (
                   <Image
                     src={`${IMAGE_BASE_URL}${movie.poster_path}`}
                     alt={movie.title}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110 group-hover:grayscale-0 grayscale"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 20vw, 15vw"
                   />
                 ) : (
