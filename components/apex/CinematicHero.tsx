@@ -131,8 +131,10 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
       {/* ── Hero-local header ── */}
       <header className="relative z-20 mx-auto flex w-full max-w-[1600px] items-center justify-between px-5 py-5 sm:px-8 md:pl-24 lg:pl-28 lg:pr-12">
         <Link href="/" data-apex-nav className="apex-focusable rounded-md">
-          <span className="font-heading text-2xl font-extrabold tracking-tight text-arcade-gold drop-shadow-[0_0_18px_rgba(201,162,39,0.55)] sm:text-3xl">
-            RayMovies
+          <span className="inline-block origin-center animate-heartbeat drop-shadow-[0_0_20px_rgba(201,162,39,0.5)]">
+            <span className="gold-metal font-heading text-2xl font-extrabold tracking-tight sm:text-3xl">
+              RayMovies
+            </span>
           </span>
         </Link>
         <nav className="hidden items-center gap-7 md:flex lg:gap-9">
@@ -199,7 +201,7 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
               <Link
                 href={`/media/${current.id}`}
                 data-apex-nav
-                className="apex-focusable group relative inline-flex items-center gap-2.5 rounded-full bg-arcade-gold px-8 py-3.5 text-base font-bold text-arcade-deep shadow-[0_10px_40px_-8px_rgba(201,162,39,0.75)] transition-all hover:-translate-y-0.5 hover:bg-arcade-goldHot hover:shadow-[0_16px_55px_-6px_rgba(201,162,39,0.95)]"
+                className="gold-metal-bg apex-focusable group relative inline-flex items-center gap-2.5 rounded-full px-8 py-3.5 text-base font-bold text-arcade-deep shadow-[0_10px_40px_-8px_rgba(201,162,39,0.75)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_55px_-6px_rgba(201,162,39,0.95)]"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
                   <path d="M8 5v14l11-7z" />

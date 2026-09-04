@@ -94,6 +94,13 @@ const config: Config = {
           "0%": { transform: "scaleX(0)", opacity: "0" },
           "100%": { transform: "scaleX(1)", opacity: "1" },
         },
+        // Two quick beats, then a rest — a real heartbeat cadence.
+        heartbeat: {
+          "0%, 40%, 100%": { transform: "scale(1)" },
+          "10%": { transform: "scale(1.07)" },
+          "20%": { transform: "scale(1)" },
+          "30%": { transform: "scale(1.11)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 0.7s cubic-bezier(0.16,1,0.3,1) both",
@@ -101,6 +108,7 @@ const config: Config = {
         "apex-pulse": "apex-pulse 3.5s ease-in-out infinite",
         "apex-shimmer": "apex-shimmer 1.6s linear infinite",
         "apex-sheen": "apex-sheen 6s linear infinite",
+        heartbeat: "heartbeat 2.2s ease-in-out infinite",
       },
     },
   },
