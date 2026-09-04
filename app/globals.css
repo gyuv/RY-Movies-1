@@ -22,13 +22,13 @@ a { transition: color 0.2s ease; }
 .section-heading::before {
   content: "";
   @apply h-5 w-1 rounded-full bg-gradient-to-b from-apex-cyan to-apex-violet;
-  box-shadow: 0 0 12px rgba(231, 185, 75, 0.7);
+  box-shadow: 0 0 12px rgba(201, 162, 39, 0.7);
 }
 
 /* Animated gradient-sheen title text (premium, subtle). */
 .apex-title {
   @apply font-heading font-bold tracking-tight;
-  background-image: linear-gradient(100deg, #ffffff 20%, #FFE9AE 40%, #ffffff 60%);
+  background-image: linear-gradient(100deg, #ffffff 20%, #E7CE86 40%, #ffffff 60%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -132,7 +132,7 @@ a { transition: color 0.2s ease; }
 .apex-focusable:focus-visible,
 .apex-focusable[data-apex-focused="true"] {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(231, 185, 75, 0.95),
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.95),
     0 0 22px 2px rgba(59, 130, 246, 0.55);
   border-radius: 0.85rem;
   z-index: 40;
@@ -152,7 +152,7 @@ a { transition: color 0.2s ease; }
 
 /* Cinematic gradient text for the Apex wordmark */
 .apex-wordmark {
-  background: linear-gradient(92deg, #E7B94B, #3B82F6 55%, #FFD57A);
+  background: linear-gradient(92deg, #C9A227, #3B82F6 55%, #E5C15B);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

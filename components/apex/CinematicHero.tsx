@@ -131,7 +131,7 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
       {/* ── Hero-local header ── */}
       <header className="relative z-20 mx-auto flex w-full max-w-[1600px] items-center justify-between px-5 py-5 sm:px-8 md:pl-24 lg:pl-28 lg:pr-12">
         <Link href="/" data-apex-nav className="apex-focusable rounded-md">
-          <span className="font-heading text-2xl font-extrabold tracking-tight text-arcade-gold drop-shadow-[0_0_18px_rgba(231,185,75,0.55)] sm:text-3xl">
+          <span className="font-heading text-2xl font-extrabold tracking-tight text-arcade-gold drop-shadow-[0_0_18px_rgba(201,162,39,0.55)] sm:text-3xl">
             RayMovies
           </span>
         </Link>
@@ -144,7 +144,7 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
               className="apex-focusable group relative rounded-md px-1 py-1 text-sm font-medium text-white/80 transition-colors hover:text-white"
             >
               {n.label}
-              <span className="absolute -bottom-0.5 left-0 h-0.5 w-0 rounded-full bg-arcade-gold shadow-[0_0_10px_rgba(231,185,75,0.95)] transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-0.5 left-0 h-0.5 w-0 rounded-full bg-arcade-gold shadow-[0_0_10px_rgba(201,162,39,0.95)] transition-all duration-300 group-hover:w-full" />
             </Link>
           ))}
         </nav>
@@ -199,7 +199,7 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
               <Link
                 href={`/media/${current.id}`}
                 data-apex-nav
-                className="apex-focusable group relative inline-flex items-center gap-2.5 rounded-full bg-arcade-gold px-8 py-3.5 text-base font-bold text-arcade-deep shadow-[0_10px_40px_-8px_rgba(231,185,75,0.75)] transition-all hover:-translate-y-0.5 hover:bg-arcade-goldHot hover:shadow-[0_16px_55px_-6px_rgba(231,185,75,0.95)]"
+                className="apex-focusable group relative inline-flex items-center gap-2.5 rounded-full bg-arcade-gold px-8 py-3.5 text-base font-bold text-arcade-deep shadow-[0_10px_40px_-8px_rgba(201,162,39,0.75)] transition-all hover:-translate-y-0.5 hover:bg-arcade-goldHot hover:shadow-[0_16px_55px_-6px_rgba(201,162,39,0.95)]"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
                   <path d="M8 5v14l11-7z" />
@@ -251,7 +251,7 @@ export default function CinematicHero({ movies }: { movies: HeroMovie[] }) {
                 <span
                   className={`pointer-events-none absolute inset-0 rounded-lg transition-all duration-300 ${
                     isActive
-                      ? "ring-2 ring-arcade-gold shadow-[0_0_22px_rgba(231,185,75,0.7),inset_0_0_18px_rgba(59,130,246,0.4)]"
+                      ? "ring-2 ring-arcade-gold shadow-[0_0_22px_rgba(201,162,39,0.7),inset_0_0_18px_rgba(59,130,246,0.4)]"
                       : "ring-1 ring-white/10"
                   }`}
                 />

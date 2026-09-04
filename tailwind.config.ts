@@ -18,12 +18,12 @@ const config: Config = {
           dim: "#9FA8C7", // muted navy-tinted metadata text
         },
         marquee: {
-          DEFAULT: "#E7B94B", // arcade gold — primary brand accent
-          hot: "#FFD57A",
+          DEFAULT: "#C9A227", // arcade gold — primary brand accent
+          hot: "#E5C15B",
         },
         reel: {
           teal: "#3B82F6", // arcade blue accent
-          rose: "#E7B94B", // gold alert/accent
+          rose: "#C9A227", // gold alert/accent
         },
         // Arcade palette (canonical names)
         arcade: {
@@ -33,8 +33,8 @@ const config: Config = {
           line: "#22306A", // hairline dividers
           blue: "#3B82F6", // arcade royal blue
           blueHot: "#60A5FA",
-          gold: "#E7B94B", // arcade gold
-          goldHot: "#FFD57A",
+          gold: "#C9A227", // arcade gold
+          goldHot: "#E5C15B",
         },
         // apex.* kept as aliases so existing components recolor for free.
         apex: {
@@ -42,10 +42,10 @@ const config: Config = {
           abyss: "#081030",
           panel: "#0F1A44",
           hair: "#22306A",
-          cyan: "#E7B94B", // primary accent → arcade gold
+          cyan: "#C9A227", // primary accent → arcade gold
           violet: "#3B82F6", // secondary accent → arcade blue
-          magenta: "#FFD57A", // tertiary → gold-hot
-          amber: "#E7B94B",
+          magenta: "#E5C15B", // tertiary → gold-hot
+          amber: "#C9A227",
         },
       },
       fontFamily: {
@@ -58,15 +58,15 @@ const config: Config = {
         sprockets:
           "repeating-linear-gradient(90deg, transparent 0 18px, #232830 18px 20px)",
         "apex-radial":
-          "radial-gradient(ellipse at 50% 0%, rgba(231,185,75,0.14), transparent 60%)",
+          "radial-gradient(ellipse at 50% 0%, rgba(201,162,39,0.14), transparent 60%)",
         "apex-portal":
-          "radial-gradient(circle at center, rgba(59,130,246,0.35), rgba(231,185,75,0.14) 40%, transparent 70%)",
+          "radial-gradient(circle at center, rgba(59,130,246,0.35), rgba(201,162,39,0.14) 40%, transparent 70%)",
       },
       letterSpacing: {
         stub: "0.22em",
       },
       boxShadow: {
-        "apex-glow": "0 0 0 1px rgba(231,185,75,0.40), 0 8px 40px -8px rgba(231,185,75,0.50)",
+        "apex-glow": "0 0 0 1px rgba(201,162,39,0.40), 0 8px 40px -8px rgba(201,162,39,0.50)",
         "apex-violet": "0 0 0 1px rgba(59,130,246,0.45), 0 10px 50px -10px rgba(59,130,246,0.55)",
       },
       keyframes: {

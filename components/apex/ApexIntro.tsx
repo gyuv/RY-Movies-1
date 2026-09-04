@@ -134,9 +134,9 @@ export default function ApexIntro() {
 
     const cx = () => w / 2;
     const cy = () => h / 2;
-    const GOLD = "232,184,75";
+    const GOLD = "201,162,39";
     const BLUE = "58,160,255";
-    const IMPACT = "231,185,75"; // arcade gold flash
+    const IMPACT = "201,162,39"; // arcade gold flash
 
     const COUNT = reduce ? 70 : Math.min(260, Math.floor((w * h) / 7600));
     const parts = Array.from({ length: COUNT }, () => {
@@ -272,7 +272,7 @@ export default function ApexIntro() {
                 className="pointer-events-none absolute inset-0"
                 style={{
                   background:
-                    "radial-gradient(circle at center, rgba(59,130,246,0.5), rgba(231,185,75,0.22) 40%, transparent 70%)",
+                    "radial-gradient(circle at center, rgba(59,130,246,0.5), rgba(201,162,39,0.22) 40%, transparent 70%)",
                 }}
               />
             )}
@@ -289,7 +289,7 @@ export default function ApexIntro() {
                   transition={{ type: "spring", stiffness: 260, damping: 18, mass: 0.7 }}
                   className="relative"
                 >
-                  <span className="pointer-events-none absolute -inset-x-16 -inset-y-10 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.35),rgba(231,185,75,0.2)_45%,transparent_72%)] blur-2xl" />
+                  <span className="pointer-events-none absolute -inset-x-16 -inset-y-10 rounded-full bg-[radial-gradient(circle,rgba(59,130,246,0.35),rgba(201,162,39,0.2)_45%,transparent_72%)] blur-2xl" />
                   <h1 className="relative select-none font-heading text-6xl font-extrabold tracking-tight sm:text-8xl md:text-9xl">
                     <span className="ray-brand">Ray</span>
                     <span className="ray-brand-alt">Movies</span>
@@ -331,9 +331,9 @@ export default function ApexIntro() {
           {/* scoped brand styles */}
           <style>{`
             .ray-brand {
-              background: linear-gradient(180deg, #ffe7a8 0%, #e7b94b 55%, #c8912a 100%);
+              background: linear-gradient(180deg, #eeddad 0%, #c9a227 55%, #8f6a1e 100%);
               -webkit-background-clip: text; background-clip: text; color: transparent;
-              text-shadow: 0 0 42px rgba(231,185,75,0.55);
+              text-shadow: 0 0 42px rgba(201,162,39,0.55);
             }
             .ray-brand-alt {
               background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 55%, #1d4ed8 100%);
@@ -347,7 +347,7 @@ export default function ApexIntro() {
               animation: apex-sheen 3.5s linear infinite;
             }
             .ray-caret {
-              color: #e7b94b; margin-left: 2px;
+              color: #c9a227; margin-left: 2px;
               animation: rayBlink 1s steps(1) infinite;
             }
             @keyframes rayBlink { 50% { opacity: 0; } }
